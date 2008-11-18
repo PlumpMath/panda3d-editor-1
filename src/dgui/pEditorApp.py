@@ -1,18 +1,34 @@
 #!/usr/bin/env python
+from direct.showbase.DirectObject import DirectObject
+from direct.gui.OnscreenText import OnscreenText
 
 from dgui.interactiveConsole.interactiveConsole import pandaConsole, INPUT_GUI, OUTPUT_PYTHON
 from dgui.filebrowser import FG
 from dgui.scenegraphBrowser import SceneGraphBrowser
 from dgui.directWindow.src.directWindow import DirectWindow
 from dgui.interactiveConsole.interactiveConsole import *
+from direct.gui.DirectButton import DirectButton
+from direct.gui.DirectScrolledList import DirectScrolledList
 
 from core.pConfigDefs import *
 
 EDITOR_DGUI_TOGGLE_BUTTON = 'f11'
 
-class EditorApp:
-  def __init__( self ):
+# Function to put instructions on the screen.
+def addInstructions(pos, msg, mutable=False):
+    return OnscreenText(text=msg, style=1, fg=(1,1,1,1),
+			pos=(-1.3, pos), align=TextNode.ALeft, scale = .05, mayChange=mutable)
+
+# Function to put title on the screen.
+def addTitle(text):
+    return OnscreenText(text=text, style=1, fg=(1,1,1,1),
+	                pos=(1.3,-0.95), align=TextNode.ARight, scale = .07)
+
+class EditorApp(DirectObject):
+  def __init__( self, editorInstance ):
     self.enabled = False
+    self.accept( EDITOR_DGUI_TOGGLE_BUTTON, self.toggle )
+    self.editorInstance = editorInstance
   
   def toggle( self, state=None ):
     print "I: EditorApp.toggle", state
@@ -68,13 +84,12 @@ class EditorApp:
       console = pandaConsole( INPUT_GUI|OUTPUT_PYTHON, locals() )
       console.toggle()
       
-      buttonDefinitions = [ ['model', self.createNodePathWrapper, []]
-                          , ['particlesystem', self.createPartcileNodeWrapper, []]
-                          , ['spotlight', self.createSpotlightNodeWrapper, []]
-                          , ['destroy model', self.destroyModel, []]
-                          , ['load', self.loadEggModelsFile, ['testModelsFile']]
-                          , ['save', self.saveEggModelsFile, ['testModelsFile']]
-                          ]
+      buttonDefinitions = [ ['model', self.editorInstance.createNodePathWrapper, []]
+                          , ['particlesystem', self.editorInstance.createPartcileNodeWrapper, []]
+                          , ['spotlight', self.editorInstance.createSpotlightNodeWrapper, []]
+                          , ['destroy model', self.editorInstance.destroyModel, []]
+                          , ['load', self.editorInstance.loadEggModelsFile, ['testModelsFile']]
+                          , ['save', self.editorInstance.saveEggModelsFile, ['testModelsFile']] ]
       self.createInterface(buttonDefinitions)
       
       # some help text nodes
@@ -83,7 +98,7 @@ class EditorApp:
       helpTexts = [ "LeftMouse: select object to move, select again to rotate, select again to scale"
                   , "MittleMouse: press & drag to rotate camera, turn to zoom (or page_up/down)"
                   , "RightMouse: press & drag to move camera pivot"
-                  , "%s: Toggle Editor On/off" % EDITOR_TOGGLE_BUTTON.upper()
+                  , "%s: Toggle Editor On/off" % EDITOR_DGUI_TOGGLE_BUTTON.upper()
                   , "F5: save scene      F9: load scene" ]
       for i in xrange( len(helpTexts) ):
         self.helpText.append( addInstructions(1.0-0.05*(i+1), helpTexts[i]) )
@@ -93,8 +108,8 @@ class EditorApp:
       self.enabled = True
       
       messenger.send( EDITOR_TOGGLE_ON_EVENT )
-      
-      self.accept( EDITOR_DGUI_TOGGLE_BUTTON, self.toggle )
+    
+    self.accept( EDITOR_DGUI_TOGGLE_BUTTON, self.toggle )
   
   def disable( self ):
     if self.enabled:
