@@ -10,6 +10,7 @@ from math import tan
 
 # Local imports
 from pPropertyGrid import PropertyGrid
+from pSceneGraphTree import SceneGraphTree
 
 # Get the default window origin
 defWP = WindowProperties.getDefault()
@@ -41,16 +42,24 @@ class EditorApp(AppShell):
     
     # Initialize the app shell and add some controls
     AppShell.__init__(self, title = "Panda Editor", pos = origin)
-    b=wx.Frame(self)
-    self.propertyGrid = PropertyGrid(b)
-    b.Show()
-    
+    self.splitter = wx.SplitterWindow(self, style = wx.SP_3D | wx.SP_BORDER)
+    self.sideBarSplitter = wx.SplitterWindow(self.splitter, style = wx.SP_3D | wx.SP_BORDER)
+    self.sceneGraphTree = SceneGraphTree(self.sideBarSplitter)
+    self.propertyGrid = PropertyGrid(self.sideBarSplitter)
+    self.panel3D = wx.Panel(self.splitter)
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    assert self.sideBarSplitter.SplitHorizontally(self.sceneGraphTree, self.propertyGrid)
+    assert self.splitter.SplitVertically(self.sideBarSplitter, self.panel3D)
+    sizer.Add(self.splitter, 1, wx.EXPAND, 0)
+    self.SetSizer(sizer)
+    self.Layout()
+
     # Setup the panda stuff
     self.setupPandaWindow()
     self.editorInit()
     
     # Setup some events
-    self.Bind(wx.EVT_SIZE, self.onSize)
+    self.panel3D.Bind(wx.EVT_SIZE, self.onPanelSize)
     base.accept("c", self.onCenterTrackball)
   
   def appInit(self):
@@ -100,13 +109,14 @@ class EditorApp(AppShell):
   
   def setupPandaWindow(self):
     self.Update()
+    self.panel3D.Update()
     self.wxStep()
     base.windowType = "onscreen"
     wp = WindowProperties.getDefault()
     wp.setOrigin(0, 0)
-    wp.setSize(self.GetClientSize().GetWidth(), self.GetClientSize().GetHeight())
-    assert self.GetHandle() != 0
-    wp.setParentWindow(self.GetHandle())
+    wp.setSize(self.panel3D.GetClientSize().GetWidth(), self.panel3D.GetClientSize().GetHeight())
+    assert self.panel3D.GetHandle() != 0
+    wp.setParentWindow(self.panel3D.GetHandle())
     base.openDefaultWindow(props = wp)
     self.Raise()
   
@@ -135,11 +145,11 @@ class EditorApp(AppShell):
   def onDestroy(self, event):
     wx.EventLoop.SetActive(self.oldLoop)
   
-  def onSize(self, sizeEvt = None):
+  def onPanelSize(self, sizeEvt = None):
     if(base.win != None): # Make sure we have a window
       wp = WindowProperties()
       wp.setOrigin(0, 0)
-      wp.setSize(self.GetClientSize().GetWidth(), self.GetClientSize().GetHeight())
+      wp.setSize(self.panel3D.GetClientSize().GetWidth(), self.panel3D.GetClientSize().GetHeight())
       base.win.requestProperties(wp)
   
   def onNew(self, evt = None):
@@ -244,7 +254,7 @@ class EditorApp(AppShell):
   
   def onChooseColor(self, evt = None):
     data = wx.ColourData()
-    bgcolor = base.getBackgroundColor().asTuple()
+    bgcolor = base.getBackgroundColor()
     bgcolor = bgcolor[0] * 255.0, bgcolor[1] * 255.0, bgcolor[2] * 255.0
     data.SetColour(bgcolor)
     dlg = wx.ColourDialog(self, data)
