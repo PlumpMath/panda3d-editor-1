@@ -23,7 +23,7 @@ from direct.showbase.DirectObject import DirectObject
 
 #from editorObjects import *
 from core.pModelController import modelController
-from core.pCameraController import cameraController
+#from core.pCameraController import cameraController
 from core.pModelIdManager import modelIdManager
 from core.pConfigDefs import *
 # this is a bugfixed / slightly changed version of DirectGrid
@@ -73,7 +73,7 @@ class EditorClass( DirectObject ):
         if model.hasTag( EDITABLE_OBJECT_TAG ):
           model.enableEditmode()
       
-      cameraController.enable()
+#      cameraController.enable()
       modelController.toggle( True )
       
       self.accept( EDITOR_TOGGLE_OFF_EVENT, self.toggle, [False] )
@@ -91,7 +91,7 @@ class EditorClass( DirectObject ):
         if model.hasTag( EDITABLE_OBJECT_TAG ):
           model.disableEditmode()
       
-      cameraController.disable()
+#      cameraController.disable()
       modelController.toggle( False )
     
     self.accept( EDITOR_TOGGLE_ON_EVENT, self.toggle, [True] )
@@ -130,24 +130,6 @@ class EditorClass( DirectObject ):
 #    print "new model selected", filename
     self.helpText[-2].setText( "selected model: %s" % filename )
     self.modelFilename = filename'''
-  
-  def createNodePathWrapper( self ):
-    from core.modules.pNodePathWrapper import NodePathWrapper
-    modelParent = modelController.getSelectedModel()
-    NodePathWrapper.onCreate( modelParent )
-    messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
-  
-  def createPartcileNodeWrapper( self ):
-    from core.modules.pParticleSystemWrapper import ParticleSystemWrapper
-    modelParent = modelController.getSelectedModel()
-    ParticleSystemWrapper.onCreate( modelParent )
-    messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
-  
-  def createSpotlightNodeWrapper( self ):
-    from core.modules.pSpotlightNodeWrapper import SpotlightNodeWrapper
-    modelParent = modelController.getSelectedModel()
-    SpotlightNodeWrapper.onCreate( modelParent )
-    messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
   
   def saveEggModelsFile( self, filename ):
     # walk the render tree and save the egg-links

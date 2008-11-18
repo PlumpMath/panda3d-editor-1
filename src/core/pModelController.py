@@ -5,7 +5,7 @@ from direct.task.Task import Task
 
 from core.pConfigDefs import *
 from core.pModelIdManager import modelIdManager
-from core.pCameraController import cameraController
+#from core.pCameraController import cameraController
 from core.pMouseHandler import mouseHandler
 
 class ModelController( DirectObject ):
