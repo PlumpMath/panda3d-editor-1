@@ -2,7 +2,9 @@ __all__ = ["EditorApp"]
 
 from pandac.PandaModules import loadPrcFileData, WindowProperties, CompassEffect, Filename, BoundingSphere, deg2Rad, Vec3
 from direct.wxwidgets.WxAppShell import WxAppShell as AppShell
-from direct.directtools.DirectGrid import DirectGrid
+# temporarely changed be Hypnos doesnt have cvs
+#from direct.directtools.DirectGrid import DirectGrid
+from core.pGrid import DirectGrid
 import wx
 from math import tan
 
