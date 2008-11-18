@@ -2,7 +2,7 @@ __all__ = []
 
 if __name__ == "__main__":
   # Global initialization
-  USE_GUI = "wxgui"
+  USE_GUI = "dgui"
   
   if USE_GUI == "dgui":
     from dgui.pConfig import Config
@@ -13,17 +13,18 @@ if __name__ == "__main__":
   from direct.showbase.ShowBase import ShowBase
   ShowBase()
   
-  if USE_GUI == "dgui":
-    # Reto, add the start code here
-    from dgui.pEditorApp import EditorApp
-    app = EditorApp()
-  elif USE_GUI == "wxgui":
-    from wxgui.pEditorApp import EditorApp
-    app = EditorApp()
-  
   from core.pMain import EditorClass
   editor = EditorClass( render )
   editor.loadEggModelsFile( 'testModelsFile' )
   editor.toggle( True )
+  
+  if USE_GUI == "dgui":
+    from dgui.pEditorApp import EditorApp
+    app = EditorApp( editor )
+    app.toggle( True )
+  elif USE_GUI == "wxgui":
+    from wxgui.pEditorApp import EditorApp
+    app = EditorApp()
+  
   run()
 
