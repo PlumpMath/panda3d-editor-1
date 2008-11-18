@@ -1,0 +1,55 @@
+<Comment> {
+  "egg-texture-cards titleLeft.png titleCenter.png titleRight.png -o resize.egg"
+}
+<Texture> titleRight {
+  titleRight.png
+}
+<Texture> titleLeft {
+  titleLeft.png
+}
+<Texture> titleCenter {
+  titleCenter.png
+}
+<Group> {
+  <Switch> { 1 }
+  <Scalar> fps { 2 }
+  <VertexPool> vpool {
+    <Vertex> 0 {
+      -0.5 0.5 0
+      <UV> { 0 1 }
+    }
+    <Vertex> 1 {
+      -0.5 -0.5 0
+      <UV> { 0 0 }
+    }
+    <Vertex> 2 {
+      0.5 -0.5 0
+      <UV> { 1 0 }
+    }
+    <Vertex> 3 {
+      0.5 0.5 0
+      <UV> { 1 1 }
+    }
+  }
+  <Group> titleLeft {
+    <Polygon> {
+      <RGBA> { 1 1 1 1 }
+      <TRef> { titleLeft }
+      <VertexRef> { 0 1 2 3 <Ref> { vpool } }
+    }
+  }
+  <Group> titleCenter {
+    <Polygon> {
+      <RGBA> { 1 1 1 1 }
+      <TRef> { titleCenter }
+      <VertexRef> { 0 1 2 3 <Ref> { vpool } }
+    }
+  }
+  <Group> titleRight {
+    <Polygon> {
+      <RGBA> { 1 1 1 1 }
+      <TRef> { titleRight }
+      <VertexRef> { 0 1 2 3 <Ref> { vpool } }
+    }
+  }
+}
