@@ -2,12 +2,13 @@ __all__ = []
 
 if __name__ == "__main__":
   # Global initialization
-  USE_GUI = "dgui"
+  USE_GUI = "wxgui"
   
   if USE_GUI == "dgui":
     from dgui.pConfig import Config
   elif USE_GUI == "wxgui":
     from wxgui.pConfig import Config
+  Config.loadConfig()
   
   from direct.showbase.ShowBase import ShowBase
   ShowBase()

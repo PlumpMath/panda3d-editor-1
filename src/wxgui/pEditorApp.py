@@ -6,6 +6,10 @@ from direct.directtools.DirectGrid import DirectGrid
 import wx
 from math import tan
 
+# Local imports
+from pPropertyGrid import PropertyGrid
+
+# Get the default window origin
 defWP = WindowProperties.getDefault()
 if defWP.hasOrigin():
   origin = defWP.getXOrigin(), defWP.getYOrigin()
@@ -33,8 +37,13 @@ class EditorApp(AppShell):
     self.modified = True
     self.filename = Filename()
     
-    # Initialize the app shell and set the parent window
+    # Initialize the app shell and add some controls
     AppShell.__init__(self, title = "Panda Editor", pos = origin)
+    b=wx.Frame(self)
+    self.propertyGrid = PropertyGrid(b)
+    b.Show()
+    
+    # Setup the panda stuff
     self.setupPandaWindow()
     self.editorInit()
     
