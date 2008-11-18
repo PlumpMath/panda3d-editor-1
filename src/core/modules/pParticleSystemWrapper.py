@@ -19,14 +19,14 @@ if PARTICLESYSTEMWRAPPER_SHOW_PARTICLEPANEL:
 class ParticleSystemWrapper( BaseWrapper ):
   wrapperTypeTag = 'ParticleSystemWrapper'
   
-  def onCreate( self, parent ):
+  '''def onCreate( self, parent ):
     # this is called when the user presses the button to create
     # a nodePathWrapper
     
     # open a file browser
     FG.openFileBrowser()
     FG.accept('selectionMade', ParticleSystemWrapper.onCreateInstance, [parent])
-  onCreate = classmethod(onCreate)
+  onCreate = classmethod(onCreate)'''
   
   def onCreateInstance( self, parent, filename ):
     print "I: NodePathWrapper.onCreateInstance:", parent, filename
@@ -52,6 +52,8 @@ class ParticleSystemWrapper( BaseWrapper ):
     objectInstance.enableEditmode()
     # set as active object be the editor
     modelController.selectModel( objectInstance )
+    #
+    messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
   onCreateInstance = classmethod(onCreateInstance)
   
   def __init__( self, particleFilename, parent=None ):

@@ -8,7 +8,7 @@ from src.modelController import modelController
 class SpotlightNodeWrapper( BaseWrapper ):
   wrapperTypeTag = 'SpotlightNodeWrapper'
   
-  def onCreate( self, parent ):
+  def onCreateInstance( self, parent ):
     # this is called when the user presses the button to create
     # a nodePathWrapper
     node = SpotlightNodeWrapper( parent )
@@ -16,6 +16,7 @@ class SpotlightNodeWrapper( BaseWrapper ):
     node.enableEditmode()
     # the editor should select this model
     modelController.selectModel( node )
+    messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
   onCreate = classmethod(onCreate)
   
   def __init__( self, parent=None ):

@@ -7,14 +7,15 @@ from core.pCommonPath import *
 class NodePathWrapper( BaseWrapper ):
   wrapperTypeTag = 'NodePathWrapper'
   
-  def onCreate( self, parent ):
+  '''def onCreate( self, parent ):
     # this is called when the user presses the button to create
     # a nodePathWrapper
-    
     # open a file browser
-    FG.openFileBrowser()
-    FG.accept('selectionMade', NodePathWrapper.onCreateInstance, [parent])
-  onCreate = classmethod(onCreate)
+    
+    #FG.openFileBrowser()
+    #FG.accept('selectionMade', NodePathWrapper.onCreateInstance, [parent])
+    pass
+  onCreate = classmethod(onCreate)'''
   
   def onCreateInstance( self, parent, filename ):
     print "I: NodePathWrapper.onCreateInstance:", parent, "'%s'" % filename
@@ -52,6 +53,7 @@ class NodePathWrapper( BaseWrapper ):
         print "  - unknown model format: '%s' or '%s'" % (e1, e2)
     else:
       print "  - no file selected"
+    messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
   onCreateInstance = classmethod(onCreateInstance)
   
   def __init__( self, modelFilename, parent=None ):
