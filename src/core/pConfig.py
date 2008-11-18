@@ -4,7 +4,7 @@ __all__ = ["Config"]
 
 from pandac.PandaModules import loadPrcFileData, Filename
 import os, sys
-DATADIR = Filename.fromOsSpecific(os.path.join(os.path.abspath(sys.argv[0]), "..", "data")).getFullpath()
+DATADIR = Filename.fromOsSpecific(os.path.join(os.path.abspath(sys.argv[0]), "..", "..", "data")).getFullpath()
 
 class Config:
   @classmethod
