@@ -1,34 +1,37 @@
 #!/usr/bin/env python
 from direct.showbase.DirectObject import DirectObject
 from direct.gui.OnscreenText import OnscreenText
+from direct.gui.DirectButton import DirectButton
+from direct.gui.DirectScrolledList import DirectScrolledList
 
 from dgui.interactiveConsole.interactiveConsole import pandaConsole, INPUT_GUI, OUTPUT_PYTHON
 from dgui.filebrowser import FG
 from dgui.scenegraphBrowser import SceneGraphBrowser
 from dgui.directWindow.src.directWindow import DirectWindow
 from dgui.interactiveConsole.interactiveConsole import *
-from direct.gui.DirectButton import DirectButton
-from direct.gui.DirectScrolledList import DirectScrolledList
+from dgui.pCameraController import cameraController
 
 from core.pConfigDefs import *
+from core.pModelController import modelController
 
 EDITOR_DGUI_TOGGLE_BUTTON = 'f11'
 
 # Function to put instructions on the screen.
 def addInstructions(pos, msg, mutable=False):
     return OnscreenText(text=msg, style=1, fg=(1,1,1,1),
-			pos=(-1.3, pos), align=TextNode.ALeft, scale = .05, mayChange=mutable)
+      pos=(-1.3, pos), align=TextNode.ALeft, scale = .05, mayChange=mutable)
 
 # Function to put title on the screen.
 def addTitle(text):
     return OnscreenText(text=text, style=1, fg=(1,1,1,1),
-	                pos=(1.3,-0.95), align=TextNode.ARight, scale = .07)
+                  pos=(1.3,-0.95), align=TextNode.ARight, scale = .07)
 
 class EditorApp(DirectObject):
   def __init__( self, editorInstance ):
     self.enabled = False
     self.accept( EDITOR_DGUI_TOGGLE_BUTTON, self.toggle )
     self.editorInstance = editorInstance
+    #cameraController = CameraController()
   
   def toggle( self, state=None ):
     print "I: EditorApp.toggle", state
@@ -84,9 +87,9 @@ class EditorApp(DirectObject):
       console = pandaConsole( INPUT_GUI|OUTPUT_PYTHON, locals() )
       console.toggle()
       
-      buttonDefinitions = [ ['model', self.editorInstance.createNodePathWrapper, []]
-                          , ['particlesystem', self.editorInstance.createPartcileNodeWrapper, []]
-                          , ['spotlight', self.editorInstance.createSpotlightNodeWrapper, []]
+      buttonDefinitions = [ ['model', self.createNodePathWrapper, []]
+                          , ['particlesystem', self.createPartcileNodeWrapper, []]
+                          , ['spotlight', self.createSpotlightNodeWrapper, []]
                           , ['destroy model', self.editorInstance.destroyModel, []]
                           , ['load', self.editorInstance.loadEggModelsFile, ['testModelsFile']]
                           , ['save', self.editorInstance.saveEggModelsFile, ['testModelsFile']] ]
@@ -105,11 +108,30 @@ class EditorApp(DirectObject):
       for text in self.helpText:
         text.show()
       
-      self.enabled = True
+      cameraController.enable()
       
       messenger.send( EDITOR_TOGGLE_ON_EVENT )
     
     self.accept( EDITOR_DGUI_TOGGLE_BUTTON, self.toggle )
+  
+  def createNodePathWrapper( self ):
+    from core.modules.pNodePathWrapper import NodePathWrapper
+    modelParent = modelController.getSelectedModel()
+    #NodePathWrapper.onCreate( modelParent )
+    FG.openFileBrowser()
+    FG.accept('selectionMade', NodePathWrapper.onCreateInstance, [modelParent])
+  
+  def createPartcileNodeWrapper( self ):
+    from core.modules.pParticleSystemWrapper import ParticleSystemWrapper
+    modelParent = modelController.getSelectedModel()
+    #ParticleSystemWrapper.onCreate( modelParent )
+    FG.openFileBrowser()
+    FG.accept('selectionMade', NodePathWrapper.onCreateInstance, [modelParent])
+  
+  def createSpotlightNodeWrapper( self ):
+    from core.modules.pSpotlightNodeWrapper import SpotlightNodeWrapper
+    modelParent = modelController.getSelectedModel()
+    SpotlightNodeWrapper.onCreateInstance( modelParent )
   
   def disable( self ):
     if self.enabled:
@@ -125,9 +147,9 @@ class EditorApp(DirectObject):
       
       self.ButtonsWindow.detachNode()
       
-      self.enabled = False
-      
       messenger.send( EDITOR_TOGGLE_OFF_EVENT )
+      
+      cameraController.disable()
       
       self.accept( EDITOR_DGUI_TOGGLE_BUTTON, self.toggle )
 
