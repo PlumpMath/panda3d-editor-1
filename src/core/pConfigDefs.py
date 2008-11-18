@@ -79,3 +79,4 @@ SPOTLIGHT_WRAPPER_DUMMYOBJECT = 'models/Spotlight.egg.pz'
 CAMERACONTROLLER_PIVOT_MODEL = 'models/sphere.egg'
 
 MODELCONTROLLER_AXISCUBE_MODEL = 'models/axisCube.bam'
+
