@@ -14,10 +14,15 @@ if __name__ == "__main__":
   
   if USE_GUI == "dgui":
     # Reto, add the start code here
-    pass
+    from dgui.pEditorApp import EditorApp
+    app = EditorApp()
   elif USE_GUI == "wxgui":
     from wxgui.pEditorApp import EditorApp
     app = EditorApp()
   
+  from core.pMain import EditorClass
+  editor = EditorClass( render )
+  editor.loadEggModelsFile( 'testModelsFile' )
+  editor.toggle( True )
   run()
 
