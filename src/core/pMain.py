@@ -42,13 +42,13 @@ class EditorClass( DirectObject ):
   def toggle( self, state=None ):
     if state is None:
       state = not self.enabled
-    #else:
-    #self.enabled = state
     
     if state:
       self.enableEditmode()
     else:
       self.disableEditmode()
+    
+    self.enabled = state
   
   def enableEditmode( self ):
     #print "I: main.enableEditmode"
@@ -75,14 +75,11 @@ class EditorClass( DirectObject ):
       
       cameraController.enable()
       modelController.toggle( True )
-      self.enabled = True
       
       self.accept( EDITOR_TOGGLE_OFF_EVENT, self.toggle, [False] )
   
   def disableEditmode( self ):
-    #print "I: main.disableEditmode"
     if self.enabled:
-      #print "disabling"
       if DISABLE_SHADERS_WHILE_EDITING:
         render.setShaderOff(-1)
       # drop what we have selected
@@ -93,8 +90,6 @@ class EditorClass( DirectObject ):
       for model in modelIdManager.getAllModels():
         if model.hasTag( EDITABLE_OBJECT_TAG ):
           model.disableEditmode()
-      
-      self.enabled = False
       
       cameraController.disable()
       modelController.toggle( False )
@@ -255,8 +250,6 @@ class EditorClass( DirectObject ):
     selectedObject = modelController.getSelectedModel()
     modelController.selectModel( None )
     if selectedObject is not None:
-      #self.modelList.remove( selectedObject )
-      #modelIdManager.delObject( selectedObject)
       selectedObject.destroy()
       del selectedObject
     
@@ -265,10 +258,6 @@ class EditorClass( DirectObject ):
   def destroyAllModels( self ):
     print "editor.editorClass.destroyAllModels"
     # delete all loaded models
-    #for model in self.modelList:
-    #  model.destroy()
-    #  del model
-    #self.modelList = list()
     modelController.selectModel( None ) 
     for model in modelIdManager.getAllModels():
       if model.hasTag( EDITABLE_OBJECT_TAG ):
