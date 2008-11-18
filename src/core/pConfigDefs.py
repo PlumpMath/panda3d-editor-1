@@ -25,7 +25,7 @@ DISABLE_SHADERS_WHILE_EDITING = False
 # xRotate, yRotate, zRotate
 # xScale, yScale, zScale
 # must contain: <Collide> { Polyset keep descend }
-MODEL_MODIFICATION_MODEL = 'data/models/modificators.egg'
+MODEL_MODIFICATION_MODEL = 'models/modificators.egg'
 #                                translate  , rotate      , scale
 MODEL_MODIFICATION_FUNCTIONS =  {
     'xTranslate'  : [ Vec3(.5, 0, 0), Vec3(.5, 0, 0), Vec3(0,0, 0), Vec3(0,0, 0), Vec3(0,0,0), Vec3(0,0,0) ]
@@ -68,14 +68,14 @@ EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG = 'editorExcludedObject'
 ENABLE_SCENEGRAPHBROWSER_MODEL_TAG = 'editorEnabledObject'
 
 # model shown when the real model is not found
-MODEL_NOT_FOUND_MODEL = 'data/models/modelnotfound.egg'
+MODEL_NOT_FOUND_MODEL = 'models/modelnotfound.egg'
 
 # tag set to the object which defines the type of wrapper used to edit
 MODEL_WRAPPER_TYPE_TAG = 'modelWrapperTypeTag'
 
-PARTICLE_WRAPPER_DUMMYOBJECT = 'data/models/sphere.egg.pz'
-SPOTLIGHT_WRAPPER_DUMMYOBJECT = 'data/models/Spotlight.egg.pz'
+PARTICLE_WRAPPER_DUMMYOBJECT = 'models/sphere.egg.pz'
+SPOTLIGHT_WRAPPER_DUMMYOBJECT = 'models/Spotlight.egg.pz'
 
-CAMERACONTROLLER_PIVOT_MODEL = 'data/models/sphere.egg'
+CAMERACONTROLLER_PIVOT_MODEL = 'models/sphere.egg'
 
-MODELCONTROLLER_AXISCUBE_MODEL = 'data/models/axisCube.bam'
+MODELCONTROLLER_AXISCUBE_MODEL = 'models/axisCube.bam'
