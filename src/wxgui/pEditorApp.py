@@ -31,7 +31,7 @@ class EditorApp(AppShell):
   frameHeight   = defWP.getYSize()
   
   def __init__(self, editorInstance):
-    # instance of the editor
+    # Instance of the editor
     self.editorInstance = editorInstance
     
     # Create the Wx app
@@ -52,7 +52,7 @@ class EditorApp(AppShell):
     self.panel3D = wx.Panel(self.splitter)
     sizer = wx.BoxSizer(wx.VERTICAL)
     assert self.sideBarSplitter.SplitHorizontally(self.sceneGraphTree, self.propertyGrid)
-    assert self.splitter.SplitVertically(self.sideBarSplitter, self.panel3D)
+    assert self.splitter.SplitVertically(self.sideBarSplitter, self.panel3D, 200)
     sizer.Add(self.splitter, 1, wx.EXPAND, 0)
     self.SetSizer(sizer)
     self.Layout()
@@ -60,6 +60,7 @@ class EditorApp(AppShell):
     # Setup the panda stuff
     self.setupPandaWindow()
     self.editorInit()
+    self.sceneGraphTree.reload()
     
     # Setup some events
     self.panel3D.Bind(wx.EVT_SIZE, self.onPanelSize)
@@ -191,6 +192,7 @@ class EditorApp(AppShell):
         if p3dFilename.getExtension().lower() != "bam":
           self.filename = Filename()
           self.modified = True
+        self.sceneGraphTree.reload()
     finally:
       dlg.Destroy()
   
