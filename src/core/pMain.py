@@ -28,6 +28,7 @@ from core.pModelIdManager import modelIdManager
 from core.pConfigDefs import *
 # this is a bugfixed / slightly changed version of DirectGrid
 from core.pGrid import DirectGrid
+from core.pMouseHandler import mouseHandler
 
 
 class EditorClass(DirectObject):
@@ -73,6 +74,7 @@ class EditorClass(DirectObject):
           model.enableEditmode()
       
       modelController.toggle(True)
+      mouseHandler.toggle(True)
       
       self.accept(EDITOR_TOGGLE_OFF_EVENT, self.toggle, [False])
   
@@ -90,6 +92,7 @@ class EditorClass(DirectObject):
           model.disableEditmode()
       
       modelController.toggle(False)
+      mouseHandler.toggle(False)
     
     self.accept( EDITOR_TOGGLE_ON_EVENT, self.toggle, [True] )
   
