@@ -5,6 +5,7 @@ from direct.wxwidgets.WxAppShell import WxAppShell as AppShell
 # temporarely changed be Hypnos doesnt have cvs
 #from direct.directtools.DirectGrid import DirectGrid
 from core.pGrid import DirectGrid
+from core.pConfigDefs import *
 import wx
 from math import tan
 
@@ -65,6 +66,25 @@ class EditorApp(AppShell):
     # Setup some events
     self.panel3D.Bind(wx.EVT_SIZE, self.onPanelSize)
     base.accept("c", self.onCenterTrackball)
+    
+    # if a model-translate-rotate-scale tool is selected the automatic mouse
+    # movement has to be disable to prevent camera & object movement
+    # hmm doesnt really work as well... (camera is still moved)
+    base.accept(EVENT_MODELCONTROLLER_EDITTOOL_SELECTED, base.disableMouse)
+    base.accept(EVENT_MODELCONTROLLER_EDITTOOL_DESELECTED, base.enableMouse)
+    # update the scenegraph-browser when this event occurs
+    #base.accept(EVENT_SCENEGRAPHBROWSER_REFRESH, )
+    # a object has been selected on this event, object is given in extraArgs
+    #base.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, )
+    # the object has been modified in the scene, this event happens rarely
+    #base.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, )
+    # the object has been modified in the scene, this event happens every frame
+    #base.accept(EVENT_MODELCONTROLLER_FAST_REFRESH, )
+    # the editor has been disabled, collisions etc are deleted
+    #base.accept(EDITOR_TOGGLE_OFF_EVENT, )
+    # the editor has been enabled, collisions etc are created
+    # this event happens shortly after the wxgui has been created
+    #base.accept(EDITOR_TOGGLE_ON_EVENT, )
   
   def appInit(self):
     # Create a new event loop (to overide default wxEventLoop)
