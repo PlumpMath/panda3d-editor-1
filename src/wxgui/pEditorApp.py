@@ -72,8 +72,6 @@ class EditorApp(AppShell):
     # Hmm doesnt really work as well... (camera is still moved)
     base.accept(EVENT_MODELCONTROLLER_EDITTOOL_SELECTED, base.disableMouse)
     base.accept(EVENT_MODELCONTROLLER_EDITTOOL_DESELECTED, base.enableMouse)
-    # Update the scenegraph-browser when this event occurs
-    base.accept(EVENT_SCENEGRAPHBROWSER_REFRESH, self.sceneGraphTree.reload)
     # the object has been modified in the scene, this event happens rarely
     #base.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, )
     # the object has been modified in the scene, this event happens every frame
