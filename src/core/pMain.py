@@ -30,8 +30,8 @@ from core.pConfigDefs import *
 from core.pGrid import DirectGrid
 
 
-class EditorClass( DirectObject ):
-  def __init__( self, parentNodePath ):
+class EditorClass(DirectObject):
+  def __init__(self, parentNodePath):
     print "editor.editorClass.__init__"
     self.parentNodePath = render
     
@@ -39,7 +39,7 @@ class EditorClass( DirectObject ):
     # enable the editor
     self.toggle( False ) # must be called with eighter False or True
   
-  def toggle( self, state=None ):
+  def toggle(self, state=None):
     if state is None:
       state = not self.enabled
     
@@ -50,34 +50,33 @@ class EditorClass( DirectObject ):
     
     self.enabled = state
   
-  def enableEditmode( self ):
+  def enableEditmode(self):
     #print "I: main.enableEditmode"
     if not self.enabled:
-      self.sceneHelperModels = NodePath( 'editor-helper-models' )
-      self.sceneHelperModels.reparentTo( render )
-      self.sceneHelperModels.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
+      self.sceneHelperModels = NodePath('editor-helper-models')
+      self.sceneHelperModels.reparentTo(render)
+      self.sceneHelperModels.setTag(EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '')
       self.sceneHelperModels.setLightOff()
+      
       # the axis model at 0/0/0
       axis = loader.loadModel( 'zup-axis.egg' )
       axis.reparentTo( self.sceneHelperModels )
+      
       # a grid model
-      gridNp = DirectGrid( parent=self.sceneHelperModels )
+      gridNp = DirectGrid(parent=self.sceneHelperModels)
       
       if DISABLE_SHADERS_WHILE_EDITING:
         render.setShaderOff(10000)
-      self.accept( 'f5', self.saveEggModelsFile, ['testModelsFile.egg'] )
-      self.accept( 'f9', self.loadEggModelsFile, ['testModelsFile.egg'] )
-      self.accept( 'f11', self.toggle )
       
       for model in modelIdManager.getAllModels():
         if model.hasTag( EDITABLE_OBJECT_TAG ):
           model.enableEditmode()
       
-      modelController.toggle( True )
+      modelController.toggle(True)
       
-      self.accept( EDITOR_TOGGLE_OFF_EVENT, self.toggle, [False] )
+      self.accept(EDITOR_TOGGLE_OFF_EVENT, self.toggle, [False])
   
-  def disableEditmode( self ):
+  def disableEditmode(self):
     if self.enabled:
       if DISABLE_SHADERS_WHILE_EDITING:
         render.setShaderOff(-1)
@@ -87,14 +86,14 @@ class EditorClass( DirectObject ):
       self.ignoreAll()
       
       for model in modelIdManager.getAllModels():
-        if model.hasTag( EDITABLE_OBJECT_TAG ):
+        if model.hasTag(EDITABLE_OBJECT_TAG):
           model.disableEditmode()
       
-      modelController.toggle( False )
+      modelController.toggle(False)
     
     self.accept( EDITOR_TOGGLE_ON_EVENT, self.toggle, [True] )
   
-  def getData( self ):
+  def getData(self):
     modelData = ''
     for model in self.modelList:
       modelData += ", [%s, %s, %s, %s] \n" %  ( model.modelName
@@ -103,42 +102,42 @@ class EditorClass( DirectObject ):
                                               , str(model.getScale(render)) )
     return modelData
   
-  def saveEggModelsFile( self, filename ):
+  def saveEggModelsFile(self, filename):
     # walk the render tree and save the egg-links
     
-    def saveRecursiveChildrens( parent, eggParentData, relativeTo ):
+    def saveRecursiveChildrens(parent, eggParentData, relativeTo):
       for child in parent.getChildrenAsList():
         # save the childs data
         modelData = None
         if child.hasTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG):
-          objectId = child.getTag( EDITABLE_OBJECT_TAG )
-          object = modelIdManager.getObject( objectId )
-          modelData = object.getSaveData( relativeTo )
+          objectId = child.getTag(EDITABLE_OBJECT_TAG)
+          object = modelIdManager.getObject(objectId)
+          modelData = object.getSaveData(relativeTo)
           eggParentData.addChild(modelData)
         # if there is data of the model walk the childrens
         if modelData:
           # search childrens
-          saveRecursiveChildrens( child, modelData, relativeTo )
+          saveRecursiveChildrens(child, modelData, relativeTo)
     
     # create a eggData to save the data
     eggData = EggData()
     eggData.setCoordinateSystem(1)
     # start reading the childrens of render
     relativeTo = os.getcwd()
-    saveRecursiveChildrens( render, eggData, relativeTo )
+    saveRecursiveChildrens(render, eggData, relativeTo)
     # save the egg file
-    eggData.writeEgg(Filename(filename+".egg"))
+    eggData.writeEgg(Filename(filename))
   
-  def loadEggModelsFile( self, filename ):
+  def loadEggModelsFile(self, filename):
     # read the eggData
     
-    def loadRecursiveChildrens( eggParentData, parent, transform ):
+    def loadRecursiveChildrens(eggParentData, parent, transform):
       #print type(eggParentData)#, dir(eggParentData)
       if type(eggParentData) == EggData:
         # search the childrens
         for childData in eggParentData.getChildren():
           # search the children
-          parent = loadRecursiveChildrens( childData, parent, transform )
+          parent = loadRecursiveChildrens(childData, parent, transform)
       
       elif type(eggParentData) == EggGroup:
         
@@ -149,21 +148,20 @@ class EditorClass( DirectObject ):
           mat4 = Mat4()
           for x in xrange(4):
               for y in xrange(4):
-                  mat4.setCell( x, y, mat4d.getCell(x,y) )
+                  mat4.setCell(x, y, mat4d.getCell(x,y))
           # multiply the matrix for later applial onto model
           transform = mat4 * transform
         
-        if eggParentData.hasTag( MODEL_WRAPPER_TYPE_TAG ):
-          wrapperType = eggParentData.getTag( MODEL_WRAPPER_TYPE_TAG )
+        if eggParentData.hasTag(MODEL_WRAPPER_TYPE_TAG):
+          wrapperType = eggParentData.getTag(MODEL_WRAPPER_TYPE_TAG)
           wrapperTypeDecap = wrapperType[0].lower() + wrapperType[1:]
           #print "eggParentData.getTag:", wrapperType, wrapperTypeDecap
           execStmt = "from core.modules.p%s import %s" % (wrapperType, wrapperType) #(wrapperTypeDecap, wrapperType)
           exec execStmt in locals()
           execStmt = "object = "+wrapperType+".loadFromEggGroup(eggParentData, parent)"
           exec execStmt in locals()
-          object.setMat( transform )
+          object.setMat(transform)
           transform = Mat4().identMat()
-          #modelController.selectModel( object )
           # if it contains additional childrens recurse into them
           for childData in eggParentData.getChildren()[1:]:
             # search the children
@@ -187,34 +185,34 @@ class EditorClass( DirectObject ):
     eggData = EggData()
     eggData.read(Filename(filename))
     
-    loadRecursiveChildrens( eggData, render, Mat4.identMat() )
+    loadRecursiveChildrens(eggData, render, Mat4.identMat())
     
     if self.enabled:
       # enable the editing on the objects when editing is enabled
       for model in modelIdManager.getAllModels():
-        if model.hasTag( EDITABLE_OBJECT_TAG ):
+        if model.hasTag(EDITABLE_OBJECT_TAG):
           model.enableEditmode()
       # select no model
-      modelController.selectModel( None )
+      modelController.selectModel(None)
       # refresh the scenegraphbrowser
-      messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
+      messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
   
-  def destroyModel( self ):
+  def destroyModel(self):
     #print "editor.editorClass.destroyModel"
     selectedObject = modelController.getSelectedModel()
-    modelController.selectModel( None )
+    modelController.selectModel(None)
     if selectedObject is not None:
       selectedObject.destroy()
       del selectedObject
     
     self.scenegraphBrowser.refresh()
   
-  def destroyAllModels( self ):
+  def destroyAllModels(self):
     print "editor.editorClass.destroyAllModels"
     # delete all loaded models
-    modelController.selectModel( None ) 
+    modelController.selectModel(None) 
     for model in modelIdManager.getAllModels():
-      if model.hasTag( EDITABLE_OBJECT_TAG ):
+      if model.hasTag(EDITABLE_OBJECT_TAG):
         model.destroy()
         del model
     print modelIdManager.getAllModels()
