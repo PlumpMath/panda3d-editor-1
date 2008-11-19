@@ -91,8 +91,8 @@ class EditorApp(DirectObject):
                           , ['particlesystem', self.createPartcileNodeWrapper, []]
                           , ['spotlight', self.createSpotlightNodeWrapper, []]
                           , ['destroy model', self.editorInstance.destroyModel, []]
-                          , ['load', self.editorInstance.loadEggModelsFile, ['testModelsFile']]
-                          , ['save', self.editorInstance.saveEggModelsFile, ['testModelsFile']] ]
+                          , ['load', self.loadEggModelsFile, []]
+                          , ['save', self.saveEggModelsFile, []] ]
       self.createInterface(buttonDefinitions)
       
       # some help text nodes
@@ -110,9 +110,44 @@ class EditorApp(DirectObject):
       
       cameraController.enable()
       
-      messenger.send( EDITOR_TOGGLE_ON_EVENT )
+      messenger.send(EDITOR_TOGGLE_ON_EVENT)
+      
+      self.editorObject = None
+      self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, self.createObjectEditor)
+      
+      self.accept('f5', self.saveEggModelsFile)
+      self.accept('f9', self.loadEggModelsFile)
+      self.accept('f11', self.toggle)
     
-    self.accept( EDITOR_DGUI_TOGGLE_BUTTON, self.toggle )
+    self.accept(EDITOR_DGUI_TOGGLE_BUTTON, self.toggle)
+  
+  def saveEggModelsFile(self):
+    print "I: EditorApp.saveEggModelsFile:"
+    FG.openFileBrowser()
+    FG.accept('selectionMade', self.saveEggModelsFileCallback)
+  def saveEggModelsFileCallback(self, filename):
+    print "I: EditorApp.saveEggModelsFileCallback:", filename
+    self.editorInstance.saveEggModelsFile(filename)
+  
+  def loadEggModelsFile(self):
+    print "I: EditorApp.loadEggModelsFile:"
+    FG.openFileBrowser()
+    FG.accept('selectionMade', self.loadEggModelsFileCallback)
+  def loadEggModelsFileCallback(self, filename):
+    print "I: EditorApp.loadEggModelsFileCallback:", filename
+    self.editorInstance.loadEggModelsFile(filename)
+  
+  def createObjectEditor(self, object):
+    print "I: EditorApp.createObjectEditor:", object.__class__.__name__
+    if object == self.editorObject:
+      # same object is selected again
+      print "  - same object"
+    else:
+      print "  - other object"
+      if self.editorObject is not None:
+        # destroy the current editorObject
+        print "  - is destroying old editor"
+      print "  - creating new editor"
   
   def createNodePathWrapper( self ):
     from core.modules.pNodePathWrapper import NodePathWrapper
