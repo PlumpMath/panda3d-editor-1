@@ -8,7 +8,13 @@ EDITOR_TOGGLE_OFF_EVENT = 'pandaEditorToggleOff'
 EDITOR_TOGGLE_ON_EVENT = 'pandaEditorToggleOn'
 
 EVENT_SCENEGRAPHBROWSER_REFRESH = 'refreshSceneGraph'
-
+# this event is sent when a object has been selected
+# (extraArgs contains module class object)
+EVENT_MODELCONTROLLER_SELECT_MODEL = 'modelEdit-selectModel'
+# this event is sent when a object has been modified (only sent rarely)
+EVENT_MODELCONTROLLER_FULL_REFRESH = 'refreshModelEdit-full'
+# this event is sent when a object has been modified (can be sent every frame)
+EVENT_MODELCONTROLLER_FAST_REFRESH = 'refreshModelEdit-fast'
 # --- not recommmended to change any of the following ---
 
 VALID_MODEL_FORMATS = ['egg', 'bam', 'egg.pz']

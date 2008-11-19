@@ -65,15 +65,14 @@ class EditorClass( DirectObject ):
       
       if DISABLE_SHADERS_WHILE_EDITING:
         render.setShaderOff(10000)
-      self.accept( 'f5', self.saveEggModelsFile, ['testModelsFile'] )
-      self.accept( 'f9', self.loadEggModelsFile, ['testModelsFile'] )
+      self.accept( 'f5', self.saveEggModelsFile, ['testModelsFile.egg'] )
+      self.accept( 'f9', self.loadEggModelsFile, ['testModelsFile.egg'] )
       self.accept( 'f11', self.toggle )
       
       for model in modelIdManager.getAllModels():
         if model.hasTag( EDITABLE_OBJECT_TAG ):
           model.enableEditmode()
       
-#      cameraController.enable()
       modelController.toggle( True )
       
       self.accept( EDITOR_TOGGLE_OFF_EVENT, self.toggle, [False] )
@@ -91,7 +90,6 @@ class EditorClass( DirectObject ):
         if model.hasTag( EDITABLE_OBJECT_TAG ):
           model.disableEditmode()
       
-#      cameraController.disable()
       modelController.toggle( False )
     
     self.accept( EDITOR_TOGGLE_ON_EVENT, self.toggle, [True] )
@@ -104,32 +102,6 @@ class EditorClass( DirectObject ):
                                               , str(model.getHpr(render))
                                               , str(model.getScale(render)) )
     return modelData
-  
-  # open a dialogue to select a file
-  '''def selectModelName( self ):
-    FG.openFileBrowser()
-    FG.accept('selectionMade', self.selectModelNameFinished)
-  def selectModelNameFinished( self, filename ):
-    # check if model file is in pandaModelPath
-    from pandac.PandaModules import getModelPath
-    pandaPath = None
-    filename = str(Filename.fromOsSpecific(filename))
-    for searchPath in str(getModelPath()).split():
-        if searchPath in filename:
-            pandaPath = searchPath
-            print "I: model found in pandaModelPath %s" % pandaPath
-            break
-    if pandaPath is None:
-        pandaPath = '/'.join(filename.split('/')[:-1])
-        print "W: adding %s to pandaModelPath" % pandaPath
-        from pandac.PandaModules import getModelPath, getTexturePath, getSoundPath
-        getModelPath( ).appendPath( pandaPath )
-        getTexturePath( ).appendPath( pandaPath )
-        getSoundPath( ).appendPath( pandaPath )
-    filename = filename.replace( pandaPath, '.' )
-#    print "new model selected", filename
-    self.helpText[-2].setText( "selected model: %s" % filename )
-    self.modelFilename = filename'''
   
   def saveEggModelsFile( self, filename ):
     # walk the render tree and save the egg-links
@@ -213,7 +185,7 @@ class EditorClass( DirectObject ):
     self.destroyAllModels()
     
     eggData = EggData()
-    eggData.read(Filename(filename+".egg"))
+    eggData.read(Filename(filename))
     
     loadRecursiveChildrens( eggData, render, Mat4.identMat() )
     

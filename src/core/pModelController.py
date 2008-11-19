@@ -22,49 +22,6 @@ class ModelController( DirectObject ):
     
     #self.readingInputs = True
     
-    self.createCollisionPicker()
-    
-    # create another ray which copy's the mouseray of the camera
-    # using the real mouseray can cause problems
-    self.mouseRayCameraNodePath = NodePath( 'editorMouseRayNodePath' )
-    self.mouseRayCameraNodePath.reparentTo( base.camera )
-    self.mouseRayNodePath = NodePath( 'editorMouseRayNodePath' )
-    self.mouseRayNodePath.reparentTo( self.mouseRayCameraNodePath )
-    
-    # load axisCube, if that fails generate it and quit
-    self.objectAxisCube = loader.loadModel( MODELCONTROLLER_AXISCUBE_MODEL )
-    self.objectAxisCube.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
-    #self.objectAxisCube.reparentTo( render )
-    if not self.objectAxisCube:
-      print "E: axiscube.bam was missing, generating now"
-      print "  - please restart the application now"
-      import createAxisCube
-      sys.exit()
-    self.objectAxisCube.setLightOff()
-    
-    print "I: modelControllerClass: reading", MODEL_MODIFICATION_MODEL
-    # arrows for movement and rotation
-    #self.modelModificatorsNode = NodePath( 'modelModificatorsNode' )
-    #self.modelModificatorsNode.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
-    modificatorsNode = loader.loadModel( MODEL_MODIFICATION_MODEL )
-    self.modelModeNodes = list()
-    for i in xrange(len(MODEL_MODIFICATION_MODES_FUNCTIONS)):
-      parent = NodePath('modelModificationNode-%i' % i) # render.attachNewNode( 'modelModificationNode-%i' % i )
-      #parent.hide()
-      parent.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
-      parent.setLightOff()
-      self.modelModeNodes.append( parent )
-      for nameTag in MODEL_MODIFICATION_MODES_FUNCTIONS[i]:
-        searchTag = '**/%s' % nameTag
-        modificator = modificatorsNode.find( searchTag )
-        print "  - searching", searchTag, "found", modificator
-        modificator.reparentTo( parent )
-        modificator.setTag( MODEL_MODIFICATOR_TAG, nameTag )
-        #modificator.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
-        modelIdManager.setObject( modificator, nameTag )
-        # arrows are hidden otherwise
-        modificator.setBin("BT_unsorted", 40)
-    
     self.enabled = False
   
   def toggle( self, state=None ):
@@ -72,26 +29,92 @@ class ModelController( DirectObject ):
       state = not self.enabled
     
     if state:
-      self.accept( 'mouse1', self.mouseButtonPress )
+      self.enable()
     else:
+      self.disable()
+    self.enabled = state
+  
+  def enable(self):
+    if not self.enabled:
+      
+      self.createCollisionPicker()
+      
+      # create another ray which copy's the mouseray of the camera
+      # using the real mouseray can cause problems
+      self.mouseRayCameraNodePath = NodePath( 'editorMouseRayNodePath' )
+      self.mouseRayCameraNodePath.reparentTo( base.camera )
+      self.mouseRayNodePath = NodePath( 'editorMouseRayNodePath' )
+      self.mouseRayNodePath.reparentTo( self.mouseRayCameraNodePath )
+      
+      # load axisCube, if that fails generate it and quit
+      self.objectAxisCube = loader.loadModel( MODELCONTROLLER_AXISCUBE_MODEL )
+      self.objectAxisCube.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
+      #self.objectAxisCube.reparentTo( render )
+      if not self.objectAxisCube:
+        print "E: axiscube.bam was missing, generating now"
+        print "  - please restart the application now"
+        import createAxisCube
+        sys.exit()
+      self.objectAxisCube.setLightOff()
+      
+      print "I: modelControllerClass: reading", MODEL_MODIFICATION_MODEL
+      # arrows for movement and rotation
+      #self.modelModificatorsNode = NodePath( 'modelModificatorsNode' )
+      #self.modelModificatorsNode.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
+      modificatorsNode = loader.loadModel( MODEL_MODIFICATION_MODEL )
+      self.modelModeNodes = list()
+      for i in xrange(len(MODEL_MODIFICATION_MODES_FUNCTIONS)):
+        parent = NodePath('modelModificationNode-%i' % i) # render.attachNewNode( 'modelModificationNode-%i' % i )
+        #parent.hide()
+        parent.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
+        parent.setLightOff()
+        self.modelModeNodes.append( parent )
+        for nameTag in MODEL_MODIFICATION_MODES_FUNCTIONS[i]:
+          searchTag = '**/%s' % nameTag
+          modificator = modificatorsNode.find( searchTag )
+          print "  - searching", searchTag, "found", modificator
+          modificator.reparentTo( parent )
+          modificator.setTag( MODEL_MODIFICATOR_TAG, nameTag )
+          #modificator.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
+          modelIdManager.setObject( modificator, nameTag )
+          # arrows are hidden otherwise
+          modificator.setBin("BT_unsorted", 40)
+      self.accept( 'mouse1', self.mouseButtonPress )
+  
+  def disable(self):
+    if self.enabled:
       self.ignoreAll()
+      
+      for i in xrange(len(MODEL_MODIFICATION_MODES_FUNCTIONS)):
+        self.modelModeNodes[i].removeNode()
+        self.modelModeNodes[i].detachNode()
+      
+      self.objectAxisCube.removeNode()
+      self.objectAxisCube.detachNode()
+      
+      self.mouseRayNodePath.removeNode()
+      self.mouseRayNodePath.detachNode()
+      self.mouseRayCameraNodePath.removeNode()
+      self.mouseRayCameraNodePath.detachNode()
+      
+      self.destroyCollisionPicker()
   
   def mouseButtonPress( self ):
-    #if self.readingInputs:
-    pickedObj = self.getMouseOverNode()
-    print "I: modelController.mouseButtonPress: pickedObj", pickedObj
-    editModel = self.getMouseOverObjectModel(pickedObj)
-    editToolSelection = self.getMouseOverObjectTool(pickedObj)
-    editTool = self.getMouseOverObjectTool(pickedObj)
-    if editTool:
-      print "  - editTool selected", editTool
-      self.editToolSetup( editTool )
-    elif editModel:
-      print "  - editModel selected", editModel
-      self.selectModel( editModel )
-    else:
-      print "  - deselect"
-      self.selectModel( None )
+    if self.enabled:
+      pickedObj = self.getMouseOverNode()
+      print "I: modelController.mouseButtonPress: pickedObj", pickedObj
+      editModel = self.getMouseOverObjectModel(pickedObj)
+      editToolSelection = self.getMouseOverObjectTool(pickedObj)
+      editTool = self.getMouseOverObjectTool(pickedObj)
+      if editTool:
+        print "  - editTool selected", editTool
+        self.editToolSetup( editTool )
+      elif editModel:
+        print "  - editModel selected", editModel
+        self.selectModel( editModel )
+      else:
+        print "  - deselect"
+        self.selectModel( None )
   
   def editToolSetup( self, editTool ):
     transX, transY, rotX, rotY, scaleX, scaleY = MODEL_MODIFICATION_FUNCTIONS[editTool]
@@ -132,7 +155,7 @@ class ModelController( DirectObject ):
       self.__modificationNode.setScale( self.__modificationNode.getScale() + dScaleX )
       self.__modificationNode.setScale( self.__modificationNode.getScale() + dScaleY )
       
-      self.__selectedModel.updateAllEntires()
+      messenger.send( EVENT_MODELCONTROLLER_FAST_REFRESH )
       
       self.objectAxisCube.setScale( self.__modificationNode.getPos(render) )
     return task.cont
@@ -145,17 +168,16 @@ class ModelController( DirectObject ):
     
     mouseHandler.toggleMouseFixed( False )
     self.__setMode()
-    self.__selectedModel.updateAllEntires()
+    messenger.send( EVENT_MODELCONTROLLER_FULL_REFRESH )
   
   def selectNodePath( self, nodePath ):
     print "I: modelController.selectNodePath: nodePath", nodePath
     modelId = modelIdManager.getObjectId( nodePath )
-#    print "modelId", modelId
     object = modelIdManager.getObject( modelId )
-#    print "object", object
     self.selectModel( object )
   
   def selectModel( self, model=None ):
+    messenger.send( EVENT_MODELCONTROLLER_SELECT_MODEL, model )
     print "I: modelController.selectModel", model
     if model is None:
       # no object has been selected
@@ -273,62 +295,28 @@ class ModelController( DirectObject ):
     self.modelModeNode.reparentTo( render )
     self.modelModeNode.setCollideMask( BitMask32.allOff() )
   
-  # --- old version stuff  begin ---
-  '''def startDrag( self ):
-    # store object parameters
-    self.selectedObjectParent = self.__selectedModel.getParent()
-    self.selectedObjectDistance = self.__selectedModel.getDistance( base.camera )
-    self.selectedObjectRelativePos = self.__selectedModel.getPos( base.camera ) - (self.getPickerRayDirection() * self.selectedObjectDistance)
-    
-    # add a movement task
-    taskMgr.remove( 'editorMouseMoverTask' )
-    taskMgr.add( self.mouseMoverTask, 'editorMouseMoverTask' )
-    
-    direction = self.getPickerRayDirection()
-    self.mouseRayCameraNodePath.lookAt( Point3(direction) )
-    self.mouseRayNodePath.setY( self.selectedObjectDistance )
-    self.__selectedModel.wrtReparentTo( self.mouseRayNodePath )
-    modelController.selectModel( self.__selectedModel )
-    
-    # show the cube position
-    self.objectAxisCube.reparentTo( render )
-    self.objectMover.reparentTo( render )
-  
-  def stopDrag( self ):
-    self.__selectedModel.wrtReparentTo( self.selectedObjectParent )
-    self.__selectedModel = None
-    
-    self.objectAxisCube.detachNode()
-    self.objectMover.detachNode()
-    
-    taskMgr.remove( 'editorMouseMoverTask' )
-  
-  def mouseMoverTask( self, task ):
-    direction = self.getPickerRayDirection()
-    self.mouseRayCameraNodePath.lookAt( Point3(direction) )
-    
-    # scale the axisCube, to show the position of the object
-    pos = self.__selectedModel.getPos( render )
-    self.objectAxisCube.setScale( pos )
-    self.objectMover.setPos( pos )
-    #self.helpText[-1].setText( "object pos: %s" % str(pos) )
-    
-    return task.cont'''
-  
   def createCollisionPicker( self ):
     #print "editor.editorClass.createCollisionPicker"
     self.editorCollTraverser    = CollisionTraverser()
     self.editorCollHandler      = CollisionHandlerQueue()
     self.editorPickerNode       = CollisionNode('mouseRay')
     self.editorPickerNodePath   = base.camera.attachNewNode(self.editorPickerNode)
-    #self.editorPickerNodePath.show()
     self.editorPickerRay        = CollisionRay()
     self.editorPickerNode.addSolid( self.editorPickerRay )
     self.editorPickerNode.setFromCollideMask( DEFAULT_EDITOR_COLLIDEMASK )
     self.editorPickerNode.setIntoCollideMask( BitMask32.allOff() )
     self.editorCollTraverser.addCollider( self.editorPickerNodePath, self.editorCollHandler )
-    
-    #self.editorCollTraverser.showCollisions( render )
+  
+  def destroyCollisionPicker( self ):
+    self.editorCollTraverser.removeCollider( self.editorPickerNodePath )
+    self.editorPickerNode.setFromCollideMask( BitMask32.allOff() )
+    self.editorPickerNode.setIntoCollideMask( BitMask32.allOff() )
+    del self.editorPickerRay
+    self.editorPickerNodePath.detachNode()
+    del self.editorPickerNodePath
+    del self.editorPickerNode
+    del self.editorCollHandler
+    del self.editorCollTraverser
   
   def updatePickerRay( self ):
     #print "editor.editorClass.updatePickerRay"
