@@ -30,7 +30,7 @@ class PropertyGrid(Grid):
     self.object = None
     
     # Catch events
-    #self.Bind(EVT_GRID_CELL_CHANGE, self.onCellChange)
+    self.Bind(EVT_GRID_CELL_CHANGE, self.onCellChange)
     self.Bind(wx.EVT_SIZE, self.onSize)
     base.accept("sgtree-selection-changed", self.viewForNodePath)
   
@@ -50,7 +50,7 @@ class PropertyGrid(Grid):
     self.reset()
     self.object = nodePath
     for propName, prop in Properties.NodePath.items():
-      self.addProperty(propName, prop, prop.getter(nodePath))
+      self.addProperty(propName, prop, prop.GetValue(nodePath))
   
   def addProperty(self, propName, prop, value = None):
     """ Adds a new property to the control. """
@@ -61,20 +61,21 @@ class PropertyGrid(Grid):
     self.SetReadOnly(row, 1, prop.IsReadOnly)
     self.SetCellRenderer(row, 1, prop.MakeRenderer())
     self.SetCellEditor(row, 1, prop.MakeEditor())
-    if value != None: self.SetCellValue(row, 1, prop.ValueAsString(value))
-    
+    if value == None:
+      self.SetCellValue(row, 1, "None")
+    else: 
+      self.SetCellValue(row, 1, prop.ValueAsString(value))
     self.properties.append(prop)
   
-  #def setProperty(self, propName, value):
-  #  assert self.properties.has_key(propName)
-  #  self.SetCellValue(self.properties[propName][0], 1, value)
-  #
-  #def onCellChange(self, evt):
-  #   if evt.Col != 1: return
-  #   value = self.GetCellValue(evt.Row, 1)
-  #   # Veto the event if the value is invalid.
-  #   if re.match(re.compile(r"([(]?)([0-9]*)([.]?)([0-9]*)([ ]*),([ ]*)([0-9]*)([.]?)([0-9]*)([)]?)"), value) != None:
-  #     self.SetCellValue(evt.Row, 1, "(" + value.replace("(", "").replace(")", "").replace(" ", "").replace(",", ", ") + ")")
-  #   else:
-  #     evt.Veto()
+  def onCellChange(self, evt):
+     """Invoked when a cell is modified."""
+     if evt.Col != 1: return
+     value = self.GetCellValue(evt.Row, 1)
+     try:
+       prop = self.properties[evt.Row]
+       prop.SetValue(self.object, prop.StringToValue(value))
+     except Exception, ex: # Stop the change if the value is invalid.
+       print ex
+       evt.Veto()
+     self.SetCellValue(evt.Row, 1, prop.ValueAsString(prop.GetValue(self.object)))
 
