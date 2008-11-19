@@ -2,8 +2,6 @@ from pandac.PandaModules import *
 
 # --- you may edit these ---
 
-PARTICLESYSTEMWRAPPER_SHOW_PARTICLEPANEL = True
-
 EDITOR_TOGGLE_OFF_EVENT = 'pandaEditorToggleOff'
 EDITOR_TOGGLE_ON_EVENT = 'pandaEditorToggleOn'
 
@@ -15,6 +13,9 @@ EVENT_MODELCONTROLLER_SELECT_MODEL = 'modelEdit-selectModel'
 EVENT_MODELCONTROLLER_FULL_REFRESH = 'refreshModelEdit-full'
 # this event is sent when a object has been modified (can be sent every frame)
 EVENT_MODELCONTROLLER_FAST_REFRESH = 'refreshModelEdit-fast'
+
+EVENT_MODELCONTROLLER_EDITTOOL_SELECTED = 'modelController-edittool-selected'
+EVENT_MODELCONTROLLER_EDITTOOL_DESELECTED = 'modelController-edittool-deselected'
 # --- not recommmended to change any of the following ---
 
 VALID_MODEL_FORMATS = ['egg', 'bam', 'egg.pz']
