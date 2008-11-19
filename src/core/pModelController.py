@@ -17,7 +17,7 @@ class ModelController( DirectObject ):
     self.selectedObjectParent = None
     self.selectedObjectDistance = 0
     self.selectedObjectRelativePos = Vec3(0,0,0)
-    self.__relativeModificationTo = render
+    self.__relativeModificationTo = None
     self.modelModeNode = NodePath('temp')
     
     self.enabled = False
@@ -77,6 +77,9 @@ class ModelController( DirectObject ):
           modelIdManager.setObject( modificator, nameTag )
           # arrows are hidden otherwise
           modificator.setBin("BT_unsorted", 40)
+      
+      self.__relativeModificationTo = render
+      
       self.accept( 'mouse1', self.mouseButtonPress )
   
   def disable(self):
