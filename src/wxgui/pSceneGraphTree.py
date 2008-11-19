@@ -27,39 +27,50 @@ class SceneGraphTree(wx.TreeCtrl, DirectObject):
     #self.imgList.Add(wx.Bitmap(Filename(APP_PATH+"content/gui/light.png").toOsSpecific()))
     self.AssignImageList(self.imgList)
     self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onSelChange)
+    
+    #self.modelDict = dict()
     self.reload()
     
+    self.accept(EVENT_SCENEGRAPHBROWSER_REFRESH, self.reload)
     self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, self.selectNodePath)
   
   def onSelChange(self, item):
     """This event gets invoked when the selection gets changed on the tree view."""
     if not isinstance(item, wx.TreeItemId):
       item = item.GetItem()
-    modelController.selectModel(modelIdManager.getObject(modelIdManager.getObjectId(self.GetItemPyData(item))))
+    modelController.selectModel(self.GetItemPyData(item))
     #base.messenger.send(EVENT_MODELCONTROLLER_SELECT_MODEL, [self.GetItemPyData(item)])
   
-  def selectNodePath(self, nodePath):
+  def selectNodePath(self, model):
     """Selects the given NodePath in the tree."""
-    pass #TODO
+    if model in self.modelDict:
+      treeItem = self.modelDict[model]
+      self.SelectItem(treeItem)
   
   def reload(self):
     """Clears the tree view and reloads it based on the scene graph."""
     self.DeleteAllItems()
+    self.modelDict = dict()
     
     # Create the root render node
     renderId = self.AddRoot("render")
-    self.SetItemPyData(renderId, base.render)
+    # render should send a pydata None (deselects all models)
+    self.SetItemPyData(renderId, None)
     self.__appendChildren(renderId, base.render)
+    self.modelDict[None] = renderId
     self.Expand(renderId)
     # Force a select event.
     self.onSelChange(renderId)
   
-  def __appendChildren(self, parent, nodePath):
+  def __appendChildren(self, treeParent, nodePath):
     """Used internally to recursively add the children of a nodepath to the scene graph browser."""
     for c in xrange(nodePath.getNumChildren()):
-      child = nodePath.getChild(c)
-      if child.hasTag( ENABLE_SCENEGRAPHBROWSER_MODEL_TAG ):
-        tree = self.AppendItem(parent, child.getName())
-        self.SetItemPyData(tree, child)
-        self.__appendChildren(tree, child)
+      childNodePath = nodePath.getChild(c)
+      childModel = modelIdManager.getObject(modelIdManager.getObjectId(childNodePath))
+      if childNodePath.hasTag( ENABLE_SCENEGRAPHBROWSER_MODEL_TAG ):
+        treeItem = self.AppendItem(treeParent, childNodePath.getName())
+        self.SetItemPyData(treeItem, childModel)
+        self.modelDict[childNodePath] = treeItem
+        # search the childrens
+        self.__appendChildren(treeItem, childNodePath)
 
