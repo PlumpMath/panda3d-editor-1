@@ -1,8 +1,10 @@
 __all__ = ["PropertyGrid"]
+from direct.showbase.DirectObject import DirectObject
 from wx.grid import *
 import wx, re
 
 # Local imports
+from core.pConfigDefs import *
 from pProperties import EnumProperty, Enums, Properties
 
 """
@@ -15,7 +17,7 @@ class PropertyGridTable(PyGridTableBase);
   def SetValue(self, row, col, value): pass
 """
 
-class PropertyGrid(Grid):
+class PropertyGrid(Grid, DirectObject):
   """The grid to edit node properties."""
   def __init__(self, *args, **kwargs):
     Grid.__init__(self, *args, **kwargs)
@@ -32,7 +34,7 @@ class PropertyGrid(Grid):
     # Catch events
     self.Bind(EVT_GRID_CELL_CHANGE, self.onCellChange)
     self.Bind(wx.EVT_SIZE, self.onSize)
-    base.accept("sgtree-selection-changed", self.viewForNodePath)
+    self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, self.viewForNodePath)
   
   def onSize(self, evt = None):
     """Invoked when the size has changed."""
@@ -49,8 +51,9 @@ class PropertyGrid(Grid):
     """Updates the control based on the specified NodePath."""
     self.reset()
     self.object = nodePath
-    for propName, prop in Properties.NodePath.items():
-      self.addProperty(propName, prop, prop.GetValue(nodePath))
+    if nodePath != None:
+      for propName, prop in Properties.NodePath.items():
+        self.addProperty(propName, prop, prop.GetValue(nodePath))
   
   def addProperty(self, propName, prop, value = None):
     """ Adds a new property to the control. """

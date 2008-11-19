@@ -57,7 +57,7 @@ class EditorApp(AppShell):
     sizer.Add(self.splitter, 1, wx.EXPAND, 0)
     self.SetSizer(sizer)
     self.Layout()
-
+    
     # Setup the panda stuff
     self.setupPandaWindow()
     self.editorInit()
@@ -67,15 +67,13 @@ class EditorApp(AppShell):
     self.panel3D.Bind(wx.EVT_SIZE, self.onPanelSize)
     base.accept("c", self.onCenterTrackball)
     
-    # if a model-translate-rotate-scale tool is selected the automatic mouse
-    # movement has to be disable to prevent camera & object movement
-    # hmm doesnt really work as well... (camera is still moved)
+    # If a model-translate-rotate-scale tool is selected the automatic mouse
+    # movement has to be disable to prevent camera & object movement.
+    # Hmm doesnt really work as well... (camera is still moved)
     base.accept(EVENT_MODELCONTROLLER_EDITTOOL_SELECTED, base.disableMouse)
     base.accept(EVENT_MODELCONTROLLER_EDITTOOL_DESELECTED, base.enableMouse)
-    # update the scenegraph-browser when this event occurs
-    #base.accept(EVENT_SCENEGRAPHBROWSER_REFRESH, )
-    # a object has been selected on this event, object is given in extraArgs
-    #base.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, )
+    # Update the scenegraph-browser when this event occurs
+    base.accept(EVENT_SCENEGRAPHBROWSER_REFRESH, self.sceneGraphTree.reload)
     # the object has been modified in the scene, this event happens rarely
     #base.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, )
     # the object has been modified in the scene, this event happens every frame

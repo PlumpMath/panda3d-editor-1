@@ -1,9 +1,14 @@
 __all__ = ["SceneGraphTree"]
 
+from direct.showbase.DirectObject import DirectObject
 from pandac.PandaModules import NodePath
 import wx
 
-class SceneGraphTree(wx.TreeCtrl):
+# Local imports
+from core.pModelController import modelController
+from core.pModelIdManager import modelIdManager
+
+class SceneGraphTree(wx.TreeCtrl, DirectObject):
   """A treeview object to show the Scene Graph."""
   def __init__(self, parent):
     wx.TreeCtrl.__init__(self, parent, style = wx.TR_HAS_BUTTONS | wx.TR_DEFAULT_STYLE | wx.SUNKEN_BORDER)
@@ -22,12 +27,19 @@ class SceneGraphTree(wx.TreeCtrl):
     self.AssignImageList(self.imgList)
     self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onSelChange)
     self.reload()
+    
+    self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, self.selectNodePath)
   
   def onSelChange(self, item):
     """This event gets invoked when the selection gets changed on the tree view."""
     if not isinstance(item, wx.TreeItemId):
       item = item.GetItem()
-    base.messenger.send("sgtree-selection-changed", [self.GetItemPyData(item)])
+    modelController.selectModel(modelIdManager.getObject(modelIdManager.getObjectId(self.GetItemPyData(item))))
+    #base.messenger.send(EVENT_MODELCONTROLLER_SELECT_MODEL, [self.GetItemPyData(item)])
+  
+  def selectNodePath(self, nodePath):
+    """Selects the given NodePath in the tree."""
+    pass #TODO
   
   def reload(self):
     """Clears the tree view and reloads it based on the scene graph."""
