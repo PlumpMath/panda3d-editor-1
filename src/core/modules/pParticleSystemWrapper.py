@@ -6,16 +6,6 @@ from core.modules.pBaseWrapper import *
 from core.pModelController import modelController
 from core.pCommonPath import *
 
-TKINTER_AVAILABLE = False
-if PARTICLESYSTEMWRAPPER_SHOW_PARTICLEPANEL:
-  try:
-    import _tkinter
-    TKINTER_AVAILABLE = True
-    base.startTk()
-    from direct.tkpanels.ParticlePanel import ParticlePanel
-  except:
-    print "W: ParticleSystemWrapper: tkInter is not installed, editing particlesystems impossible"
-
 class ParticleSystemWrapper( BaseWrapper ):
   wrapperTypeTag = 'ParticleSystemWrapper'
   
