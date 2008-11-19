@@ -28,7 +28,7 @@ class SceneGraphTree(wx.TreeCtrl, DirectObject):
     self.AssignImageList(self.imgList)
     self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onSelChange)
     
-    #self.modelDict = dict()
+    self.modelDict = {}
     self.reload()
     
     self.accept(EVENT_SCENEGRAPHBROWSER_REFRESH, self.reload)
@@ -50,7 +50,7 @@ class SceneGraphTree(wx.TreeCtrl, DirectObject):
   def reload(self):
     """Clears the tree view and reloads it based on the scene graph."""
     self.DeleteAllItems()
-    self.modelDict = dict()
+    self.modelDict.clear()
     
     # Create the root render node
     renderId = self.AddRoot("render")
