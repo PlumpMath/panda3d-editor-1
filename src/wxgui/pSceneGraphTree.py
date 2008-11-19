@@ -7,6 +7,7 @@ import wx
 # Local imports
 from core.pModelController import modelController
 from core.pModelIdManager import modelIdManager
+from core.pConfigDefs import *
 
 class SceneGraphTree(wx.TreeCtrl, DirectObject):
   """A treeview object to show the Scene Graph."""
