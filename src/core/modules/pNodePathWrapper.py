@@ -7,16 +7,6 @@ from core.pCommonPath import *
 class NodePathWrapper( BaseWrapper ):
   wrapperTypeTag = 'NodePathWrapper'
   
-  '''def onCreate( self, parent ):
-    # this is called when the user presses the button to create
-    # a nodePathWrapper
-    # open a file browser
-    
-    #FG.openFileBrowser()
-    #FG.accept('selectionMade', NodePathWrapper.onCreateInstance, [parent])
-    pass
-  onCreate = classmethod(onCreate)'''
-  
   def onCreateInstance( self, parent, filename ):
     print "I: NodePathWrapper.onCreateInstance:", parent, "'%s'" % filename
     if filename != ' ':
@@ -101,11 +91,9 @@ class NodePathWrapper( BaseWrapper ):
   def startEdit( self ):
     # the object is selected to be edited
     # creates a directFrame to edit this object
-    self.model.showBounds()
     BaseWrapper.startEdit( self )
   def stopEdit( self ):
     # the object is deselected from being edited
-    self.model.hideBounds()
     BaseWrapper.stopEdit( self )
   
   def getSaveData( self, relativeTo ):
@@ -139,8 +127,3 @@ class NodePathWrapper( BaseWrapper ):
     objectInstance = NodePathWrapper( filename, parent )
     return objectInstance
   loadFromEggGroup = classmethod(loadFromEggGroup)
-
-if __name__ == '__main__':
-  print "testing notdePathWrapper"
-  a = NodePathWrapper.onCreate( 'test2' )
-  print a.baseName, a.nodeName

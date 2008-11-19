@@ -2,8 +2,8 @@ import pickle
 
 from pandac.PandaModules import *
 
-from src.modules.baseWrapper import *
-from src.modelController import modelController
+from core.modules.pBaseWrapper import *
+from core.pModelController import modelController
 
 class SpotlightNodeWrapper( BaseWrapper ):
   wrapperTypeTag = 'SpotlightNodeWrapper'
@@ -17,7 +17,7 @@ class SpotlightNodeWrapper( BaseWrapper ):
     # the editor should select this model
     modelController.selectModel( node )
     messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
-  onCreate = classmethod(onCreate)
+  onCreateInstance = classmethod(onCreateInstance)
   
   def __init__( self, parent=None ):
     print "I: SpotlightNodeWrapper.__init__:"
@@ -93,11 +93,8 @@ class SpotlightNodeWrapper( BaseWrapper ):
     instance = EggGroup( name+"-Group" )
     instance.setGroupType(EggGroup.GTInstance)
     instance.setTransform3d( nm )
-    # userdata is not written to the eggFile
-    #instance.setUserData( self.wrapperTypeTag )
     instance.setTag( MODEL_WRAPPER_TYPE_TAG, self.wrapperTypeTag )
     # add the reference to the egg-file
-    #ext = EggExternalReference( name+"-EggExternalReference", self.modelFilename )
     data = list()
     parameters = pickle.dumps( data )
     comment = EggComment( 'parameters', parameters )
@@ -107,8 +104,6 @@ class SpotlightNodeWrapper( BaseWrapper ):
   def loadFromEggGroup( self, eggGroup, parent ):
     print "I: NodePathWrapper.loadFromEggGroup:"
     eggComment = eggGroup.getChildren()[0]
-    print eggComment
-    #filename = str(eggExternalReference.getFilename())
     objectInstance = SpotlightNodeWrapper( parent )
     return objectInstance
   loadFromEggGroup = classmethod(loadFromEggGroup)

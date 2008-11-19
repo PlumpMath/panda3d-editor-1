@@ -19,15 +19,6 @@ if PARTICLESYSTEMWRAPPER_SHOW_PARTICLEPANEL:
 class ParticleSystemWrapper( BaseWrapper ):
   wrapperTypeTag = 'ParticleSystemWrapper'
   
-  '''def onCreate( self, parent ):
-    # this is called when the user presses the button to create
-    # a nodePathWrapper
-    
-    # open a file browser
-    FG.openFileBrowser()
-    FG.accept('selectionMade', ParticleSystemWrapper.onCreateInstance, [parent])
-  onCreate = classmethod(onCreate)'''
-  
   def onCreateInstance( self, parent, filename ):
     print "I: NodePathWrapper.onCreateInstance:", parent, filename
     # check if model file is in pandaModelPath
@@ -139,19 +130,10 @@ class ParticleSystemWrapper( BaseWrapper ):
   def startEdit( self ):
     # the object is selected to be edited
     # creates a directFrame to edit this object
-    self.model.showBounds()
     BaseWrapper.startEdit( self )
-    if TKINTER_AVAILABLE:
-      self.particlePanel = ParticlePanel( self.particleSystem )
   def stopEdit( self ):
     # the object is deselected from being edited
-    self.model.hideBounds()
     BaseWrapper.stopEdit( self )
-    if TKINTER_AVAILABLE:
-      try:
-        self.particlePanel.destroy()
-      except:
-        print "W: ParticleSystemWrapper.stopEdit:"
   
   def getSaveData( self, relativeTo ):
     name = self.getName()
