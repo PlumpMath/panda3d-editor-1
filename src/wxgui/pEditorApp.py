@@ -32,6 +32,7 @@ class EditorApp(AppShell):
   frameHeight   = defWP.getYSize()
   
   def __init__(self, editorInstance):
+    """EditorApp constructor."""
     # Instance of the editor
     self.editorInstance = editorInstance
     
@@ -39,7 +40,8 @@ class EditorApp(AppShell):
     self.wxApp = wx.App(redirect = False)
     self.wxApp.SetAppName("Panda Editor")
     self.wxApp.SetClassName("PEditor")
-    
+     
+    #TODO: get out self.scene
     self.scene = render.attachNewNode("scene")
     self.modified = True
     self.filename = Filename()
@@ -72,17 +74,18 @@ class EditorApp(AppShell):
     # Hmm doesnt really work as well... (camera is still moved)
     base.accept(EVENT_MODELCONTROLLER_EDITTOOL_SELECTED, base.disableMouse)
     base.accept(EVENT_MODELCONTROLLER_EDITTOOL_DESELECTED, base.enableMouse)
-    # the object has been modified in the scene, this event happens rarely
+    # The object has been modified in the scene, this event happens rarely
     #base.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, )
-    # the object has been modified in the scene, this event happens every frame
+    # The object has been modified in the scene, this event happens every frame
     #base.accept(EVENT_MODELCONTROLLER_FAST_REFRESH, )
-    # the editor has been disabled, collisions etc are deleted
+    # The editor has been disabled, collisions etc are deleted
     #base.accept(EDITOR_TOGGLE_OFF_EVENT, )
-    # the editor has been enabled, collisions etc are created
-    # this event happens shortly after the wxgui has been created
+    # The editor has been enabled, collisions etc are created.
+    # This event happens shortly after the wxgui has been created
     #base.accept(EDITOR_TOGGLE_ON_EVENT, )
   
   def appInit(self):
+    """Overridden from WxAppShell.py."""
     # Create a new event loop (to overide default wxEventLoop)
     self.evtLoop = wx.EventLoop()
     self.oldLoop = wx.EventLoop.GetActive()
@@ -90,6 +93,7 @@ class EditorApp(AppShell):
     taskMgr.add(self.wxStep, "evtLoopTask")
   
   def createMenuBar(self):
+    """Overridden from WxAppShell.py."""
     # File menu
     self.menuFile = wx.Menu()
     self.menuBar.Append(self.menuFile, "&File")
@@ -123,11 +127,13 @@ class EditorApp(AppShell):
     self.menuBar.Check(ID_ENABLE_GRID, True)
   
   def createInterface(self):
+    """Overridden from WxAppShell.py."""
     self.CreateStatusBar()
     self.SetStatusText("Welcome to the Panda3D Editor")
     self.Update()
   
   def setupPandaWindow(self):
+    """Creates the Panda3D viewport."""
     self.Update()
     self.panel3D.Update()
     self.wxStep()
@@ -163,9 +169,11 @@ class EditorApp(AppShell):
     if task != None: return task.cont
   
   def onDestroy(self, event):
+    """Invoked when the window is destroyed."""
     wx.EventLoop.SetActive(self.oldLoop)
   
   def onPanelSize(self, sizeEvt = None):
+    """Invoked when the panel is resized. Used to resize the Panda3D windows."""
     if(base.win != None): # Make sure we have a window
       wp = WindowProperties()
       wp.setOrigin(0, 0)
@@ -240,12 +248,15 @@ class EditorApp(AppShell):
       dlg.Destroy()
   
   def onToggleGrid(self, evt = None):
+    """Toggles the grid on/off."""
     if evt.GetEventObject().IsChecked(ID_ENABLE_GRID):
       self.grid.enable(parent = render)
     else:
       self.grid.disable()
   
   def onCenterTrackball(self, evt = None):
+    """Center the trackball, like 'c' does in pview."""
+    #TODO: get out self.scene.
     gbv = self.scene.getBounds();
     # Determine the bounding sphere around the object.
     if gbv.isInfinite(): return
@@ -278,6 +289,7 @@ class EditorApp(AppShell):
     base.trackball.node().setForwardScale(distance * 0.006)
   
   def onChooseColor(self, evt = None):
+    """Change the background color of the viewport."""
     data = wx.ColourData()
     bgcolor = base.getBackgroundColor()
     bgcolor = bgcolor[0] * 255.0, bgcolor[1] * 255.0, bgcolor[2] * 255.0
