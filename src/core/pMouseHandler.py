@@ -3,6 +3,8 @@ import sys
 
 from pandac.PandaModules import WindowProperties, Vec3
 
+MOUSE_REFRESH_RATE = 1./30.
+
 class MouseHandlerClass:
   def __init__( self ):
     # last read of the mouse at frame
@@ -16,6 +18,7 @@ class MouseHandlerClass:
     taskMgr.add( self.mouseHandlerTask, 'mouseHandlerTask' )
   
   def toggleMouseFixed( self, state=None ):
+    # set the mouse fixed
     if state == None:
       state = not self.mouseFixed
     self.mouseFixed = state
@@ -27,31 +30,39 @@ class MouseHandlerClass:
     self.setMouseHidden( self.mouseFixed )
   
   def mouseHandlerTask( self, task ):
-    if self.discardFrame:
-      self.mousePosX, self.mousePosY = 0,0
-      self.discardFrame = False
-      self.setMouseCentered()
-      return task.again
-    
     self.taskTimer += globalClock.getDt()
-    
-    # only allow the reset happening every 1/60 second
-    if self.taskTimer > 1./60.:
-      self.taskTimer -= 1./60.
+    # only allow the reset happening every MOUSE_REFRESH_RATE seconds
+    if self.taskTimer > MOUSE_REFRESH_RATE:
+      # if discardframe is defined, dont return the real mouse movement
+      # instead return 0/0 and set the mouse centered
+      # (this is used when a relative movement is needed, but the mouse
+      # is not centered on the screen in the first frame)
+      if self.discardFrame:
+        self.mousePosX, self.mousePosY = 0,0
+        self.discardFrame = False
+        self.setMouseCentered()
+        return task.again
       
+      self.taskTimer -= MOUSE_REFRESH_RATE
+      
+      # read the mouse position
       if base.mouseWatcherNode.hasMouse():
         mpos = base.mouseWatcherNode.getMouse()
         self.mousePosX, self.mousePosY = mpos.getX(), mpos.getY()
+        
+        # if the mouse is fixed to the center of the window, reset the mousepos
         if self.mouseFixed:
           self.setMouseCentered()
     
     return task.again
   
-  def setMouseCentered( self ): #, position=None ):
-    px, py = 0,0 #base.win.getXSize()/2, base.win.getYSize()/2
+  def setMouseCentered( self ):
+    # set the mouse position into the center of the window
+    px, py = 0,0
     self.setMousePos( px, py )
   
   def setMousePos( self, px, py ):
+    # set the mouse position on the screen with a position x(-1,1) and y(-1,1)
     base.win.movePointer(0,  px * base.win.getXSize()/2 + base.win.getXSize()/2
                           , -py * base.win.getYSize()/2 + base.win.getYSize()/2)
   
@@ -71,8 +82,6 @@ class MouseHandlerClass:
     base.win.requestProperties(wp)
   
   def getMousePos( self ):
-    return self.mousePosX, self.mousePosY
-  def getMouseMovement( self ):
     return self.mousePosX, self.mousePosY
 
 mouseHandler = MouseHandlerClass()
