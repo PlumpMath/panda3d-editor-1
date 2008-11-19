@@ -30,7 +30,10 @@ class EditorApp(AppShell):
   frameWidth    = defWP.getXSize()
   frameHeight   = defWP.getYSize()
   
-  def __init__(self):
+  def __init__(self, editorInstance):
+    # instance of the editor
+    self.editorInstance = editorInstance
+    
     # Create the Wx app
     self.wxApp = wx.App(redirect = False)
     self.wxApp.SetAppName("Panda Editor")
@@ -162,26 +165,30 @@ class EditorApp(AppShell):
   def onOpen(self, evt = None):
     filter = "Panda3D Binary Format (*.bam)|*.[bB][aA][mM]"
     filter += "|Panda3D Egg Format (*.egg)|*.[eE][gG][gG]"
+    ''' # disabled by hypnos, making the loading work
     filter += "|MultiGen (*.flt)|*.[fF][lL][tT]"
     filter += "|Lightwave (*.lwo)|*.[lL][wW][oO]"
     filter += "|AutoCAD (*.dxf)|*.[dD][xX][fF]"
     filter += "|VRML (*.wrl)|*.[wW][rR][lL]"
     filter += "|DirectX (*.x)|*.[xX]"
-    filter += "|COLLADA (*.dae)|*.[dD][aA][eE]"
+    filter += "|COLLADA (*.dae)|*.[dD][aA][eE]" '''
     dlg = wx.FileDialog(self, "Load file", "", "", filter, wx.OPEN)
     try:
       if dlg.ShowModal() == wx.ID_OK:
-        self.filename = Filename.fromOsSpecific(dlg.GetPath())
-        self.SetTitle(self.filename.getBasename() + " - Panda Editor")
+        #self.filename = Filename.fromOsSpecific(dlg.GetPath())
+        p3dFilename = Filename.fromOsSpecific(dlg.GetPath())
+        self.filename = str(dlg.GetPath())
+        self.SetTitle(p3dFilename.getBasename() + " - Panda Editor")
         self.modified = False
-        self.scene.removeNode()
-        self.scene = loader.loadModel(self.filename)
-        self.scene.reparentTo(render)
+        self.editorInstance.loadEggModelsFile( self.filename )
+        #self.scene.removeNode()
+        #self.scene = loader.loadModel(self.filename)
+        #self.scene.reparentTo(render)
         # Reset the camera
         base.trackball.node().setPos(0, 30, 0)
         base.trackball.node().setHpr(0, 15, 0)
         self.onCenterTrackball()
-        if self.filename.getExtension().lower() != "bam":
+        if p3dFilename.getExtension().lower() != "bam":
           self.filename = Filename()
           self.modified = True
     finally:
