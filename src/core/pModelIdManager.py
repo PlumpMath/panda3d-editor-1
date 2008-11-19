@@ -18,6 +18,7 @@ class ModelIdManager:
     for objId, obj in self.modelIdDict.items():
       if obj == model:
         return objId
+    return None
   
   def getObject( self, modelId ):
     if self.modelIdDict.has_key( modelId ):
