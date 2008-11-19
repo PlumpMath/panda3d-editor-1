@@ -20,8 +20,6 @@ class ModelController( DirectObject ):
     self.__relativeModificationTo = render
     self.modelModeNode = NodePath('temp')
     
-    #self.readingInputs = True
-    
     self.enabled = False
   
   def toggle( self, state=None ):
@@ -117,6 +115,7 @@ class ModelController( DirectObject ):
         self.selectModel( None )
   
   def editToolSetup( self, editTool ):
+    messenger.send(EVENT_MODELCONTROLLER_EDITTOOL_SELECTED)
     transX, transY, rotX, rotY, scaleX, scaleY = MODEL_MODIFICATION_FUNCTIONS[editTool]
     task = Task(self.editToolTask)
     
@@ -160,6 +159,7 @@ class ModelController( DirectObject ):
       self.objectAxisCube.setScale( self.__modificationNode.getPos(render) )
     return task.cont
   def editToolCleanup( self, task ):
+    messenger.send(EVENT_MODELCONTROLLER_EDITTOOL_DESELECTED)
     # the modification node needs to be destroyed if it's not the __selectedModel
     if self.__modificationNode != self.__selectedModel:
         self.__selectedModel.wrtReparentTo( self.__origModelParent )
@@ -177,7 +177,7 @@ class ModelController( DirectObject ):
     self.selectModel( object )
   
   def selectModel( self, model=None ):
-    messenger.send( EVENT_MODELCONTROLLER_SELECT_MODEL, model )
+    messenger.send( EVENT_MODELCONTROLLER_SELECT_MODEL, [model] )
     print "I: modelController.selectModel", model
     if model is None:
       # no object has been selected
