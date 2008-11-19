@@ -58,7 +58,8 @@ class SceneGraphTree(wx.TreeCtrl, DirectObject):
     """Used internally to recursively add the children of a nodepath to the scene graph browser."""
     for c in xrange(nodePath.getNumChildren()):
       child = nodePath.getChild(c)
-      tree = self.AppendItem(parent, child.getName())
-      self.SetItemPyData(tree, child)
-      self.__appendChildren(tree, child)
+      if child.hasTag( ENABLE_SCENEGRAPHBROWSER_MODEL_TAG ):
+        tree = self.AppendItem(parent, child.getName())
+        self.SetItemPyData(tree, child)
+        self.__appendChildren(tree, child)
 
