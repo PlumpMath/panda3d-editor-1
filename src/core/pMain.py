@@ -197,8 +197,9 @@ class EditorClass(DirectObject):
           model.enableEditmode()
       # select no model
       modelController.selectModel(None)
-      # refresh the scenegraphbrowser
-      messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+    
+    # refresh the scenegraphbrowser
+    messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
   
   def destroyModel(self):
     #print "editor.editorClass.destroyModel"
@@ -208,7 +209,8 @@ class EditorClass(DirectObject):
       selectedObject.destroy()
       del selectedObject
     
-    self.scenegraphBrowser.refresh()
+    # refresh the scenegraphbrowser
+    messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
   
   def destroyAllModels(self):
     print "editor.editorClass.destroyAllModels"

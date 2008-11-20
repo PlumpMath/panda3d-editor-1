@@ -81,7 +81,12 @@ MODEL_NOT_FOUND_MODEL = 'models/modelnotfound.egg'
 MODEL_WRAPPER_TYPE_TAG = 'modelWrapperTypeTag'
 
 PARTICLE_WRAPPER_DUMMYOBJECT = 'models/sphere.egg.pz'
+
+# light nodes, visual objects (usually they are not visible)
 SPOTLIGHT_WRAPPER_DUMMYOBJECT = 'models/Spotlight.egg.pz'
+DIRECTIONALLIGHT_WRAPPER_DUMMYOBJECT = 'models/Dirlight.egg.pz'
+POINTLIGHT_WRAPPER_DUMMYOBJECT = 'models/Pointlight.egg.pz'
+AMBIENTLIGHT_WRAPPER_DUMMYOBJECT = 'models/sphere.egg'
 
 CAMERACONTROLLER_PIVOT_MODEL = 'models/sphere.egg'
 
