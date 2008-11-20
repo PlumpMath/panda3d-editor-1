@@ -19,6 +19,13 @@ class SpotLightNodeWrapper( BaseWrapper ):
     messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
   onCreateInstance = classmethod(onCreateInstance)
   
+  def loadFromEggGroup( self, eggGroup, parent ):
+    print "I: NodePathWrapper.loadFromEggGroup:"
+    eggComment = eggGroup.getChildren()[0]
+    objectInstance = SpotLightNodeWrapper( parent )
+    return objectInstance
+  loadFromEggGroup = classmethod(loadFromEggGroup)
+  
   def __init__( self, parent=None ):
     print "I: SpotlightNodeWrapper.__init__:"
     # define the name of this object
@@ -100,13 +107,6 @@ class SpotLightNodeWrapper( BaseWrapper ):
     comment = EggComment( 'parameters', parameters )
     instance.addChild(comment)
     return instance
-  
-  def loadFromEggGroup( self, eggGroup, parent ):
-    print "I: NodePathWrapper.loadFromEggGroup:"
-    eggComment = eggGroup.getChildren()[0]
-    objectInstance = SpotlightNodeWrapper( parent )
-    return objectInstance
-  loadFromEggGroup = classmethod(loadFromEggGroup)
 
 if __name__ == '__main__':
   print "testing notdePathWrapper"
