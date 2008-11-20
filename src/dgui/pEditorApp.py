@@ -87,9 +87,12 @@ class EditorApp(DirectObject):
       console = pandaConsole( INPUT_GUI|OUTPUT_PYTHON, locals() )
       console.toggle()
       
-      buttonDefinitions = [ ['model', self.createNodePathWrapper, []]
-                          , ['particlesystem', self.createPartcileNodeWrapper, []]
-                          , ['spotlight', self.createSpotlightNodeWrapper, []]
+      buttonDefinitions = [ ['model', self.crateFilebrowserModelWrapper, ['NodePathWrapper']]
+                          , ['particlesystem', self.crateFilebrowserModelWrapper, ['ParticleSystemWrapper']]
+                          , ['spotlight', self.createModelWrapper, ['SpotLightNodeWrapper']]
+                          , ['directionallight', self.createModelWrapper, ['DirectionalLightNodeWrapper']]
+                          , ['ambientlight', self.createModelWrapper, ['AmbientLightNodeWrapper']]
+                          , ['pointlight', self.createModelWrapper, ['PointLightNodeWrapper']]
                           , ['destroy model', self.editorInstance.destroyModel, []]
                           , ['load', self.loadEggModelsFile, []]
                           , ['save', self.saveEggModelsFile, []] ]
@@ -149,24 +152,16 @@ class EditorApp(DirectObject):
         print "  - is destroying old editor"
       print "  - creating new editor"
   
-  def createNodePathWrapper( self ):
-    from core.modules.pNodePathWrapper import NodePathWrapper
+  def crateFilebrowserModelWrapper(self, type):
+    exec("from core.modules.p%s import %s" % (type, type))
     modelParent = modelController.getSelectedModel()
-    #NodePathWrapper.onCreate( modelParent )
     FG.openFileBrowser()
-    FG.accept('selectionMade', NodePathWrapper.onCreateInstance, [modelParent])
+    exec("FG.accept('selectionMade', %s.onCreateInstance, [modelParent])" % (type))
   
-  def createPartcileNodeWrapper( self ):
-    from core.modules.pParticleSystemWrapper import ParticleSystemWrapper
+  def createModelWrapper(self, type):
+    exec("from core.modules.p%s import %s" % (type, type))
     modelParent = modelController.getSelectedModel()
-    #ParticleSystemWrapper.onCreate( modelParent )
-    FG.openFileBrowser()
-    FG.accept('selectionMade', NodePathWrapper.onCreateInstance, [modelParent])
-  
-  def createSpotlightNodeWrapper( self ):
-    from core.modules.pSpotlightNodeWrapper import SpotlightNodeWrapper
-    modelParent = modelController.getSelectedModel()
-    SpotlightNodeWrapper.onCreateInstance( modelParent )
+    exec("%s.onCreateInstance( modelParent )" % type)
   
   def disable( self ):
     if self.enabled:
@@ -200,9 +195,10 @@ class EditorApp(DirectObject):
       buttons.append( button )
     itemHeight = 0.11
     
+    height = itemHeight * len(buttonDefinitions)
     self.ButtonsWindow = DirectWindow( title='ButtonsWindow', pos = ( 0.83, 1.0 )
-                                                , maxSize = ( 0.5, 0.5 )
-                                                , minSize = ( 0.5, 0.5 )
+                                                , maxSize = ( 0.5, height )
+                                                , minSize = ( 0.5, height )
                                      )
                                       #, pos = ( 0, 0)
                                       #, maxSize = ( 0.5, 0.5 )
@@ -210,7 +206,7 @@ class EditorApp(DirectObject):
     myScrolledList = DirectScrolledList(
         #frameSize = (-1, 1, -1, 0),
         #frameColor = (1,0,0,0.5),
-        pos = (0.25, 0, .4),
+        pos = (0.25, 0, height-0.1),
         items = buttons,
         scale = 0.5,
         parent = self.ButtonsWindow,
