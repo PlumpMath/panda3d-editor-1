@@ -12,6 +12,7 @@ from math import tan
 # Local imports
 from pPropertyGrid import PropertyGrid
 from pSceneGraphTree import SceneGraphTree
+from pViewport import Viewport
 
 # Get the default window origin
 defWP = WindowProperties.getDefault()
@@ -52,21 +53,21 @@ class EditorApp(AppShell):
     self.sideBarSplitter = wx.SplitterWindow(self.splitter, style = wx.SP_3D | wx.SP_BORDER)
     self.sceneGraphTree = SceneGraphTree(self.sideBarSplitter)
     self.propertyGrid = PropertyGrid(self.sideBarSplitter)
-    self.panel3D = wx.Panel(self.splitter)
+    self.viewport = Viewport(self.splitter)
     sizer = wx.BoxSizer(wx.VERTICAL)
     assert self.sideBarSplitter.SplitHorizontally(self.sceneGraphTree, self.propertyGrid)
-    assert self.splitter.SplitVertically(self.sideBarSplitter, self.panel3D, 200)
+    assert self.splitter.SplitVertically(self.sideBarSplitter, self.viewport, 200)
     sizer.Add(self.splitter, 1, wx.EXPAND, 0)
     self.SetSizer(sizer)
     self.Layout()
     
     # Setup the panda stuff
-    self.setupPandaWindow()
+    #self.setupPandaWindow()
     self.editorInit()
     self.sceneGraphTree.reload()
     
     # Setup some events
-    self.panel3D.Bind(wx.EVT_SIZE, self.onPanelSize)
+    self.viewport.Bind(wx.EVT_SIZE, self.onViewportSize)
     base.accept("c", self.onCenterTrackball)
     
     # If a model-translate-rotate-scale tool is selected the automatic mouse
@@ -156,8 +157,8 @@ class EditorApp(AppShell):
     self.axis.node().setEffect(CompassEffect.make(base.camera))
     
     # Position the camera
-    base.trackball.node().setPos(0, 30, 0)
-    base.trackball.node().setHpr(0, 15, 0)
+    #base.trackball.node().setPos(0, 30, 0)
+    #base.trackball.node().setHpr(0, 15, 0)
     
     # Load the direct things
     self.grid = DirectGrid(parent = render)
@@ -172,12 +173,12 @@ class EditorApp(AppShell):
     """Invoked when the window is destroyed."""
     wx.EventLoop.SetActive(self.oldLoop)
   
-  def onPanelSize(self, sizeEvt = None):
+  def onViewportSize(self, sizeEvt = None):
     """Invoked when the panel is resized. Used to resize the Panda3D windows."""
     if(base.win != None): # Make sure we have a window
       wp = WindowProperties()
       wp.setOrigin(0, 0)
-      wp.setSize(self.panel3D.GetClientSize().GetWidth(), self.panel3D.GetClientSize().GetHeight())
+      wp.setSize(self.viewport.GetClientSize().GetWidth(), self.viewport.GetClientSize().GetHeight())
       base.win.requestProperties(wp)
   
   def onNew(self, evt = None):

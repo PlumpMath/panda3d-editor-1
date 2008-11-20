@@ -58,7 +58,7 @@ class MouseHandlerClass:
       self.taskTimer -= MOUSE_REFRESH_RATE
       
       # read the mouse position
-      if base.mouseWatcherNode.hasMouse():
+      if base.mouseWatcherNode != None and base.mouseWatcherNode.hasMouse():
         mpos = base.mouseWatcherNode.getMouse()
         self.mousePosX, self.mousePosY = mpos.getX(), mpos.getY()
         
