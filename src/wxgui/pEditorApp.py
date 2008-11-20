@@ -62,7 +62,6 @@ class EditorApp(AppShell):
     self.Layout()
     
     # Setup the panda stuff
-    #self.setupPandaWindow()
     self.editorInit()
     self.sceneGraphTree.reload()
     
@@ -133,20 +132,6 @@ class EditorApp(AppShell):
     self.SetStatusText("Welcome to the Panda3D Editor")
     self.Update()
   
-  def setupPandaWindow(self):
-    """Creates the Panda3D viewport."""
-    self.Update()
-    self.panel3D.Update()
-    self.wxStep()
-    base.windowType = "onscreen"
-    wp = WindowProperties.getDefault()
-    wp.setOrigin(0, 0)
-    wp.setSize(self.panel3D.GetClientSize().GetWidth(), self.panel3D.GetClientSize().GetHeight())
-    assert self.panel3D.GetHandle() != 0
-    wp.setParentWindow(self.panel3D.GetHandle())
-    base.openDefaultWindow(props = wp)
-    self.Raise()
-  
   def editorInit(self):
     # Add a small axis indicator in the bottom of the screen
     self.axisPivot = base.a2dBottomLeft.attachNewNode("axisPivot")
@@ -157,8 +142,9 @@ class EditorApp(AppShell):
     self.axis.node().setEffect(CompassEffect.make(base.camera))
     
     # Position the camera
-    #base.trackball.node().setPos(0, 30, 0)
-    #base.trackball.node().setHpr(0, 15, 0)
+    if base.trackball != None:
+      base.trackball.node().setPos(0, 30, 0)
+      base.trackball.node().setHpr(0, 15, 0)
     
     # Load the direct things
     self.grid = DirectGrid(parent = render)

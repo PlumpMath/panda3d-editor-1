@@ -19,6 +19,10 @@ class Viewport(wx.Panel):
     wp.setSize(self.ClientSize.GetWidth(), self.ClientSize.GetHeight())
     assert self.GetHandle() != 0
     wp.setParentWindow(self.GetHandle())
-    self.win = base.openWindow(props = wp)
+    if len(ViewportManager.viewports) == 0:
+      self.win = base.openDefaultWindow(props = wp)
+    else:
+      self.win = base.openWindow(props = wp)
     self.cam = base.camList[-1]
+    ViewportManager.viewports.append(self)
 
