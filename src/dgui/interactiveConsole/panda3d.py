@@ -172,11 +172,11 @@ class panda3dIOClass( DirectObject.DirectObject ):
     self.consoleEntry['focus'] != hidden
     if hidden:
       self.ignoreAll()
-      base.buttonThrowers[0].node().setPrefix('')
+      #base.buttonThrowers[0].node().setPrefix('')
       self.accept( self.gui_key, self.toggleConsole )
     else:
       self.ignoreAll()
-      base.buttonThrowers[0].node().setPrefix(self.event_prefix)
+      #base.buttonThrowers[0].node().setPrefix(self.event_prefix)
       self.accept( self.event_prefix+'page_up', self.scroll, [-5] )
       self.accept( self.event_prefix+'page_up-repeat', self.scroll, [-5] )
       self.accept( self.event_prefix+'page_down', self.scroll, [5] )

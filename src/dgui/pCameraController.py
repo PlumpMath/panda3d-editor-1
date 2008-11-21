@@ -5,6 +5,7 @@ import sys, time
 
 from core.pConfigDefs import *
 from core.pMouseHandler import *
+from core.pWindow import WindowManager
 
 MOUSE_ROTATION_SPEED = 25.0
 MOUSE_MOVEMENT_SPEED = 25.0
@@ -39,13 +40,13 @@ class CameraController( DirectObject, FSM ):
   
   def enterDisabled( self ):
     try:
-      base.camera.reparentTo( render )
+      WindowManager.getDefaultCamera().reparentTo( render )
     except:
       pass
     self.posPivotModel.hide()
   def exitDisabled( self ):
-    base.camera.reparentTo( self.cameraRotPivot )
-    base.camera.setY( -STARTUP_CAMERA_DISTANCE )
+    WindowManager.getDefaultCamera().reparentTo( self.cameraRotPivot )
+    WindowManager.getDefaultCamera().setY( -STARTUP_CAMERA_DISTANCE )
     self.posPivotModel.show()
     
   
@@ -68,16 +69,18 @@ class CameraController( DirectObject, FSM ):
   
   # --- helper function begin ---
   def zoomOut( self ):
-    base.camera.setY( min( -MIN_CAMERA_DISTANCE
-                    , max( -MAX_CAMERA_DISTANCE
-                    , base.camera.getY() -1 * MOUSE_ZOOM_SPEED ) ) )
-    #print "zoomOut", base.camera.getY()
+    cam = WindowManager.getDefaultCamera()
+    cam.setY( min( -MIN_CAMERA_DISTANCE
+            , max( -MAX_CAMERA_DISTANCE
+            , cam.getY() -1 * MOUSE_ZOOM_SPEED ) ) )
+    #print "zoomOut", cam.getY()
   
   def zoomIn( self ):
-    base.camera.setY( min( -MIN_CAMERA_DISTANCE
-                    , max( -MAX_CAMERA_DISTANCE
-                    , base.camera.getY() + 1 * MOUSE_ZOOM_SPEED ) ) )
-    #print "zoomIn", base.camera.getY()
+    cam = WindowManager.getDefaultCamera()
+    cam.setY( min( -MIN_CAMERA_DISTANCE
+            , max( -MAX_CAMERA_DISTANCE
+            , cam.getY() + 1 * MOUSE_ZOOM_SPEED ) ) )
+    #print "zoomIn", cam.getY()
   
   def getCreatePos( self ):
     return self.cameraPosPivot.getPos( render )
@@ -108,7 +111,7 @@ class CameraController( DirectObject, FSM ):
     if self.taskMouseButton1PressedRunning and task.frame:
       #print mx,my
       pass
-      #base.camera.setPos( base.camera, -Vec3(mx,0,my) * MOUSE_MOVEMENT_SPEED )
+      #WindowManager.getDefaultCamera().setPos( WindowManager.getDefaultCamera(), -Vec3(mx,0,my) * MOUSE_MOVEMENT_SPEED )
       print self.cameraPosPivot.getPos(render)
       #self.cameraPosPivot.setPos( self.cameraPosPivot, Vec3(mx,my,0) * MOUSE_MOVEMENT_SPEED )
       #self.move_pivot_relative( mx*MOUSE_MOVEMENT_SPEED, my*MOUSE_MOVEMENT_SPEED )
@@ -177,7 +180,7 @@ class CameraController( DirectObject, FSM ):
     if self.taskMouseButton3PressedRunning and task.frame:
       #print mx,my$
       pass
-      #base.camera.setPos( base.camera, -Vec3(0,my,0) * MOUSE_MOVEMENT_SPEED )
+      #WindowManager.getDefaultCamera().setPos( WindowManager.getDefaultCamera(), -Vec3(0,my,0) * MOUSE_MOVEMENT_SPEED )
       diffPos = camera.getPos( render ) - self.cameraPosPivot.getPos( render )
       diffPos.normalize()
       self.cameraPosPivot.setX( self.cameraPosPivot.getX() \

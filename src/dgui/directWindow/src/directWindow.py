@@ -1,6 +1,8 @@
 from pandac.PandaModules import TextNode, Vec3
 from direct.gui.DirectGui import DirectFrame,DirectButton,DirectScrolledFrame,DGG
 
+from core.pWindow import WindowManager
+
 # define model path, required if this settings is missing in the Config.pp
 from pandac.PandaModules import *
 #currentDir=os.path.abspath( sys.path[0] )
@@ -9,9 +11,9 @@ for path in ['.', './lib/directWindow/data']:
 
 # a task that keeps a node at the position of the mouse-cursor
 def mouseNodeTask( task ):
-  if base.mouseWatcherNode.hasMouse():
-    x=base.mouseWatcherNode.getMouseX()
-    y=base.mouseWatcherNode.getMouseY()
+  if WindowManager.hasMouse():
+    x=WindowManager.getMouseX()
+    y=WindowManager.getMouseY()
     # the mouse position is read relative to render2d, so set it accordingly
     aspect2dMouseNode.setPos( render2d, x, 0, y )
   return task.cont

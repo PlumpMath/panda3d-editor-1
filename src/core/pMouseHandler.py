@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+__all__ = ["MouseHandlerClass"]
 import sys
 
 from pandac.PandaModules import WindowProperties, Vec3
@@ -6,7 +6,7 @@ from pandac.PandaModules import WindowProperties, Vec3
 MOUSE_REFRESH_RATE = 1./30.
 
 class MouseHandlerClass:
-  def __init__( self ):
+  def __init__(self):
     # last read of the mouse at frame
     self.lastRead = -1
     self.mousePosX = 0
@@ -17,7 +17,7 @@ class MouseHandlerClass:
     self.taskTimer = 0
     self.enabled = False
   
-  def toggle(self, state=None):
+  def toggle(self, state = None):
     if state is None:
       state = not self.enabled
     
@@ -29,8 +29,8 @@ class MouseHandlerClass:
     
     self.enabled = state
   
-  def toggleMouseFixed( self, state=None ):
-    # set the mouse fixed
+  def toggleMouseFixed(self, state = None):
+    """Set the mouse fixed"""
     if state == None:
       state = not self.mouseFixed
     self.mouseFixed = state
@@ -38,10 +38,10 @@ class MouseHandlerClass:
       self.prevMousePos = self.mousePosX, self.mousePosY
       self.discardFrame = True
     else:
-      self.setMousePos( *self.prevMousePos )
-    self.setMouseHidden( self.mouseFixed )
+      self.setMousePos(*self.prevMousePos)
+    self.setMouseHidden(self.mouseFixed)
   
-  def mouseHandlerTask( self, task ):
+  def mouseHandlerTask(self, task):
     self.taskTimer += globalClock.getDt()
     # only allow the reset happening every MOUSE_REFRESH_RATE seconds
     if self.taskTimer > MOUSE_REFRESH_RATE:
@@ -68,32 +68,34 @@ class MouseHandlerClass:
     
     return task.again
   
-  def setMouseCentered( self ):
-    # set the mouse position into the center of the window
+  def setMouseCentered(self):
+    """Set the mouse position into the center of the window"""
     px, py = 0,0
-    self.setMousePos( px, py )
+    self.setMousePos(px, py)
   
-  def setMousePos( self, px, py ):
-    # set the mouse position on the screen with a position x(-1,1) and y(-1,1)
-    base.win.movePointer(0,  px * base.win.getXSize()/2 + base.win.getXSize()/2
-                          , -py * base.win.getYSize()/2 + base.win.getYSize()/2)
+  def setMousePos(self, px, py):
+    """Set the mouse position on the screen with a position x(-1,1) and y(-1,1)"""
+    base.win.movePointer(0,  px * base.win.getXSize() / 2 + base.win.getXSize() / 2
+                          , -py * base.win.getYSize() / 2 + base.win.getYSize() / 2)
   
-  def setMouseHidden( self, state=None ):
+  def setMouseHidden(self, state = None):
+    """Hides/Shows the mouse"""
     wp = WindowProperties()
-    # if state is not defined, toggle the current state
+    # If state is not defined, toggle the current state
     if state == None:
       state = wp.getCursorHidden()
-    # hide/show mouse cursor
-    wp.setCursorHidden( state )
+    # Hide/show mouse cursor
+    wp.setCursorHidden(state)
     
-    # does not exist panda 1.3.2 / but is reqired for osx-mouse movement
+    # Does not exist panda 1.3.2 / but is required for osx-mouse movement
     if sys.platform == 'darwin':
       wp.setMouseMode(WindowProperties.MRelative)
     else:
       wp.setMouseMode(WindowProperties.MAbsolute)
     base.win.requestProperties(wp)
   
-  def getMousePos( self ):
+  def getMousePos(self):
     return self.mousePosX, self.mousePosY
 
 mouseHandler = MouseHandlerClass()
+

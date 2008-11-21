@@ -9,6 +9,8 @@ from direct.task import Task
 from direct.showbase.PythonUtil import clampScalar
 from types import StringType
 
+from core.pWindow import WindowManager
+
 DEFAULT_SUPRESS_MOUSE_OVER_GUI = True
 
 class SceneGraphBrowser(DirectObject):
@@ -144,8 +146,8 @@ class SceneGraphBrowser(DirectObject):
       taskMgr.doMethodLater(.2,self.__getFrameRegion,'getFrameRegion')
      
   def __getFrameRegion(self,t):
-      for g in range(base.mouseWatcher.node().getNumGroups()):
-          region=base.mouseWatcher.node().getGroup(g).findRegion(self.childrenFrame.guiId)
+      for g in range(WindowManager.getMouseWatcherNode().getNumGroups()):
+          region=WindowManager.getMouseWatcherNode().getGroup(g).findRegion(self.childrenFrame.guiId)
           if region!=None:
              self.frameRegion=region
              taskMgr.add(self.__mouseInRegionCheck,self.mouseInRegionTaskName)
@@ -156,8 +158,8 @@ class SceneGraphBrowser(DirectObject):
          checks if the mouse is within or without the scrollable frame, and
          upon within or without, run the provided command
       """
-      if not base.mouseWatcher.node().hasMouse(): return Task.cont
-      m=base.mouseWatcher.node().getMouse()
+      if not WindowManager.getMouseWatcherNode().hasMouse(): return Task.cont
+      m=WindowManager.getMouseWatcherNode().getMouse()
       bounds=self.frameRegion.getFrame()
       inRegion=bounds[0]<m[0]<bounds[1] and bounds[2]<m[1]<bounds[3]
       if self.isMouseInRegion==inRegion: return Task.cont
@@ -172,7 +174,7 @@ class SceneGraphBrowser(DirectObject):
          return obj
 
   def __startdragSliderThumb(self,m=None):
-      mpos=base.mouseWatcherNode.getMouse()
+      mpos=WindowManager.getMouse()
       parentZ=self.vertSliderThumb.getParent().getZ(render2d)
       sliderDragTask=taskMgr.add(self.__dragSliderThumb,self.dragSliderThumbTaskName)
       sliderDragTask.ZposNoffset=mpos[1]-self.vertSliderThumb.getZ(render2d)+parentZ
@@ -183,9 +185,9 @@ class SceneGraphBrowser(DirectObject):
       self.acceptOnce(self.sliderThumbDragPrefix+'mouse1-up',self.__stopdragSliderThumb)
 
   def __dragSliderThumb(self,t):
-      if not base.mouseWatcherNode.hasMouse():
+      if not WindowManager.hasMouse():
          return
-      mpos=base.mouseWatcherNode.getMouse()
+      mpos=WindowManager.getMouse()
       self.__updateChildrenCanvasZpos((t.ZposNoffset-mpos[1])/self.canvasRatio)
       return Task.cont
 
@@ -857,6 +859,6 @@ hold [ ENTER ] : attach new smiley on selected node
    base.disableMouse()
 #    messenger.toggleVerbose()
    # to visualize the mouse regions, uncomment the next line
-#    base.mouseWatcherNode.showRegions(render2d,'gui-popup',0)
+#    WindowManager.getMouseWatcherNode().showRegions(render2d,'gui-popup',0)
    run()
 
