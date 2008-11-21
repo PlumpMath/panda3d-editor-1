@@ -61,12 +61,8 @@ class EditorApp(AppShell):
     self.SetSizer(sizer)
     self.Layout()
     
-    # Setup the panda stuff
-    self.editorInit()
-    self.sceneGraphTree.reload()
-    
     # Setup some events
-    self.viewport.Bind(wx.EVT_SIZE, self.onViewportSize)
+    self.Bind(wx.EVT_WINDOW_CREATE, self.onCreate)
     base.accept("c", self.onCenterTrackball)
     
     # If a model-translate-rotate-scale tool is selected the automatic mouse
@@ -132,15 +128,11 @@ class EditorApp(AppShell):
     self.SetStatusText("Welcome to the Panda3D Editor")
     self.Update()
   
-  def editorInit(self):
-    # Add a small axis indicator in the bottom of the screen
-    self.axisPivot = base.a2dBottomLeft.attachNewNode("axisPivot")
-    self.axisPivot.setPos(0.1, 0, 0.1)
-    self.axisPivot.setScale(0.01)
-    self.axis = loader.loadModel("models/misc/xyzAxis")
-    self.axis.reparentTo(self.axisPivot)
-    self.axis.node().setEffect(CompassEffect.make(base.camera))
-    
+  def onCreate(self, evt):
+    """Invoked when the window really gets created."""
+    self.Update()
+    self.wxStep()
+    self.editorInstance.toggle(True)
     # Position the camera
     if base.trackball != None:
       base.trackball.node().setPos(0, 30, 0)
@@ -148,8 +140,10 @@ class EditorApp(AppShell):
     
     # Load the direct things
     self.grid = DirectGrid(parent = render)
+    self.sceneGraphTree.reload()
   
   def wxStep(self, task = None):
+    """A step in the WX event loop. You can either call this yourself or use as task."""
     while self.evtLoop.Pending():
       self.evtLoop.Dispatch()
     self.wxApp.ProcessIdle()
@@ -158,14 +152,6 @@ class EditorApp(AppShell):
   def onDestroy(self, event):
     """Invoked when the window is destroyed."""
     wx.EventLoop.SetActive(self.oldLoop)
-  
-  def onViewportSize(self, sizeEvt = None):
-    """Invoked when the panel is resized. Used to resize the Panda3D windows."""
-    if(base.win != None): # Make sure we have a window
-      wp = WindowProperties()
-      wp.setOrigin(0, 0)
-      wp.setSize(self.viewport.GetClientSize().GetWidth(), self.viewport.GetClientSize().GetHeight())
-      base.win.requestProperties(wp)
   
   def onNew(self, evt = None):
     self.filename = Filename()

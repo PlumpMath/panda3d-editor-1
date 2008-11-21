@@ -34,6 +34,7 @@ if __name__ == "__main__":
     app = EditorApp(editor)
   
   # Now, get it running :)
-  editor.toggle(True)
+  if USE_GUI == "dgui":
+    editor.toggle(True)
   run()
 

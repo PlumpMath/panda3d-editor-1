@@ -3,6 +3,7 @@ from direct.fsm.FSM import FSM
 from pandac.PandaModules import *
 from direct.task.Task import Task
 
+from pWindow import WindowManager
 from core.pConfigDefs import *
 from core.pModelIdManager import modelIdManager
 #from core.pCameraController import cameraController
@@ -40,7 +41,7 @@ class ModelController( DirectObject ):
       # create another ray which copy's the mouseray of the camera
       # using the real mouseray can cause problems
       self.mouseRayCameraNodePath = NodePath( 'editorMouseRayNodePath' )
-      self.mouseRayCameraNodePath.reparentTo( base.camera )
+      self.mouseRayCameraNodePath.reparentTo( WindowManager.getDefaultCamera() )
       self.mouseRayNodePath = NodePath( 'editorMouseRayNodePath' )
       self.mouseRayNodePath.reparentTo( self.mouseRayCameraNodePath )
       
@@ -303,7 +304,7 @@ class ModelController( DirectObject ):
     self.editorCollTraverser    = CollisionTraverser()
     self.editorCollHandler      = CollisionHandlerQueue()
     self.editorPickerNode       = CollisionNode('mouseRay')
-    self.editorPickerNodePath   = base.camera.attachNewNode(self.editorPickerNode)
+    self.editorPickerNodePath   = WindowManager.getDefaultCamera().attachNewNode(self.editorPickerNode)
     self.editorPickerRay        = CollisionRay()
     self.editorPickerNode.addSolid( self.editorPickerRay )
     self.editorPickerNode.setFromCollideMask( DEFAULT_EDITOR_COLLIDEMASK )
@@ -324,7 +325,7 @@ class ModelController( DirectObject ):
   def updatePickerRay( self ):
     #print "editor.editorClass.updatePickerRay"
     mx,my = mouseHandler.getMousePos()
-    self.editorPickerRay.setFromLens(base.camNode, mx, my)
+    self.editorPickerRay.setFromLens(WindowManager.getDefaultCamera().node(), mx, my)
     return True
   
   def getMouseOverNode( self ):

@@ -24,7 +24,6 @@ class WindowManager:
   @classmethod
   def getDefaultCamera(self):
     """Returns the default camera. Only use this when allowMultipleWindows is False."""
-    print self.windows
     assert len(self.windows) == 1
     return self.windows[0].camera
   
@@ -73,13 +72,14 @@ class WindowManager:
       if w.mouseWatcherNode.hasMouse():
         return w.mouseWatcherNode
     return None
-  mouseWatcherNode = property(getMouseWatcherNode)
 
 class Window(object):
   """Class representing a graphics window."""
   def __init__(self, extraProps = None):
     base.windowType = "onscreen"
     props = WindowProperties.getDefault()
+    if extraProps != None:
+      props.addProperties(extraProps)
     if not WindowManager.allowMultipleWindows:
       base.openDefaultWindow(props = WindowProperties.getDefault())
       self.win = base.win
