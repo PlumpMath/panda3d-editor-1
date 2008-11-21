@@ -1,18 +1,5 @@
 #!/usr/bin/env python
 
-'''import sys,os
-# define model path, required if this settings is missing in the Config.pp
-from pandac.PandaModules import *
-for path in ['.', './data/models']:
-  getModelPath( ).appendPath( path )
-  sys.path.append( path )'''
-
-#loadPrcFileData("", "sync-video 0")
-
-#if False:
-#  loadPrcFileData("", "want-directtools #t")
-#  loadPrcFileData("", "want-tk #t")
-
 import pickle
 import os, sys
 import random
