@@ -6,8 +6,11 @@ from core.pWindow import WindowManager
 # define model path, required if this settings is missing in the Config.pp
 from pandac.PandaModules import *
 #currentDir=os.path.abspath( sys.path[0] )
-for path in ['.', './lib/directWindow/data']:
+for path in ['.', './dgui/directWindow/data']:
   getModelPath( ).appendPath( path )
+
+if __name__ == '__main__':
+  from direct.directbase import DirectStart
 
 # a task that keeps a node at the position of the mouse-cursor
 def mouseNodeTask( task ):
@@ -21,29 +24,10 @@ def mouseNodeTask( task ):
 aspect2dMouseNode = aspect2d.attachNewNode( 'aspect2dMouseNode', sort = 999999 )
 taskMgr.add( mouseNodeTask, 'mouseNodeTask' )
 
-'''#egg-texture-cards -o title.egg -p 240,240 title.png title.png title.png title.png
-
-#from direct.showbase.Loader import Loader
-#title_tex = Loader('a').loadTexture( 'Bild 3.png' )
-#title = loader.loadTexture( 'title.png' )
-#DEFAULT_TITLE_GEOM = ( title_tex, title_tex, title_tex, title_tex )
-mdl = loader.loadModel('windowBorders.egg')
-print mdl.ls()
-titleLeft   = mdl.find('**/titleLeft')
-print "titleLeft", titleLeft
-
-titleCenter = mdl.find('**/titleCenter')
-titleRight  = mdl.find('**/titleRight')
-resize      = mdl.find('**/resize')
-DEFAULT_TITLE_GEOM_LEFT   = ( titleLeft, titleLeft, titleLeft, titleLeft )
-DEFAULT_TITLE_GEOM_CENTER = ( titleCenter, titleCenter, titleCenter, titleCenter )
-DEFAULT_TITLE_GEOM_RIGHT  = ( titleRight, titleRight, titleRight, titleRight )
-DEFAULT_RESIZE_GEOM       = ( resize, resize, resize, resize )'''
-
-DEFAULT_TITLE_GEOM_LEFT   = loader.loadTexture('titleLeft.png')
-DEFAULT_TITLE_GEOM_CENTER = loader.loadTexture('titleCenter.png')
-DEFAULT_TITLE_GEOM_RIGHT  = loader.loadTexture('titleRight.png')
-DEFAULT_RESIZE_GEOM       = loader.loadTexture('resize.png')
+DEFAULT_TITLE_GEOM_LEFT   = 'titleLeft.png'
+DEFAULT_TITLE_GEOM_CENTER = 'titleCenter.png'
+DEFAULT_TITLE_GEOM_RIGHT  = 'titleRight.png'
+DEFAULT_RESIZE_GEOM       = 'resize.png'
 
 class DirectWindow( DirectFrame ):
   def __init__( self
@@ -53,7 +37,7 @@ class DirectWindow( DirectFrame ):
               , buttonColor = (1,1,1,1) #( .6, .6, .6, 1 )
               , minSize     = ( .5, .5 )
               , maxSize     = ( 1, 1 )
-              , windowBorders   = [ DEFAULT_TITLE_GEOM_LEFT
+              , windowBordersFilenames   = [ DEFAULT_TITLE_GEOM_LEFT
                                   , DEFAULT_TITLE_GEOM_CENTER
                                   , DEFAULT_TITLE_GEOM_RIGHT
                                   , DEFAULT_RESIZE_GEOM ]
@@ -61,6 +45,14 @@ class DirectWindow( DirectFrame ):
                                   , ( 1, 1, 1, 1 )
                                   , ( 1, 1, 1, 1 )
                                   , ( 1, 1, 1, 1 ) ]):
+    windowBorders = list()
+    for windowBorder in windowBordersFilenames:
+      if windowBorder is not None:
+        mdlFile = loader.loadTexture(windowBorder)
+        windowBorders.append(mdlFile)
+      else:
+        windowBorders.append(None)
+    
     # the main window we want to move around
     self.windowPos = pos
     self.window = DirectFrame(
@@ -238,10 +230,8 @@ class DirectWindow( DirectFrame ):
 
 
 if __name__ == '__main__':
-  import direct.directbase.DirectStart
-  
   # a first window
-  window1 = DirectWindow( title='window1', pos = ( -.8, .8), windowBorders=(None,None,None,None,) )
+  window1 = DirectWindow( title='window1', pos = ( -.8, .8), windowBordersFilenames=(None,None,None,None,) )
   windowContent = DirectButton(
       parent     = window1,
       pos        = (.05,0,.05),
@@ -272,5 +262,10 @@ if __name__ == '__main__':
 #      geom       = DEFAULT_TITLE_GEOM,
       scale      = 0.5,
       )
+  
+  def destroy():
+    window3.detachNode()
+  
+  base.accept('a', destroy)
   
   run()
