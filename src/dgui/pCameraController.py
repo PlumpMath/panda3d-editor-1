@@ -4,7 +4,7 @@ from pandac.PandaModules import WindowProperties, Vec3
 import sys, time
 
 from core.pConfigDefs import *
-from core.pMouseHandler import *
+from core.pMouseHandler import mouseHandler
 from core.pWindow import WindowManager
 
 MOUSE_ROTATION_SPEED = 25.0
@@ -18,7 +18,7 @@ MAX_CAMERA_DISTANCE = 1000
 
 
 class CameraController( DirectObject, FSM ):
-  def __init__( self ):
+  def __init__(self):
     FSM.__init__(self,'mouseControllerClass')
     
     self.cameraPosPivot = render.attachNewNode( 'cameraPivot' )
@@ -178,18 +178,13 @@ class CameraController( DirectObject, FSM ):
     # also skip first frame
     mx,my = mouseHandler.getMousePos()
     if self.taskMouseButton3PressedRunning and task.frame:
-      #print mx,my$
-      pass
-      #WindowManager.getDefaultCamera().setPos( WindowManager.getDefaultCamera(), -Vec3(0,my,0) * MOUSE_MOVEMENT_SPEED )
-      diffPos = camera.getPos( render ) - self.cameraPosPivot.getPos( render )
-      diffPos.normalize()
+      diffPos = WindowManager.getDefaultCamera().getPos( render ) - self.cameraPosPivot.getPos( render )
       self.cameraPosPivot.setX( self.cameraPosPivot.getX() \
                               - mx * diffPos.getY() * MOUSE_MOVEMENT_SPEED
                               - my * diffPos.getX() * MOUSE_MOVEMENT_SPEED )
       self.cameraPosPivot.setY( self.cameraPosPivot.getY() \
                               - my * diffPos.getY() * MOUSE_MOVEMENT_SPEED
                               + mx * diffPos.getX() * MOUSE_MOVEMENT_SPEED )
-#      print "camera pivot", self.cameraPosPivot.getPos(render)
     return task.cont
   
   def exitMouseButton3Pressed( self ):
