@@ -2,15 +2,14 @@ from pandac.PandaModules import TextNode, Vec3
 from direct.gui.DirectGui import DirectFrame,DirectButton,DirectScrolledFrame,DGG
 
 from core.pWindow import WindowManager
+if __name__ == '__main__':
+  # to test the directWindow independantly
+  WindowManager.startBase(showDefaultWindow = True, allowMultipleWindows = False)
 
 # define model path, required if this settings is missing in the Config.pp
 from pandac.PandaModules import *
-#currentDir=os.path.abspath( sys.path[0] )
-for path in ['.', './dgui/directWindow/data']:
+for path in ['../data', './dgui/directWindow/data']:
   getModelPath( ).appendPath( path )
-
-if __name__ == '__main__':
-  from direct.directbase import DirectStart
 
 # a task that keeps a node at the position of the mouse-cursor
 def mouseNodeTask( task ):
@@ -178,6 +177,7 @@ class DirectWindow( DirectFrame ):
   
   # dragging functions
   def startWindowDrag( self, param ):
+    print "I: DirectWindow.startWindowDrag"
     self.window.wrtReparentTo( aspect2dMouseNode )
     self.window.ignoreAll()
     self.window.accept( 'mouse1-up', self.stopWindowDrag )
@@ -192,7 +192,7 @@ class DirectWindow( DirectFrame ):
   def resize( self, mPos, offset ):
     mXPos = max( min( mPos.getX(), self.maxVirtualSize[0] ), self.minVirtualSize[0])
     mZPos = max( min( mPos.getZ(), -self.minVirtualSize[1] ), -self.maxVirtualSize[1]-self.headerHeight)
-    self.windowResize.setPos( mXPos-self.resizeSize/2., 0, mZPos+self.resizeSize/2. ) #['pos'] = (mXPos, 0, mZPos)
+    self.windowResize.setPos( mXPos-self.resizeSize/2., 0, mZPos+self.resizeSize/2. )
     self.window['frameSize'] = (0, mXPos, 0, mZPos)
     #self.window.setScale( mXPos, 1, -mZPos )
     self.windowHeaderLeft.setPos( self.headerHeight/2., 0, -self.headerHeight/2. )
