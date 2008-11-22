@@ -179,6 +179,7 @@ class CameraController( DirectObject, FSM ):
     mx,my = mouseHandler.getMousePos()
     if self.taskMouseButton3PressedRunning and task.frame:
       diffPos = WindowManager.getDefaultCamera().getPos( render ) - self.cameraPosPivot.getPos( render )
+      diffPos.normalize()
       self.cameraPosPivot.setX( self.cameraPosPivot.getX() \
                               - mx * diffPos.getY() * MOUSE_MOVEMENT_SPEED
                               - my * diffPos.getX() * MOUSE_MOVEMENT_SPEED )
