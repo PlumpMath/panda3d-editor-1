@@ -69,7 +69,7 @@ class SceneGraphBrowser(DirectObject):
       # DirectScrolledFrame to hold items
       # I set canvas' Z size smaller than the frame to avoid the auto-generated vertical slider bar
       self.childrenFrame = DirectScrolledFrame(
-                   parent=parent,pos=(0.06,0,1.02*self.frameHeight), relief=DGG.GROOVE,
+                   parent=parent,pos=(0.06,0,-0.07), relief=DGG.GROOVE,
                    state=DGG.NORMAL, # to create a mouse watcher region
                    frameSize=(0, self.frameWidth, -self.frameHeight, 0), frameColor=(0,0,0,.7),
                    canvasSize=(0, 0, -self.frameHeight*.5, 0), borderWidth=(0.01,0.01),
@@ -146,12 +146,13 @@ class SceneGraphBrowser(DirectObject):
       taskMgr.doMethodLater(.2,self.__getFrameRegion,'getFrameRegion')
      
   def __getFrameRegion(self,t):
+    if WindowManager.getMouseWatcherNode(): # <- this may be None
       for g in range(WindowManager.getMouseWatcherNode().getNumGroups()):
-          region=WindowManager.getMouseWatcherNode().getGroup(g).findRegion(self.childrenFrame.guiId)
-          if region!=None:
-             self.frameRegion=region
-             taskMgr.add(self.__mouseInRegionCheck,self.mouseInRegionTaskName)
-             break
+        region=WindowManager.getMouseWatcherNode().getGroup(g).findRegion(self.childrenFrame.guiId)
+        if region!=None:
+           self.frameRegion=region
+           taskMgr.add(self.__mouseInRegionCheck,self.mouseInRegionTaskName)
+           break
 
   def __mouseInRegionCheck(self,t):
       """
