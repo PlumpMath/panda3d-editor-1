@@ -147,11 +147,16 @@ class EditorClass(DirectObject):
           wrapperTypeDecap = wrapperType[0].lower() + wrapperType[1:]
           #print "eggParentData.getTag:", wrapperType, wrapperTypeDecap
           execStmt = "from core.modules.p%s import %s" % (wrapperType, wrapperType) #(wrapperTypeDecap, wrapperType)
-          exec execStmt in locals()
-          execStmt = "object = "+wrapperType+".loadFromEggGroup(eggParentData, parent)"
-          exec execStmt in locals()
-          object.setMat(transform)
-          transform = Mat4().identMat()
+          try:
+            exec execStmt in locals()
+            execStmt = "object = "+wrapperType+".loadFromEggGroup(eggParentData, parent)"
+            exec execStmt in locals()
+            object.setMat(transform)
+            transform = Mat4().identMat()
+          except:
+            print "I: EditorClass.loadEggModelsFile: unknown or invalid entry"
+            print eggParentData
+            print "I: --- end of invalid data ---"
           # if it contains additional childrens recurse into them
           for childData in eggParentData.getChildren()[1:]:
             # search the children
