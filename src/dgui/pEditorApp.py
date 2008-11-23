@@ -53,7 +53,9 @@ class EditorApp(DirectObject):
       def nodeRightClicked(np): # don't forget to receive the selected node (np)
         print np.getName(),'RIGHT CLICKED, DO SOMETHING !'
       
-      self.scenegraphBrowserWindow = DirectWindow( title='window1', pos = ( -1.33, .55), maxSize     = ( 1, 1.5 ) )
+      self.scenegraphBrowserWindow = DirectWindow( title='window1'
+                                                 , pos = ( -1.33, .55)
+                                                 , virtualSize = (1, 1.5) )
       # create SceneGraphBrowser and point it on aspect2d
       self.scenegraphBrowser = SceneGraphBrowser(
                  parent=self.scenegraphBrowserWindow, # where to attach SceneGraphBrowser frame
@@ -197,16 +199,12 @@ class EditorApp(DirectObject):
     
     height = itemHeight * len(buttonDefinitions)
     self.ButtonsWindow = DirectWindow( title='ButtonsWindow', pos = ( 0.83, 1.0 )
-                                                , maxSize = ( 0.5, height )
-                                                , minSize = ( 0.5, height )
+                                                , virtualSize = ( 0.5, height )
                                      )
-                                      #, pos = ( 0, 0)
-                                      #, maxSize = ( 0.5, 0.5 )
-                                      #, minSize = ( 0.5, 0.5 ) )
     myScrolledList = DirectScrolledList(
         #frameSize = (-1, 1, -1, 0),
         #frameColor = (1,0,0,0.5),
-        pos = (0.25, 0, height-0.1),
+        pos = (0.25, 0, -.1 ),
         items = buttons,
         scale = 0.5,
         parent = self.ButtonsWindow,
