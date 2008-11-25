@@ -16,6 +16,8 @@ from core.pModelController import modelController
 
 EDITOR_DGUI_TOGGLE_BUTTON = 'f11'
 
+DEBUG = False
+
 # Function to put instructions on the screen.
 def addInstructions(pos, msg, mutable=False):
     return OnscreenText(text=msg, style=1, fg=(1,1,1,1),
@@ -34,7 +36,8 @@ class EditorApp(DirectObject):
     #cameraController = CameraController()
   
   def toggle( self, state=None ):
-    print "I: EditorApp.toggle", state
+    if DEBUG:
+      print "I: EditorApp.toggle", state
     if state is None:
       state = not self.enabled
     
@@ -47,11 +50,13 @@ class EditorApp(DirectObject):
   def enable( self ):
     if not self.enabled:
       def nodeSelected(np): # don't forget to receive the selected node (np)
-        #print "nodeSelected", np
+        if DEBUG:
+          print "nodeSelected", np
         modelController.selectNodePath( np )
       
       def nodeRightClicked(np): # don't forget to receive the selected node (np)
-        print np.getName(),'RIGHT CLICKED, DO SOMETHING !'
+        if DEBUG:
+          print np.getName(),'RIGHT CLICKED, DO SOMETHING !'
       
       self.scenegraphBrowserWindow = DirectWindow( title='window1'
                                                  , pos = ( -1.33, .55)
@@ -128,32 +133,41 @@ class EditorApp(DirectObject):
     self.accept(EDITOR_DGUI_TOGGLE_BUTTON, self.toggle)
   
   def saveEggModelsFile(self):
-    print "I: EditorApp.saveEggModelsFile:"
+    if DEBUG:
+      print "I: EditorApp.saveEggModelsFile:"
     FG.openFileBrowser()
     FG.accept('selectionMade', self.saveEggModelsFileCallback)
   def saveEggModelsFileCallback(self, filename):
-    print "I: EditorApp.saveEggModelsFileCallback:", filename
+    if DEBUG:
+      print "I: EditorApp.saveEggModelsFileCallback:", filename
     self.editorInstance.saveEggModelsFile(filename)
   
   def loadEggModelsFile(self):
-    print "I: EditorApp.loadEggModelsFile:"
+    if DEBUG:
+      print "I: EditorApp.loadEggModelsFile:"
     FG.openFileBrowser()
     FG.accept('selectionMade', self.loadEggModelsFileCallback)
   def loadEggModelsFileCallback(self, filename):
-    print "I: EditorApp.loadEggModelsFileCallback:", filename
+    if DEBUG:
+      print "I: EditorApp.loadEggModelsFileCallback:", filename
     self.editorInstance.loadEggModelsFile(filename)
   
   def createObjectEditor(self, object):
-    print "I: EditorApp.createObjectEditor:", object.__class__.__name__
+    if DEBUG:
+      print "I: EditorApp.createObjectEditor:", object.__class__.__name__
     if object == self.editorObject:
       # same object is selected again
-      print "  - same object"
+      if DEBUG:
+        print "  - same object"
     else:
-      print "  - other object"
+      if DEBUG:
+        print "  - other object"
       if self.editorObject is not None:
         # destroy the current editorObject
-        print "  - is destroying old editor"
-      print "  - creating new editor"
+        if DEBUG:
+          print "  - is destroying old editor"
+      if DEBUG:
+        print "  - creating new editor"
   
   def crateFilebrowserModelWrapper(self, type):
     exec("from core.modules.p%s import %s" % (type, type))
