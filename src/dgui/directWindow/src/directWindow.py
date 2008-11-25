@@ -163,6 +163,7 @@ class DirectWindow( DirectFrame ):
         horizontalScroll_decButton_frameTexture = loader.loadTexture( 'scrollDown.png' ),
         horizontalScroll_thumb_frameTexture     = loader.loadTexture( 'scrollBar.png' ),
       )
+    # child we attach should be inside the window
     DirectFrame.__init__( self,
         parent       = self.contentWindow.getCanvas(),
         pos          = (0,0,self.virtualSize[1]),
