@@ -9,6 +9,8 @@ from core.pModelIdManager import modelIdManager
 #from core.pCameraController import cameraController
 from core.pMouseHandler import mouseHandler
 
+DEBUG = False
+
 class ModelController( DirectObject ):
   def __init__( self ):
     self.__selectedModel = None
@@ -50,28 +52,28 @@ class ModelController( DirectObject ):
       self.objectAxisCube.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
       #self.objectAxisCube.reparentTo( render )
       if not self.objectAxisCube:
-        print "E: axiscube.bam was missing, generating now"
-        print "  - please restart the application now"
+        if DEBUG:
+          print "E: axiscube.bam was missing, generating now"
+          print "  - please restart the application now"
         import createAxisCube
         sys.exit()
       self.objectAxisCube.setLightOff()
       
-      print "I: modelControllerClass: reading", MODEL_MODIFICATION_MODEL
+      if DEBUG:
+        print "I: modelControllerClass: reading", MODEL_MODIFICATION_MODEL
       # arrows for movement and rotation
-      #self.modelModificatorsNode = NodePath( 'modelModificatorsNode' )
-      #self.modelModificatorsNode.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
       modificatorsNode = loader.loadModel( MODEL_MODIFICATION_MODEL )
       self.modelModeNodes = list()
       for i in xrange(len(MODEL_MODIFICATION_MODES_FUNCTIONS)):
         parent = NodePath('modelModificationNode-%i' % i) # render.attachNewNode( 'modelModificationNode-%i' % i )
-        #parent.hide()
         parent.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
         parent.setLightOff()
         self.modelModeNodes.append( parent )
         for nameTag in MODEL_MODIFICATION_MODES_FUNCTIONS[i]:
           searchTag = '**/%s' % nameTag
           modificator = modificatorsNode.find( searchTag )
-          print "  - searching", searchTag, "found", modificator
+          if DEBUG:
+            print "  - searching", searchTag, "found", modificator
           modificator.reparentTo( parent )
           modificator.setTag( MODEL_MODIFICATOR_TAG, nameTag )
           #modificator.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
@@ -104,18 +106,22 @@ class ModelController( DirectObject ):
   def mouseButtonPress( self ):
     if self.enabled:
       pickedObj = self.getMouseOverNode()
-      print "I: modelController.mouseButtonPress: pickedObj", pickedObj
+      if DEBUG:
+        print "I: modelController.mouseButtonPress: pickedObj", pickedObj
       editModel = self.getMouseOverObjectModel(pickedObj)
       editToolSelection = self.getMouseOverObjectTool(pickedObj)
       editTool = self.getMouseOverObjectTool(pickedObj)
       if editTool:
-        print "  - editTool selected", editTool
+        if DEBUG:
+          print "  - editTool selected", editTool
         self.editToolSetup( editTool )
       elif editModel:
-        print "  - editModel selected", editModel
+        if DEBUG:
+          print "  - editModel selected", editModel
         self.selectModel( editModel )
       else:
-        print "  - deselect"
+        if DEBUG:
+          print "  - deselect"
         self.selectModel( None )
   
   def editToolSetup( self, editTool ):
@@ -123,9 +129,10 @@ class ModelController( DirectObject ):
     transX, transY, rotX, rotY, scaleX, scaleY = MODEL_MODIFICATION_FUNCTIONS[editTool]
     task = Task(self.editToolTask)
     
-    print "I: modelController.editToolSetup:"
-    print "   - selected:", self.__selectedModel
-    print "   - relative:", self.__relativeModificationTo
+    if DEBUG:
+      print "I: modelController.editToolSetup:"
+      print "   - selected:", self.__selectedModel
+      print "   - relative:", self.__relativeModificationTo
     
     if self.__relativeModificationTo == self.__selectedModel:
       self.__modificationNode = self.__selectedModel
@@ -175,24 +182,28 @@ class ModelController( DirectObject ):
     messenger.send( EVENT_MODELCONTROLLER_FULL_REFRESH )
   
   def selectNodePath( self, nodePath ):
-    print "I: modelController.selectNodePath: nodePath", nodePath
+    if DEBUG:
+      print "I: modelController.selectNodePath: nodePath", nodePath
     modelId = modelIdManager.getObjectId( nodePath )
     object = modelIdManager.getObject( modelId )
     self.selectModel( object )
   
   def selectModel( self, model=None ):
     messenger.send( EVENT_MODELCONTROLLER_SELECT_MODEL, [model] )
-    print "I: modelController.selectModel", model
+    if DEBUG:
+      print "I: modelController.selectModel", model
     if model is None:
       # no object has been selected
-      print "  - deselect model"
+      if DEBUG:
+        print "  - deselect model"
       self.__unsetMode()
       self.__deselectModel()
       self.__selectedModel = None
     else:
       if model == self.__selectedModel:
         # the current model has been clicked again
-        print "  - clicked same object again", self.__modelMode
+        if DEBUG:
+          print "  - clicked same object again", self.__modelMode
         self.__unsetMode()
         curModelMode = MODEL_MODIFICATION_MODES.index( self.__modelMode )
         newModelMode = MODEL_MODIFICATION_MODES[(curModelMode+1) % len(MODEL_MODIFICATION_MODES)]
@@ -200,7 +211,8 @@ class ModelController( DirectObject ):
         self.__setMode()
       else:
         # a new / different model has been clicked
-        print "  - clicked new / different object"
+        if DEBUG:
+          print "  - clicked new / different object"
         self.__unsetMode()
         self.__deselectModel()
         self.__selectedModel = model
@@ -246,7 +258,8 @@ class ModelController( DirectObject ):
         self.modelModeNode = self.modelModeNodes[2]
         self.__relativeModificationTo = render
       else:
-        print "modelControllerClass.__setMode: unknown mode", self.__modelMode
+        if DEBUG:
+          print "modelControllerClass.__setMode: unknown mode", self.__modelMode
       
       # get the objects radius
       try:

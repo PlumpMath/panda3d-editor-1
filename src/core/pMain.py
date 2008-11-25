@@ -18,10 +18,10 @@ from core.pConfigDefs import *
 from core.pGrid import DirectGrid
 from core.pMouseHandler import mouseHandler
 
+DEBUG = False
 
 class EditorClass(DirectObject):
   def __init__(self, parentNodePath):
-    print "editor.editorClass.__init__"
     self.parentNodePath = render
     
     self.enabled = False
@@ -40,7 +40,6 @@ class EditorClass(DirectObject):
     self.enabled = state
   
   def enableEditmode(self):
-    #print "I: main.enableEditmode"
     if not self.enabled:
       self.sceneHelperModels = NodePath('editor-helper-models')
       self.sceneHelperModels.reparentTo(render)
@@ -114,9 +113,9 @@ class EditorClass(DirectObject):
     eggData = EggData()
     eggData.setCoordinateSystem(1)
     # start reading the childrens of render
-    #relativeTo = os.getcwd()
     relativeTo = os.path.dirname(filepath)
-    print "I: EditorClass.saveEggModelsFile: relativeTo:", relativeTo, filepath
+    if DEBUG:
+      print "I: EditorClass.saveEggModelsFile: relativeTo:", relativeTo, filepath
     saveRecursiveChildrens(render, eggData, relativeTo)
     # save the egg file
     eggData.writeEgg(Filename(filepath))
@@ -125,7 +124,6 @@ class EditorClass(DirectObject):
     # read the eggData
     
     def loadRecursiveChildrens(eggParentData, parent, transform, filepath):
-      #print type(eggParentData)#, dir(eggParentData)
       if type(eggParentData) == EggData:
         # search the childrens
         for childData in eggParentData.getChildren():
@@ -148,10 +146,13 @@ class EditorClass(DirectObject):
         if eggParentData.hasTag(MODEL_WRAPPER_TYPE_TAG):
           wrapperType = eggParentData.getTag(MODEL_WRAPPER_TYPE_TAG)
           wrapperTypeDecap = wrapperType[0].lower() + wrapperType[1:]
-          #print "eggParentData.getTag:", wrapperType, wrapperTypeDecap
           try:
             # import the module responsible for handling the data
             module = __import__('core.modules.p%s' % wrapperType, globals(), locals(), [wrapperType], -1)
+            print "I: EditorClass.loadEggModelsFile"
+            print "  - parent:", parent
+            print "  - filepath:", filepath
+            print "  - module:", wrapperType
             # load the eggParentData using the module
             object = getattr(module, wrapperType).loadFromEggGroup(eggParentData, parent, filepath)
           except:
@@ -169,15 +170,16 @@ class EditorClass(DirectObject):
             # search the children
             loadRecursiveChildrens(childData, object, transform, filepath)
         else:
-          print "eggParentData.getTag: has no tag"
+          if DEBUG:
+            print "eggParentData.getTag: has no tag"
           # search for childrens
           for childData in eggParentData.getChildren():
             # search the children
             parent = loadRecursiveChildrens(childData, object, transform, filepath)
-      
       else:
-        print "W: main.loadEggModelsFile.loadRecursiveChildrens:"
-        print "   - skipping unkown eggData", type(eggParentData)
+        if DEBUG:
+          print "W: EditorApp.loadEggModelsFile.loadRecursiveChildrens:"
+          print "   - skipping unkown eggData", type(eggParentData)
       
       return parent
     
@@ -190,6 +192,12 @@ class EditorClass(DirectObject):
     # the absolute path of the file we load, referenced files are relative
     # to this path
     filepath = os.path.dirname(os.path.abspath(filename))
+    
+    # add the path to the model-path
+    print "I: EditorApp.loadEggModelsFile: adding to model-path:", filepath
+    from pandac.PandaModules import getModelPath
+    getModelPath().appendPath(filepath)
+    # read the eggData
     loadRecursiveChildrens(eggData, render, Mat4.identMat(), filepath)
     
     if self.enabled:
@@ -215,7 +223,8 @@ class EditorClass(DirectObject):
     messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
   
   def destroyAllModels(self):
-    print "editor.editorClass.destroyAllModels"
+    if DEBUG:
+      print "editor.editorClass.destroyAllModels"
     # delete all loaded models
     modelController.selectModel(None) 
     for model in modelIdManager.getAllModels():
