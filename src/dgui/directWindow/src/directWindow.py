@@ -8,7 +8,7 @@ if __name__ == '__main__':
 
 # define model path, required if this settings is missing in the Config.pp
 from pandac.PandaModules import *
-for path in ['../data', './dgui/directWindow/data']:
+for path in ['../data', './dgui/directWindow/data', './src/dgui/directWindow/data']:
   getModelPath( ).appendPath( path )
 
 
@@ -73,12 +73,10 @@ class DirectWindow( DirectFrame ):
     for windowGeom in windowBorderGeomFiles:
       if windowGeom is not None:
         mdlFile = loader.loadModel(windowGeom)
-        print mdlFile.ls()
         mdls = ( mdlFile.find('**/**-default'),
                  mdlFile.find('**/**-click'),
                  mdlFile.find('**/**-rollover'),
                  mdlFile.find('**/**-disabled') )
-        print "I: DirectWindow: button geoms:", mdls
         windowBorderGeoms.append(mdls)
       else:
         windowBorderGeoms.append((None,None,None,None,),)
@@ -196,7 +194,6 @@ class DirectWindow( DirectFrame ):
   
   # dragging functions
   def startWindowDrag( self, param ):
-    print "I: DirectWindow.startWindowDrag"
     self.parentWindow.wrtReparentTo( self.mouseNode )
     self.ignoreAll()
     self.accept( 'mouse1-up', self.stopWindowDrag )
@@ -264,7 +261,6 @@ class DirectWindow( DirectFrame ):
   def toggleCollapsed(self,state=None):
     if state is None:
       state=not self.collapsed
-    print "I: DirectWindow.toggleCollapsed:", state
     if state:
       self.collapse()
     else:
