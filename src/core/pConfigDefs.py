@@ -92,4 +92,4 @@ CAMERACONTROLLER_PIVOT_MODEL = 'models/sphere.egg'
 
 MODELCONTROLLER_AXISCUBE_MODEL = 'models/axisCube.bam'
 
-CODE_WRAPPER_DUMMYOBJECT = 'models/sphere.egg'
+CODE_WRAPPER_DUMMYOBJECT = 'models/codeNode.egg'
