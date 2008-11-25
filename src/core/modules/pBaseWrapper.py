@@ -52,14 +52,9 @@ class BaseWrapper( NodePath ):
     self.detachNode()
     self.removeNode()
   
-  def onCreate( self ):
-    # open a file dialog
-    # create a instance of NodePathWrapper
-    return BaseWrapper()
-  onCreate = classmethod(onCreate)
-  def getSaveData( self ):
+  '''def getSaveData( self ):
     # returns a eggGroup containing the data of this object
-    pass
+    pass'''
   
   def enableEditmode( self ):
     # enables the edit methods of this object
@@ -79,8 +74,8 @@ class BaseWrapper( NodePath ):
     # the object is selected to be edited
     # creates a directFrame to edit this object
     #self.createEditWindow()
-    self.model.showBounds()
+    pass
   def stopEdit( self ):
     # the object is deselected from being edited
     #self.destroyEditWindow()
-    self.model.hideBounds()
+    pass

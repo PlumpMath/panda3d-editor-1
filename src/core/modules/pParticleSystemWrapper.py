@@ -1,20 +1,21 @@
+import traceback
+
 from direct.particles.ParticleEffect import ParticleEffect
 from direct.particles.Particles import Particles
 from pandac.PandaModules import *
 
-from core.modules.pBaseWrapper import *
+from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.pModelController import modelController
+from core.pConfigDefs import *
 from core.pCommonPath import *
 
-class ParticleSystemWrapper( BaseWrapper ):
-  wrapperTypeTag = 'ParticleSystemWrapper'
-  
+class ParticleSystemWrapper(VirtualNodeWrapper):
   def onCreateInstance( self, parent, filename ):
-    print "I: NodePathWrapper.onCreateInstance:", parent, filename
     # check if model file is in pandaModelPath
     from pandac.PandaModules import getModelPath
     pandaPath = None
     filename = str(Filename.fromOsSpecific(filename))
+    '''
     for searchPath in str(getModelPath()).split():
         if searchPath in filename:
             pandaPath = searchPath
@@ -28,7 +29,8 @@ class ParticleSystemWrapper( BaseWrapper ):
         getTexturePath( ).appendPath( pandaPath )
         getSoundPath( ).appendPath( pandaPath )
     filename = filename.replace( pandaPath, '.' )
-    objectInstance = ParticleSystemWrapper( filename, parent )
+    '''
+    objectInstance = self(filename, parent)
     #
     objectInstance.enableEditmode()
     # set as active object be the editor
@@ -41,7 +43,8 @@ class ParticleSystemWrapper( BaseWrapper ):
     print "I: NodePathWrapper.__init__:", particleFilename
     # define the name of this object
     name = particleFilename.split('/')[-1]
-    BaseWrapper.__init__( self, name, parent )
+    VirtualNodeWrapper.__init__(self, PARTICLE_WRAPPER_DUMMYOBJECT, name, parent)
+    #BaseWrapper.__init__( self, name, parent )
     
     self.particleFilename = particleFilename
     
@@ -55,6 +58,7 @@ class ParticleSystemWrapper( BaseWrapper ):
       self.particleSystem.loadConfig(Filename(file))
     except:
       print "W: particleSystemWrapper.loadParticleConfig: Error loading file", file
+      traceback.print_exc()
       # create new one if loading failed (particlepanel requires at least one particle)
       particles = Particles()
       particles.setBirthRate(0.02)
@@ -70,14 +74,9 @@ class ParticleSystemWrapper( BaseWrapper ):
   
   def destroy( self ):
     # destroy this object
-    self.stopEdit()
-    self.disableEditmode()
-    modelIdManager.delObjectId( self.id )
-    self.model.detachNode()
-    self.model.removeNode()
-    BaseWrapper.destroy( self )
+    VirtualNodeWrapper.destroy( self )
   
-  def enableEditmode( self ):
+  '''def enableEditmode( self ):
     # enables the edit methods of this object
     # makes it pickable etc.
     # create a collision for the object
@@ -101,7 +100,7 @@ class ParticleSystemWrapper( BaseWrapper ):
     effect=CompassEffect.make(render, CompassEffect.PScale)
     self.model.setEffect( effect )
     # make the model visible
-    self.model.reparentTo( self )
+    self.model.reparentTo( self )#.parent )
     #self.setCollideMask( DEFAULT_EDITOR_COLLIDEMASK )
   def disableEditmode( self ):
     # disables the edit methods of this object
@@ -115,18 +114,17 @@ class ParticleSystemWrapper( BaseWrapper ):
     self.modelCollisionNodePath.detachNode()
     # hide the pivot
     self.model.removeNode()
-    self.model.detachNode()
+    self.model.detachNode()'''
   
-  def startEdit( self ):
+  '''def startEdit( self ):
     # the object is selected to be edited
     # creates a directFrame to edit this object
     BaseWrapper.startEdit( self )
   def stopEdit( self ):
     # the object is deselected from being edited
-    BaseWrapper.stopEdit( self )
+    BaseWrapper.stopEdit( self )'''
   
   def getSaveData( self, relativeTo ):
-    name = self.getName()
     # convert the matrix, very ugly right now
     om = self.getMat()
     nm = Mat4D()
@@ -134,22 +132,18 @@ class ParticleSystemWrapper( BaseWrapper ):
         for y in xrange(4):
             nm.setCell( x, y, om.getCell(x,y) )
     # the matrix we define must be applied to the nodes in "local space"
-    instance = EggGroup( name+"-Group" )
+    nodeName = self.getName()
+    instance = EggGroup( nodeName+"-Group" )
     instance.setGroupType(EggGroup.GTInstance)
     instance.setTransform3d( nm )
     # userdata is not written to the eggFile
-    instance.setTag( MODEL_WRAPPER_TYPE_TAG, self.wrapperTypeTag )
+    className = self.__class__.__name__
+    instance.setTag( MODEL_WRAPPER_TYPE_TAG, className )
     # convert to a relative path
     particleFilename = relpath( relativeTo, os.path.abspath(self.particleFilename) )
     # add the reference to the egg-file
-    ext = EggExternalReference( name+"-EggExternalReference", particleFilename )
+    ext = EggExternalReference( nodeName+"-EggExternalReference", particleFilename )
     instance.addChild(ext)
     return instance
   
-  def loadFromEggGroup( self, eggGroup, parent ):
-    eggExternalReference = eggGroup.getChildren()[0]
-    filename = str(eggExternalReference.getFilename())
-    objectInstance = ParticleSystemWrapper( filename, parent )
-    return objectInstance
-  loadFromEggGroup = classmethod(loadFromEggGroup)
 

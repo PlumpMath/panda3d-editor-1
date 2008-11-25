@@ -7,38 +7,40 @@ from core.pCommonPath import *
 class NodePathWrapper( BaseWrapper ):
   wrapperTypeTag = 'NodePathWrapper'
   
-  def onCreateInstance( self, parent, filename ):
-    print "I: NodePathWrapper.onCreateInstance:", parent, "'%s'" % filename
-    if filename != ' ':
+  def onCreateInstance( self, parent, filepath ):
+    print "I: NodePathWrapper.onCreateInstance:", parent, "'%s'" % filepath
+    if filepath != ' ':
       # single extension (.egg)
-      base, ext1 = os.path.splitext(filename)
+      base, ext1 = os.path.splitext(filepath)
       # extension with 2 dots (.egg.pz)
       file, ext2 = os.path.splitext(base)
       e1 = ext1[1:]
       e2 = ext2[1:]+ext1
       if e1 in VALID_MODEL_FORMATS or e2 in VALID_MODEL_FORMATS:
         # check if model file is in pandaModelPath
-        from pandac.PandaModules import getModelPath
+        '''from pandac.PandaModules import getModelPath
         pandaPath = None
-        filename = str(Filename.fromOsSpecific(filename))
+        filename = str(Filename.fromOsSpecific(filepath))
         for searchPath in str(getModelPath()).split():
-          if searchPath in filename:
+          if searchPath in filepath:
             pandaPath = searchPath
             print "I: model found in pandaModelPath %s" % pandaPath
             break
         if pandaPath is None:
-          pandaPath = '/'.join(filename.split('/')[:-1])
+          pandaPath = '/'.join(filepath.split('/')[:-1])
           print "W: adding %s to pandaModelPath" % pandaPath
           from pandac.PandaModules import getModelPath, getTexturePath, getSoundPath
           getModelPath( ).appendPath( pandaPath )
           getTexturePath( ).appendPath( pandaPath )
           getSoundPath( ).appendPath( pandaPath )
-        filename = filename.replace( pandaPath, '.' )
-        objectInstance = NodePathWrapper( filename, parent )
+        filepath = filepath.replace( pandaPath, '.' )'''
+        objectInstance = NodePathWrapper( filepath, parent )
         #
         objectInstance.enableEditmode()
         # select this model
         modelController.selectModel( objectInstance )
+        
+        return objectInstance
       else:
         print "  - unknown model format: '%s' or '%s'" % (e1, e2)
     else:
@@ -46,16 +48,25 @@ class NodePathWrapper( BaseWrapper ):
     messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
   onCreateInstance = classmethod(onCreateInstance)
   
-  def __init__( self, modelFilename, parent=None ):
-    print "I: NodePathWrapper.__init__:", modelFilename
+  def loadFromEggGroup(self, eggGroup, parent, filepath):
+    print "I: NodePathWrapper.loadFromEggGroup:"
+    eggExternalReference = eggGroup.getChildren()[0]
+    referencedFilename = eggExternalReference.getFilename()
+    filename = os.path.join(filepath,str(referencedFilename))
+    objectInstance = self.onCreateInstance(parent, filename)
+    return objectInstance
+  loadFromEggGroup = classmethod(loadFromEggGroup)
+  
+  def __init__( self, filepath, parent=None ):
+    print "I: NodePathWrapper.__init__:", filepath
     # define the name of this object
-    name = modelFilename.split('/')[-1]
+    name = filepath.split('/')[-1]
     BaseWrapper.__init__( self, name, parent )
     
     # the path to the model we handle
-    self.modelFilename = modelFilename
+    self.modelFilepath = filepath
     # load the model
-    self.model = loader.loadModel( modelFilename )
+    self.model = loader.loadModel( filepath )
     # if the model loading fails, use a dummy object
     if self.model is None:
       print "W: editorModelClass: model %s not found, loading dummy" % self.model
@@ -92,9 +103,11 @@ class NodePathWrapper( BaseWrapper ):
     # the object is selected to be edited
     # creates a directFrame to edit this object
     BaseWrapper.startEdit( self )
+    self.model.showBounds()
   def stopEdit( self ):
     # the object is deselected from being edited
     BaseWrapper.stopEdit( self )
+    self.model.hideBounds()
   
   def getSaveData( self, relativeTo ):
     ''' link the egg-file into the egg we save
@@ -114,16 +127,10 @@ class NodePathWrapper( BaseWrapper ):
     #instance.setUserData( self.wrapperTypeTag )
     instance.setTag( MODEL_WRAPPER_TYPE_TAG, self.wrapperTypeTag )
     # convert to a relative path
-    modelFilename = relpath( relativeTo, os.path.abspath(self.modelFilename) )
+    modelFilepath = relpath( relativeTo, os.path.abspath(self.modelFilepath) )
+    print "I: pNodePathWrapper.getSaveData: modelFilepath:", modelFilepath, self.modelFilepath, relativeTo
     # add the reference to the egg-file
-    ext = EggExternalReference( name+"-EggExternalReference", modelFilename )
+    ext = EggExternalReference( name+"-EggExternalReference", modelFilepath )
     instance.addChild(ext)
     return instance
   
-  def loadFromEggGroup( self, eggGroup, parent ):
-    print "I: NodePathWrapper.loadFromEggGroup:"
-    eggExternalReference = eggGroup.getChildren()[0]
-    filename = str(eggExternalReference.getFilename())
-    objectInstance = NodePathWrapper( filename, parent )
-    return objectInstance
-  loadFromEggGroup = classmethod(loadFromEggGroup)
