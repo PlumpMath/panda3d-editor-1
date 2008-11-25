@@ -95,6 +95,7 @@ class EditorApp(DirectObject):
                           , ['directionallight', self.createModelWrapper, ['DirectionalLightNodeWrapper']]
                           , ['ambientlight', self.createModelWrapper, ['AmbientLightNodeWrapper']]
                           , ['pointlight', self.createModelWrapper, ['PointLightNodeWrapper']]
+                          , ['codeNode', self.crateFilebrowserModelWrapper, ['CodeNodeWrapper']]
                           , ['destroy model', self.editorInstance.destroyModel, []]
                           , ['load', self.loadEggModelsFile, []]
                           , ['save', self.saveEggModelsFile, []] ]
@@ -172,8 +173,6 @@ class EditorApp(DirectObject):
       # hide the text
       for text in self.helpText:
         text.detachNode()
-      
-      self.sceneHelperModels.detachNode()
       
       self.scenegraphBrowserWindow.detachNode()
       
