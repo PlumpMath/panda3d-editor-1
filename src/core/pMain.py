@@ -3,6 +3,7 @@
 import pickle
 import os, sys
 import random
+import traceback
 
 from direct.task.Task import Task
 from pandac.PandaModules import *
@@ -92,7 +93,7 @@ class EditorClass(DirectObject):
                                               , str(model.getScale(render)) )
     return modelData
   
-  def saveEggModelsFile(self, filename):
+  def saveEggModelsFile(self, filepath):
     # walk the render tree and save the egg-links
     
     def saveRecursiveChildrens(parent, eggParentData, relativeTo):
@@ -113,21 +114,23 @@ class EditorClass(DirectObject):
     eggData = EggData()
     eggData.setCoordinateSystem(1)
     # start reading the childrens of render
-    relativeTo = os.getcwd()
+    #relativeTo = os.getcwd()
+    relativeTo = os.path.dirname(filepath)
+    print "I: EditorClass.saveEggModelsFile: relativeTo:", relativeTo, filepath
     saveRecursiveChildrens(render, eggData, relativeTo)
     # save the egg file
-    eggData.writeEgg(Filename(filename))
+    eggData.writeEgg(Filename(filepath))
   
   def loadEggModelsFile(self, filename):
     # read the eggData
     
-    def loadRecursiveChildrens(eggParentData, parent, transform):
+    def loadRecursiveChildrens(eggParentData, parent, transform, filepath):
       #print type(eggParentData)#, dir(eggParentData)
       if type(eggParentData) == EggData:
         # search the childrens
         for childData in eggParentData.getChildren():
           # search the children
-          parent = loadRecursiveChildrens(childData, parent, transform)
+          parent = loadRecursiveChildrens(childData, parent, transform, filepath)
       
       elif type(eggParentData) == EggGroup:
         
@@ -146,27 +149,31 @@ class EditorClass(DirectObject):
           wrapperType = eggParentData.getTag(MODEL_WRAPPER_TYPE_TAG)
           wrapperTypeDecap = wrapperType[0].lower() + wrapperType[1:]
           #print "eggParentData.getTag:", wrapperType, wrapperTypeDecap
-          execStmt = "from core.modules.p%s import %s" % (wrapperType, wrapperType) #(wrapperTypeDecap, wrapperType)
           try:
-            exec execStmt in locals()
-            execStmt = "object = "+wrapperType+".loadFromEggGroup(eggParentData, parent)"
-            exec execStmt in locals()
-            object.setMat(transform)
-            transform = Mat4().identMat()
+            # import the module responsible for handling the data
+            module = __import__('core.modules.p%s' % wrapperType, globals(), locals(), [wrapperType], -1)
+            # load the eggParentData using the module
+            object = getattr(module, wrapperType).loadFromEggGroup(eggParentData, parent, filepath)
           except:
             print "I: EditorClass.loadEggModelsFile: unknown or invalid entry"
+            traceback.print_exc()
+            print "I: --- start of invalid data ---"
             print eggParentData
             print "I: --- end of invalid data ---"
+            object = parent.attachNewNode('%s-failed' % wrapperType)
+          # apply the transformation on the object
+          object.setMat(transform)
+          transform = Mat4().identMat()
           # if it contains additional childrens recurse into them
           for childData in eggParentData.getChildren()[1:]:
             # search the children
-            loadRecursiveChildrens( childData, object, transform )
+            loadRecursiveChildrens(childData, object, transform, filepath)
         else:
           print "eggParentData.getTag: has no tag"
           # search for childrens
           for childData in eggParentData.getChildren():
             # search the children
-            parent = loadRecursiveChildrens( childData, parent, transform )
+            parent = loadRecursiveChildrens(childData, object, transform, filepath)
       
       else:
         print "W: main.loadEggModelsFile.loadRecursiveChildrens:"
@@ -180,7 +187,10 @@ class EditorClass(DirectObject):
     eggData = EggData()
     eggData.read(Filename(filename))
     
-    loadRecursiveChildrens(eggData, render, Mat4.identMat())
+    # the absolute path of the file we load, referenced files are relative
+    # to this path
+    filepath = os.path.dirname(os.path.abspath(filename))
+    loadRecursiveChildrens(eggData, render, Mat4.identMat(), filepath)
     
     if self.enabled:
       # enable the editing on the objects when editing is enabled

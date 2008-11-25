@@ -295,9 +295,10 @@ class ModelController( DirectObject ):
         self.modelModeNode.show()
   
   def __unsetMode( self ):
-    self.modelModeNode.hide()
-    self.modelModeNode.reparentTo( render )
-    self.modelModeNode.setCollideMask( BitMask32.allOff() )
+    if self.modelModeNode is not None:
+      self.modelModeNode.hide()
+      self.modelModeNode.reparentTo( render )
+      self.modelModeNode.setCollideMask( BitMask32.allOff() )
   
   def createCollisionPicker( self ):
     #print "editor.editorClass.createCollisionPicker"
