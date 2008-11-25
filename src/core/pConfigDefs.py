@@ -86,9 +86,10 @@ PARTICLE_WRAPPER_DUMMYOBJECT = 'models/sphere.egg.pz'
 SPOTLIGHT_WRAPPER_DUMMYOBJECT = 'models/Spotlight.egg.pz'
 DIRECTIONALLIGHT_WRAPPER_DUMMYOBJECT = 'models/Dirlight.egg.pz'
 POINTLIGHT_WRAPPER_DUMMYOBJECT = 'models/Pointlight.egg.pz'
-AMBIENTLIGHT_WRAPPER_DUMMYOBJECT = 'models/sphere.egg'
+AMBIENTLIGHT_WRAPPER_DUMMYOBJECT = 'models/AmbientLight.egg.pz'
 
 CAMERACONTROLLER_PIVOT_MODEL = 'models/sphere.egg'
 
 MODELCONTROLLER_AXISCUBE_MODEL = 'models/axisCube.bam'
 
+CODE_WRAPPER_DUMMYOBJECT = 'models/sphere.egg'
