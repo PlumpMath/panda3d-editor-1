@@ -5,23 +5,24 @@ from core.pModelController import modelController
 from core.pCommonPath import *
 from core.pConfigDefs import *
 
+DEBUG = True
+
 class CodeNodeWrapper(VirtualNodeWrapper):
   def onCreateInstance(self, parent, filepath):
-    print "I: pCodeNodeWrapper.onCreateInstance:"
-    print "  - parent", parent
-    print "  - script", filepath
+    if DEBUG:
+      print "I: pCodeNodeWrapper.onCreateInstance:"
+      print "  - parent", parent
+      print "  - script", filepath
     if filepath != ' ':
       filename=os.path.basename(filepath)
       dirname=os.path.dirname(filepath)
       filebase, fileext = os.path.splitext(filename)
       if fileext == '.py':
         fp, filename, description=imp.find_module(filebase, [dirname])
-        print "  - find_module", fp, filename, description
         try:
           module = imp.load_module(filebase, fp, filename, description)
-          print "  - load_module", module, dir(module)
         except:
-          print "find_module failed"
+          print "W: CodeNodeWrapper.onCreateInstance: find_module failed"
           traceback.print_exc()
         try:
           objectClass = getattr(module, filebase[0].upper()+filebase[1:])
@@ -43,11 +44,17 @@ class CodeNodeWrapper(VirtualNodeWrapper):
     return None
   onCreateInstance=classmethod(onCreateInstance)
   
+  # parent, filepath
   def loadFromEggGroup( self, eggGroup, parent, filepath ):
-    print "I: CodeNodeWrapper.loadFromEggGroup:"
+    if DEBUG:
+      print "I: CodeNodeWrapper.loadFromEggGroup:"
     eggExternalReference = eggGroup.getChildren()[0]
     referencedFilename = eggExternalReference.getFilename()
     filepath = os.path.join(filepath,str(referencedFilename))
+    print "I: CodeNodeWrapper.loadFromEggGroup:"
+    print "  - referencedFilename:", referencedFilename
+    print "  - filepath:", filepath
+    print "  - parent:", parent
     objectInstance = self.onCreateInstance(parent, filepath)
     return objectInstance
   loadFromEggGroup = classmethod(loadFromEggGroup)

@@ -6,9 +6,12 @@ from core.pConfigDefs import *
 #from lib.filebrowser import FG
 #from lib.directWindow.src.directWindow import DirectWindow
 
+DEBUG = False
+
 class BaseWrapper( NodePath ):
   def __init__( self, name=None, parent=None ):
-    print "I: BaseWrapper.__init__:", name, parent
+    if DEBUG:
+      print "I: BaseWrapper.__init__:", name, parent
     self.mutableParameters = {
         'posX': ['float', 'getX', 'setX']
       , 'posY': ['float', 'getY', 'setY']

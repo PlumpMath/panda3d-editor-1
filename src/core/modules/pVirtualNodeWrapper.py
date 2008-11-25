@@ -13,7 +13,6 @@ class VirtualNodeWrapper( BaseWrapper ):
     ''' called when the user presses the button to create a nodePathWrapper
     '''
     objectInstance = self(parent)
-    #objectInstance = AmbientLightNodeWrapper( parent )
     # enable this object to be editable
     objectInstance.enableEditmode()
     # the editor should select this model

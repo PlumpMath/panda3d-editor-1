@@ -9,55 +9,78 @@ from core.pModelController import modelController
 from core.pConfigDefs import *
 from core.pCommonPath import *
 
+DEBUG = False
+
 class ParticleSystemWrapper(VirtualNodeWrapper):
-  def onCreateInstance( self, parent, filename ):
+  def onCreateInstance(self, parent, filepath):
+    print "I: ParticleSystemWrapper.onCreateInstance:"
     # check if model file is in pandaModelPath
-    from pandac.PandaModules import getModelPath
+    filepath = str(Filename.fromOsSpecific(filepath))
+    
+    # add the model path to the panda-path
     pandaPath = None
-    filename = str(Filename.fromOsSpecific(filename))
-    '''
+    from pandac.PandaModules import getModelPath
     for searchPath in str(getModelPath()).split():
-        if searchPath in filename:
-            pandaPath = searchPath
-            print "I: model found in pandaModelPath %s" % pandaPath
-            break
+      if searchPath == filepath:
+        pandaPath = searchPath
     if pandaPath is None:
-        pandaPath = '/'.join(filename.split('/')[:-1])
-        print "W: adding %s to pandaModelPath" % pandaPath
-        from pandac.PandaModules import getModelPath, getTexturePath, getSoundPath
-        getModelPath( ).appendPath( pandaPath )
-        getTexturePath( ).appendPath( pandaPath )
-        getSoundPath( ).appendPath( pandaPath )
-    filename = filename.replace( pandaPath, '.' )
-    '''
-    objectInstance = self(filename, parent)
-    #
+      pandaPath = '/'.join(filepath.split('/')[:-1])
+      from pandac.PandaModules import getModelPath
+      print "  - adding to pandapath:", pandaPath
+      getModelPath().appendPath( pandaPath )
+    
+    # create instance of this class
+    objectInstance = self(filepath, parent)
+    # enable editing of this object
     objectInstance.enableEditmode()
     # set as active object be the editor
     modelController.selectModel( objectInstance )
-    #
+    # update the scenegraph
     messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
+    
+    return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
   
-  def __init__( self, particleFilename, parent=None ):
-    print "I: NodePathWrapper.__init__:", particleFilename
+  # parent, filepath
+  def loadFromEggGroup( self, eggGroup, parent, eggfileFilepath ):
+    if DEBUG:
+      print "I: ParticleSystemWrapper.loadFromEggGroup:"
+    eggExternalReference = eggGroup.getChildren()[0]
+    referencedFilename = eggExternalReference.getFilename()
+    filepath = os.path.join(eggfileFilepath,str(referencedFilename))
+    print "I: ParticleSystemWrapper.loadFromEggGroup:"
+    print "  - referencedFilename:", referencedFilename
+    print "  - filepath:", filepath
+    print "  - parent:", parent
+    objectInstance = self.onCreateInstance(parent, filepath)
+    return objectInstance
+  loadFromEggGroup = classmethod(loadFromEggGroup)
+  '''def loadFromEggGroup(self, eggGroup, parent, filepath):
+    eggComment = eggGroup.getChildren()[0]
+    objectInstance = self(parent, filepath)
+    return objectInstance
+  loadFromEggGroup = classmethod(loadFromEggGroup)'''
+  
+  def __init__( self, filepath, parent=None ):
+    print "I: ParticleSystemWrapper.__init__:"
+    print "  - filepath", filepath
+    print "  - parent", parent
     # define the name of this object
-    name = particleFilename.split('/')[-1]
+    name = filepath.split('/')[-1]
     VirtualNodeWrapper.__init__(self, PARTICLE_WRAPPER_DUMMYOBJECT, name, parent)
-    #BaseWrapper.__init__( self, name, parent )
     
-    self.particleFilename = particleFilename
+    self.particleFilename = filepath
     
     base.enableParticles()
     self.particleSystem = ParticleEffect()
-    self.loadParticleConfig( self.particleFilename )
+    self.loadParticleConfig( filepath )
   
-  def loadParticleConfig(self,file):
+  def loadParticleConfig(self, filepath):
     try:
       #Start of the code from steam.ptf
-      self.particleSystem.loadConfig(Filename(file))
+      self.particleSystem.loadConfig(Filename(filepath))
     except:
-      print "W: particleSystemWrapper.loadParticleConfig: Error loading file", file
+      print "W: particleSystemWrapper.loadParticleConfig: Error loading file", filepath
       traceback.print_exc()
       # create new one if loading failed (particlepanel requires at least one particle)
       particles = Particles()
@@ -76,54 +99,6 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
     # destroy this object
     VirtualNodeWrapper.destroy( self )
   
-  '''def enableEditmode( self ):
-    # enables the edit methods of this object
-    # makes it pickable etc.
-    # create a collision for the object
-    center = Point3(0,0,0)
-    radius = 1
-    cs = CollisionSphere( center, radius )
-    self.modelCollisionNodePath = self.attachNewNode(CollisionNode('cnode'))
-    self.modelCollisionNodePath.setTag(EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG,'')
-    self.modelCollisionNodePath.node().addSolid(cs)
-    # edit mode is enabled
-    BaseWrapper.enableEditmode( self )
-    self.modelCollisionNodePath.node().setIntoCollideMask( DEFAULT_EDITOR_COLLIDEMASK )
-    self.modelCollisionNodePath.node().setFromCollideMask( BitMask32.allOff() )
-    self.modelCollisionNodePath.reparentTo( self )
-    # load a dummy model
-    self.model = loader.loadModel( PARTICLE_WRAPPER_DUMMYOBJECT )
-    # set the model invisible in the scenegraphbrowser
-    self.model.setTag(EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG,'')
-    self.model.setLightOff()
-    # keep the model at a fixed scale
-    effect=CompassEffect.make(render, CompassEffect.PScale)
-    self.model.setEffect( effect )
-    # make the model visible
-    self.model.reparentTo( self )#.parent )
-    #self.setCollideMask( DEFAULT_EDITOR_COLLIDEMASK )
-  def disableEditmode( self ):
-    # disables the edit methods of this object
-    # -> performance increase
-    # edit mode is disabled
-    BaseWrapper.disableEditmode( self )
-    #self.setCollideMask( BitMask32.allOff() )
-    self.modelCollisionNodePath.node().setIntoCollideMask( BitMask32.allOff() )
-    self.modelCollisionNodePath.node().setFromCollideMask( BitMask32.allOff() )
-    self.modelCollisionNodePath.removeNode()
-    self.modelCollisionNodePath.detachNode()
-    # hide the pivot
-    self.model.removeNode()
-    self.model.detachNode()'''
-  
-  '''def startEdit( self ):
-    # the object is selected to be edited
-    # creates a directFrame to edit this object
-    BaseWrapper.startEdit( self )
-  def stopEdit( self ):
-    # the object is deselected from being edited
-    BaseWrapper.stopEdit( self )'''
-  
   def getSaveData( self, relativeTo ):
     # convert the matrix, very ugly right now
     om = self.getMat()
@@ -140,9 +115,9 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
     className = self.__class__.__name__
     instance.setTag( MODEL_WRAPPER_TYPE_TAG, className )
     # convert to a relative path
-    particleFilename = relpath( relativeTo, os.path.abspath(self.particleFilename) )
+    filepath = relpath( relativeTo, os.path.abspath(self.particleFilename) )
     # add the reference to the egg-file
-    ext = EggExternalReference( nodeName+"-EggExternalReference", particleFilename )
+    ext = EggExternalReference( nodeName+"-EggExternalReference", filepath )
     instance.addChild(ext)
     return instance
   
