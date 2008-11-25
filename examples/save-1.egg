@@ -1,0 +1,198 @@
+<CoordinateSystem> { Z-Up }
+
+<Instance> "/home/_PROGRAMMING/_PROJECTS/eggEditor-cvs/panda3d-editor/examples/testObjectExtension.py-13-Group" {
+  <Transform> {
+    <Matrix4> {
+      0.700596 0.713557 0 0
+      -0.713557 0.700596 0 0
+      0 0 1 0
+      -0.0126715 4.4883 0 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    CodeNodeWrapper
+  }
+  <File> CodeNodeWrapper-EggExternalReference {
+    testObjectExtension.py
+  }
+  <Instance> teapot.egg.pz-14-Group {
+    <Transform> {
+      <Matrix4> {
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 -9.51042 0 1
+      }
+    }
+    <Tag> modelWrapperTypeTag {
+      NodePathWrapper
+    }
+    <File> teapot.egg.pz-14-EggExternalReference {
+      teapot.egg.pz
+    }
+    <Instance> SpotLight-15-Group {
+      <Transform> {
+        <Matrix4> {
+          1 0 0 0
+          0 0.503774 -0.863836 0
+          0 0.863836 0.503774 0
+          0 0 33.0938 1
+        }
+      }
+      <Tag> modelWrapperTypeTag {
+        SpotLightNodeWrapper
+      }
+      <Comment> parameters {
+        "(lp0"
+        "."
+      }
+    }
+    <Instance> "/home/_PROGRAMMING/_PROJECTS/eggEditor-cvs/panda3d-editor/examples/testObjectExtension.py-16-Group" {
+      <Transform> {
+        <Matrix4> {
+          0.700596 0.713557 0 0
+          -0.713557 0.700596 0 0
+          0 0 1 0
+          -10.5602 3.17586 0 1
+        }
+      }
+      <Tag> modelWrapperTypeTag {
+        CodeNodeWrapper
+      }
+      <File> CodeNodeWrapper-EggExternalReference {
+        testObjectExtension.py
+      }
+      <Instance> smokering.ptf-17-Group {
+        <Transform> {
+          <Matrix4> {
+            1 0 0 0
+            0 1 0 0
+            0 0 1 0
+            12.25 4.5 0 1
+          }
+        }
+        <Tag> modelWrapperTypeTag {
+          ParticleSystemWrapper
+        }
+        <File> smokering.ptf-17-EggExternalReference {
+          smokering.ptf
+        }
+      }
+    }
+  }
+  <Instance> smokering.ptf-18-Group {
+    <Transform> {
+      <Matrix4> {
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 13.3542 0 1
+      }
+    }
+    <Tag> modelWrapperTypeTag {
+      ParticleSystemWrapper
+    }
+    <File> smokering.ptf-18-EggExternalReference {
+      smokering.ptf
+    }
+  }
+}
+<Instance> DirectionalLight-19-Group {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      0 -32.2396 0 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    DirectionalLightNodeWrapper
+  }
+  <Comment> parameters {
+    "(lp0"
+    "."
+  }
+}
+<Instance> AmbientLight-20-Group {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      0 0 14.1875 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    AmbientLightNodeWrapper
+  }
+  <Comment> parameters {
+    "(lp0"
+    "."
+  }
+}
+<Instance> PointLight-21-Group {
+  <Transform> {
+    <Matrix4> {
+      1 -8.84082e-08 8.74172e-08 0
+      -8.74172e-08 -0.999936 -0.0112716 0
+      8.84082e-08 0.0112716 -0.999936 0
+      3.09329e-06 35.3832 0.39885 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    PointLightNodeWrapper
+  }
+  <Comment> parameters {
+    "(lp0"
+    "."
+  }
+}
+<Instance> teapot.egg.pz-22-Group {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      0 0 0 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <File> teapot.egg.pz-22-EggExternalReference {
+    teapot.egg.pz
+  }
+}
+<Instance> "/home/_PROGRAMMING/_PROJECTS/eggEditor-cvs/panda3d-editor/examples/testObjectExtension.py-23-Group" {
+  <Transform> {
+    <Matrix4> {
+      0.700596 0.713557 0 0
+      -0.713557 0.700596 0 0
+      0 0 1 0
+      -3.58816 18.2976 0 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    CodeNodeWrapper
+  }
+  <File> CodeNodeWrapper-EggExternalReference {
+    testObjectExtension.py
+  }
+  <Instance> smokering.ptf-24-Group {
+    <Transform> {
+      <Matrix4> {
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        30.7812 4.91667 0 1
+      }
+    }
+    <Tag> modelWrapperTypeTag {
+      ParticleSystemWrapper
+    }
+    <File> smokering.ptf-24-EggExternalReference {
+      smokering.ptf
+    }
+  }
+}

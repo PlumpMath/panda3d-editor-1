@@ -1,0 +1,18 @@
+
+self.reset()
+self.setPos(0.000, 0.000, 0.000)
+self.setHpr(0.000, 0.000, 0.000)
+self.setScale(1.000, 1.000, 1.000)
+p0 = Particles.Particles('particles-1')
+# Particles parameters
+p0.setFactory("OrientedParticleFactory")
+p0.setRenderer("SpriteParticleRenderer")
+p0.setEmitter("SphereVolumeEmitter")
+p0.setPoolSize(1000)
+p0.setBirthRate(0.0010)
+p0.setLitterSize(10)
+p0.setLitterSpread(0)
+p0.setSystemLifespan(0.0000)
+p0.setLocalVelocityFlag(1)
+p0.setSystemGrowsOlderFlag(0)
+# Factory parameters
