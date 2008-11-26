@@ -62,7 +62,7 @@ class EditorApp(AppShell):
     self.Layout()
     
     # Setup some events
-    self.Bind(wx.EVT_WINDOW_CREATE, self.onCreate)
+    self.initialize()
     base.accept("c", self.onCenterTrackball)
     
     # If a model-translate-rotate-scale tool is selected the automatic mouse
@@ -128,10 +128,12 @@ class EditorApp(AppShell):
     self.SetStatusText("Welcome to the Panda3D Editor")
     self.Update()
   
-  def onCreate(self, evt):
-    """Invoked when the window really gets created."""
+  def initialize(self):
+    """Initializes the viewports and editor."""
     self.Update()
+    self.viewport.Update()
     self.wxStep()
+    self.viewport.initialize()
     self.editorInstance.toggle(True)
     # Position the camera
     if base.trackball != None:

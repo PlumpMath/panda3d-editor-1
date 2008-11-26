@@ -14,15 +14,13 @@ class Viewport(wx.Panel, Window):
   """Class representing a 3D Viewport."""
   def __init__(self, *args, **kwargs):
     wx.Panel.__init__(self, *args, **kwargs)
-    self.Bind(wx.EVT_WINDOW_CREATE, self.onCreate)
   
-  def onCreate(self, evt):
+  def initialize(self):
     self.Update()
     wp = WindowProperties()
     wp.setOrigin(0, 0)
     wp.setSize(self.ClientSize.GetWidth(), self.ClientSize.GetHeight())
     assert self.GetHandle() != 0
-    print self.GetHandle()
     wp.setParentWindow(self.GetHandle())
     Window.__init__(self, extraProps = wp)
     ViewportManager.viewports.append(self)

@@ -81,11 +81,11 @@ class Window(object):
     if extraProps != None:
       props.addProperties(extraProps)
     if not WindowManager.allowMultipleWindows:
-      base.openDefaultWindow(props = WindowProperties.getDefault())
+      base.openDefaultWindow(props = props)
       self.win = base.win
       assert len(WindowManager.windows) == 0
     else:
-      self.win = base.openWindow(props = WindowProperties.getDefault())
+      self.win = base.openWindow(props = props)
     self.camera = base.camList[-1]
     self.buttonThrowers = None
     self.setupMouse(self.win)

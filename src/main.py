@@ -2,7 +2,7 @@ __all__ = []
 
 if __name__ == "__main__":
   # Whether to load dgui or wxgui.
-  USE_GUI = "dgui"
+  USE_GUI = "wxgui"
   
   # First phase: load the configurations.
   if USE_GUI == "dgui":
