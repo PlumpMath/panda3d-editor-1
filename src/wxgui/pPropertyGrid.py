@@ -5,6 +5,7 @@ import wx, re
 
 # Local imports
 from core.pConfigDefs import *
+from core.modules.pLightNodeWrapper import LightNodeWrapper
 from pProperties import EnumProperty, Enums, Properties
 
 """
@@ -53,7 +54,12 @@ class PropertyGrid(Grid, DirectObject):
     self.reset()
     self.object = nodePath
     if nodePath != None:
-      for propName, prop in Properties.NodePath.items():
+      props = None
+      if isinstance(nodePath, LightNodeWrapper):
+        props = Properties.LightNodeWrapper
+      else:
+        props = Properties.NodePathWrapper
+      for propName, prop in props.items():
         self.addProperty(propName, prop, prop.GetValue(nodePath))
   
   def addProperty(self, propName, prop, value = None):

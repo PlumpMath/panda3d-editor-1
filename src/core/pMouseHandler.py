@@ -60,8 +60,8 @@ class MouseHandlerClass:
       self.taskTimer -= MOUSE_REFRESH_RATE
       
       # read the mouse position
-      if base.mouseWatcherNode != None and base.mouseWatcherNode.hasMouse():
-        mpos = base.mouseWatcherNode.getMouse()
+      mpos = WindowManager.getMouse()
+      if mpos != None:
         self.mousePosX, self.mousePosY = mpos.getX(), mpos.getY()
         
         # if the mouse is fixed to the center of the window, reset the mousepos

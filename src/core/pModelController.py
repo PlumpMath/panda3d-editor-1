@@ -340,6 +340,7 @@ class ModelController( DirectObject ):
     self.editorPickerNode.addSolid( self.editorPickerRay )
     self.editorPickerNode.setFromCollideMask( DEFAULT_EDITOR_COLLIDEMASK )
     self.editorPickerNode.setIntoCollideMask( BitMask32.allOff() )
+    if DEBUG: self.editorPickerNodePath.show()
     self.editorCollTraverser.addCollider( self.editorPickerNodePath, self.editorCollHandler )
   
   def destroyCollisionPicker( self ):
