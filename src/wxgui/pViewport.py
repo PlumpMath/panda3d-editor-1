@@ -57,7 +57,7 @@ class Viewport(wx.Panel, Window, DirectObject):
     if self.camPos != None:    self.camera.setPos(self.camPos)
     if self.camLookAt != None: self.camera.lookAt(self.camLookAt)
     self.Bind(wx.EVT_SIZE, self.onSize)
-    self.accept("mouse3", self.onRightDown)
+    #self.accept("mouse3", self.onRightDown)
   
   def onSize(self, evt):
     """Invoked when the viewport is resized."""
