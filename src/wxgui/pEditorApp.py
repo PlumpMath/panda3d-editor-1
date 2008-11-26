@@ -6,6 +6,7 @@ from direct.wxwidgets.WxAppShell import WxAppShell as AppShell
 #from direct.directtools.DirectGrid import DirectGrid
 from core.pGrid import DirectGrid
 from core.pConfigDefs import *
+from core.pWindow import WindowManager
 import wx
 from math import tan
 
@@ -237,21 +238,23 @@ class EditorApp(AppShell):
     
     radius = 50.0
     
-    # Choose a suitable distance to view the whole volume in our frame.
-    # This is based on the camera lens in use.
-    fov = base.camLens.getFov();
-    distance = radius / tan(deg2Rad(min(fov[0], fov[1]) / 2.0));
-    
-    # Ensure the far plane is far enough back to see the entire object.
-    idealFarPlane = distance + radius * 1.5;
-    base.camLens.setFar(max(base.camLens.getDefaultFar(), idealFarPlane));
-    
-    # And that the near plane is far enough forward.
-    base.camLens.setNear(min(base.camLens.getDefaultNear(), radius - sphere.getRadius()))
-    
-    base.trackball.node().setOrigin(sphere.getCenter())
-    base.trackball.node().setPos(Vec3.forward() * distance)
-    
-    # Also set the movement scale on the trackball to be consistent
-    # with the size of the model and the lens field-of-view.
-    base.trackball.node().setForwardScale(distance * 0.006)
+    # Loop through the windows/viewports
+    for w in WindowManager.windows:
+      # Choose a suitable distance to view the whole volume in our frame.
+      # This is based on the camera lens in use.
+      fov = w.camLens.getFov();
+      distance = radius / tan(deg2Rad(min(fov[0], fov[1]) / 2.0));
+      
+      # Ensure the far plane is far enough back to see the entire object.
+      idealFarPlane = distance + radius * 1.5;
+      w.camLens.setFar(max(w.camLens.getDefaultFar(), idealFarPlane));
+      
+      # And that the near plane is far enough forward.
+      w.camLens.setNear(min(w.camLens.getDefaultNear(), radius - sphere.getRadius()))
+      
+      w.trackball.node().setOrigin(sphere.getCenter())
+      w.trackball.node().setPos(Vec3.forward() * distance)
+      
+      # Also set the movement scale on the trackball to be consistent
+      # with the size of the model and the lens field-of-view.
+      w.trackball.node().setForwardScale(distance * 0.006)

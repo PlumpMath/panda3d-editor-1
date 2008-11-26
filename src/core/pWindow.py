@@ -110,6 +110,8 @@ class Window(object):
     else:
       self.win = base.openWindow(props = props)
     self.camera = base.camList[-1]
+    self.camNode = self.camera.node()
+    self.camLens = self.camNode.getLens()
     self.buttonThrowers = None
     self.setupMouse(self.win)
     WindowManager.windows.append(self)
