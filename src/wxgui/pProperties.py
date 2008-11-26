@@ -4,6 +4,8 @@ from pandac.PandaModules import NodePath, Vec2, Point3, Vec3, Vec4
 from pandac.PandaModules import TransparencyAttrib, TransparencyAttrib
 from wx.grid import *
 
+from core.modules.pLightNodeWrapper import LightNodeWrapper
+
 class Property:
   def __init__(self, getter, setter, hasser = None):
     self.getter = getter
@@ -92,12 +94,22 @@ class Enums:
         "MDual"            : TransparencyAttrib.MDual,
       }
 
+def updated(parent, new):
+  newdict = dict(parent)
+  newdict.update(new)
+  return newdict
+
 class Properties:
-  NodePath = {
-    "Pos"          : TupleProperty(3, NodePath.getPos, NodePath.setPos),
-    "Hpr"          : TupleProperty(3, NodePath.getHpr, NodePath.setHpr),
+  NodePathWrapper = {
+    "Name"         : TupleProperty(3, NodePath.getName, NodePath.setName),
+    "Position"     : TupleProperty(3, NodePath.getPos, NodePath.setPos),
+    "HPR"          : TupleProperty(3, NodePath.getHpr, NodePath.setHpr),
+    "Scale"        : TupleProperty(3, NodePath.getScale, NodePath.setScale),
     "Transparency" : BoolProperty(NodePath.getTransparency, NodePath.setTransparency),
     "Color"        : TupleProperty(4, NodePath.getColor, NodePath.setColor, NodePath.hasColor),
-    "ColorScale"   : TupleProperty(4, NodePath.getColorScale, NodePath.setColorScale, NodePath.hasColorScale),
+    "Color Scale"  : TupleProperty(4, NodePath.getColorScale, NodePath.setColorScale, NodePath.hasColorScale),
   }
-
+  LightNodeWrapper = updated(NodePathWrapper, {
+    "Color"        : TupleProperty(4, LightNodeWrapper.getColor, LightNodeWrapper.setColor),
+    "Priority"     : NumberProperty(LightNodeWrapper.getPriority, LightNodeWrapper.setPriority),
+  })

@@ -77,6 +77,7 @@ class MouseHandlerClass:
   def setMousePos(self, px, py):
     """Set the mouse position on the screen with a position x(-1,1) and y(-1,1)"""
     if WindowManager.activeWindow == None: return
+    px, py = float(px), float(py)
     win = WindowManager.activeWindow.win
     win.movePointer(0,  px * win.getXSize() / 2 + win.getXSize() / 2
                      , -py * win.getYSize() / 2 + win.getYSize() / 2)

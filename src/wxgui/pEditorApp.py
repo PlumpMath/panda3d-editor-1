@@ -52,7 +52,7 @@ class EditorApp(AppShell):
     self.sceneGraphTree = SceneGraphTree(self.sideBarSplitter)
     self.propertyGrid = PropertyGrid(self.sideBarSplitter)
     self.vgrid = ViewportGrid(self.splitter, [[Viewport.VPTOP,  Viewport.VPFRONT],
-                                           [Viewport.VPLEFT, Viewport.VPPERSPECTIVE]])
+                                              [Viewport.VPLEFT, Viewport.VPPERSPECTIVE]])
     sizer = wx.BoxSizer(wx.VERTICAL)
     assert self.sideBarSplitter.SplitHorizontally(self.sceneGraphTree, self.propertyGrid)
     assert self.splitter.SplitVertically(self.sideBarSplitter, self.vgrid, 200)
