@@ -12,7 +12,7 @@ from math import tan
 # Local imports
 from pPropertyGrid import PropertyGrid
 from pSceneGraphTree import SceneGraphTree
-from pViewport import ViewportGrid, ViewportManager
+from pViewport import Viewport, ViewportGrid, ViewportManager
 
 # Get the default window origin
 defWP = WindowProperties.getDefault()
@@ -53,7 +53,8 @@ class EditorApp(AppShell):
     self.sideBarSplitter = wx.SplitterWindow(self.splitter, style = wx.SP_3D | wx.SP_BORDER)
     self.sceneGraphTree = SceneGraphTree(self.sideBarSplitter)
     self.propertyGrid = PropertyGrid(self.sideBarSplitter)
-    self.vs = ViewportGrid(self.splitter, ViewportGrid.CREATENEW)
+    self.vs = ViewportGrid(self.splitter, [[Viewport.VPTOP,  Viewport.VPFRONT],
+                                           [Viewport.VPLEFT, Viewport.VPPERSPECTIVE]])
     sizer = wx.BoxSizer(wx.VERTICAL)
     assert self.sideBarSplitter.SplitHorizontally(self.sceneGraphTree, self.propertyGrid)
     assert self.splitter.SplitVertically(self.sideBarSplitter, self.vs, 200)
@@ -70,8 +71,6 @@ class EditorApp(AppShell):
     # Hmm doesnt really work as well... (camera is still moved)
     base.accept(EVENT_MODELCONTROLLER_EDITTOOL_SELECTED, base.disableMouse)
     base.accept(EVENT_MODELCONTROLLER_EDITTOOL_DESELECTED, base.enableMouse)
-    # The object has been modified in the scene, this event happens rarely
-    #base.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, )
     # The object has been modified in the scene, this event happens every frame
     #base.accept(EVENT_MODELCONTROLLER_FAST_REFRESH, )
     # The editor has been disabled, collisions etc are deleted
@@ -163,8 +162,8 @@ class EditorApp(AppShell):
     self.scene = render.attachNewNode("scene")
   
   def onOpen(self, evt = None):
-    filter = "Panda3D Binary Format (*.bam)|*.[bB][aA][mM]"
-    filter += "|Panda3D Egg Format (*.egg)|*.[eE][gG][gG]"
+    filter = "Panda3D Egg Format (*.egg)|*.[eE][gG][gG]"
+    filter += "|Panda3D Binary Format (*.bam)|*.[bB][aA][mM]"
     ''' # disabled by hypnos, making the loading work
     filter += "|MultiGen (*.flt)|*.[fF][lL][tT]"
     filter += "|Lightwave (*.lwo)|*.[lL][wW][oO]"

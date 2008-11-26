@@ -1,7 +1,7 @@
 """Contains classes useful for 3D viewports."""
 __all__ = ["Viewport", "ViewportManager", "ViewportSplitter", "ViewportGrid"]
 
-from pandac.PandaModules import WindowProperties
+from pandac.PandaModules import WindowProperties, OrthographicLens, Point3
 import wx
 
 from core.pWindow import WindowManager, Window
@@ -9,6 +9,10 @@ from core.pWindow import WindowManager, Window
 HORIZONTAL = wx.HORIZONTAL
 VERTICAL   = wx.VERTICAL
 CREATENEW  = 99
+VPLEFT     = 10
+VPFRONT    = 11
+VPTOP      = 12
+VPPERSPECTIVE = 13
 
 class ViewportManager(WindowManager):
   """Manages the global viewport stuff."""
@@ -26,9 +30,17 @@ class ViewportManager(WindowManager):
 
 class Viewport(wx.Panel, Window):
   """Class representing a 3D Viewport."""
+  CREATENEW  = CREATENEW
+  VPLEFT     = VPLEFT
+  VPFRONT    = VPFRONT
+  VPTOP      = VPTOP
+  VPPERSPECTIVE = VPPERSPECTIVE
   def __init__(self, *args, **kwargs):
     wx.Panel.__init__(self, *args, **kwargs)
     ViewportManager.viewports.append(self)
+    self.lens = None
+    self.camPos = None
+    self.camLookAt = None
   
   def initialize(self):
     self.Update()
@@ -38,6 +50,9 @@ class Viewport(wx.Panel, Window):
     assert self.GetHandle() != 0
     wp.setParentWindow(self.GetHandle())
     Window.__init__(self, extraProps = wp)
+    if self.lens != None:      self.camera.node().setLens(self.lens)
+    if self.camPos != None:    self.camera.setPos(self.camPos)
+    if self.camLookAt != None: self.camera.lookAt(self.camLookAt)
     self.Bind(wx.EVT_SIZE, self.onSize)
   
   def onSize(self, evt):
@@ -47,12 +62,52 @@ class Viewport(wx.Panel, Window):
       wp.setOrigin(0, 0)
       wp.setSize(self.ClientSize.GetWidth(), self.ClientSize.GetHeight())
       self.win.requestProperties(wp)
+  
+  @staticmethod
+  def make(parent, vpType = None):
+    """Safe constructor that also takes CREATENEW, VPLEFT, VPTOP, etc."""
+    if vpType == None or vpType == CREATENEW:
+      return Viewport(parent)
+    if isinstance(vpType, Viewport): return vpType
+    if isinstance(vpType, ViewportSplitter): return vpType
+    if isinstance(vpType, ViewportGrid): return vpType
+    if vpType == VPLEFT:  return Viewport.makeLeft(parent)
+    if vpType == VPFRONT: return Viewport.makeFront(parent)
+    if vpType == VPTOP:   return Viewport.makeTop(parent)
+    if vpType == VPPERSPECTIVE:  return Viewport.makePerspective(parent)
+    raise TypeError, "Unknown viewport type: %s" % vpType
+  
+  @staticmethod
+  def makeOrthographic(parent, campos):
+    v = Viewport(parent)
+    v.lens = OrthographicLens()
+    v.camPos = campos
+    v.camLookAt = Point3(0, 0, 0)
+    return v
+  
+  @staticmethod
+  def makePerspective(parent):
+    v = Viewport(parent)
+    v.camPos = Point3(10, 10, 10)
+    v.camLookAt = Point3(0, 0, 0)
+    return v
+  
+  @staticmethod
+  def makeLeft(parent): return Viewport.makeOrthographic(parent, Point3(30, 0, 0))
+  @staticmethod
+  def makeFront(parent): return Viewport.makeOrthographic(parent, Point3(0, 30, 0))
+  @staticmethod
+  def makeTop(parent): return Viewport.makeOrthographic(parent, Point3(0, 0, 30))
 
 class ViewportSplitter(wx.SplitterWindow):
   """ A splitterwindow used to split two viewports. """
   HORIZONTAL = HORIZONTAL
   VERTICAL   = VERTICAL
   CREATENEW  = CREATENEW
+  VPLEFT     = VPLEFT
+  VPFRONT    = VPFRONT
+  VPTOP      = VPTOP
+  VPPERSPECTIVE = VPPERSPECTIVE
   def __init__(self, parent, win1 = None, win2 = None, orientation = None):
     """win1 and win2 must be either a Viewport, ViewportSplitter, or None.
     If the parameters are not supplied, you can split later using split()."""
@@ -64,8 +119,8 @@ class ViewportSplitter(wx.SplitterWindow):
     self.Bind(wx.EVT_SPLITTER_DCLICK, lambda evt: evt.Veto(0))
   
   def split(self, win1, win2, orientation):
-    if win1 == self.CREATENEW: win1 = Viewport(self)
-    if win2 == self.CREATENEW: win2 = Viewport(self)
+    win1 = Viewport.make(self, win1)
+    win2 = Viewport.make(self, win2)
     assert isinstance(win1, Viewport) or isinstance(win1, ViewportSplitter)
     assert isinstance(win2, Viewport) or isinstance(win2, ViewportSplitter)
     self.win1 = win1
@@ -101,6 +156,10 @@ class ViewportGrid(ViewportSplitter):
   HORIZONTAL = HORIZONTAL
   VERTICAL   = VERTICAL
   CREATENEW  = CREATENEW
+  VPLEFT     = VPLEFT
+  VPFRONT    = VPFRONT
+  VPTOP      = VPTOP
+  VPPERSPECTIVE = VPPERSPECTIVE
   def __init__(self, parent, grid):
     """The "grid" argument should be a two-dimensional list of either Viewports or CREATENEW."""
     if grid == CREATENEW: grid = [[CREATENEW, CREATENEW], [CREATENEW, CREATENEW]]

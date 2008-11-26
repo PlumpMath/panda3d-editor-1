@@ -35,6 +35,7 @@ class PropertyGrid(Grid, DirectObject):
     self.Bind(EVT_GRID_CELL_CHANGE, self.onCellChange)
     self.Bind(wx.EVT_SIZE, self.onSize)
     self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, self.viewForNodePath)
+    self.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, self.viewForNodePath)
   
   def onSize(self, evt = None):
     """Invoked when the size has changed."""
