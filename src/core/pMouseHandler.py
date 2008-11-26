@@ -3,6 +3,8 @@ import sys
 
 from pandac.PandaModules import WindowProperties, Vec3
 
+from core.pWindow import WindowManager
+
 MOUSE_REFRESH_RATE = 1./60.
 
 class MouseHandlerClass:
