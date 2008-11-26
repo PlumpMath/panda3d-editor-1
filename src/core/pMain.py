@@ -164,7 +164,7 @@ class EditorClass(DirectObject):
             object = parent.attachNewNode('%s-failed' % wrapperType)
           # apply the transformation on the object
           object.setMat(transform)
-          transform = Mat4().identMat()
+          transform = Mat4.identMat()
           # if it contains additional childrens recurse into them
           for childData in eggParentData.getChildren()[1:]:
             # search the children
