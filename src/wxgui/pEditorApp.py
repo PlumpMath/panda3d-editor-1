@@ -12,7 +12,7 @@ from math import tan
 # Local imports
 from pPropertyGrid import PropertyGrid
 from pSceneGraphTree import SceneGraphTree
-from pViewport import Viewport
+from pViewport import ViewportGrid, ViewportManager
 
 # Get the default window origin
 defWP = WindowProperties.getDefault()
@@ -53,16 +53,16 @@ class EditorApp(AppShell):
     self.sideBarSplitter = wx.SplitterWindow(self.splitter, style = wx.SP_3D | wx.SP_BORDER)
     self.sceneGraphTree = SceneGraphTree(self.sideBarSplitter)
     self.propertyGrid = PropertyGrid(self.sideBarSplitter)
-    self.viewport = Viewport(self.splitter)
+    self.vs = ViewportGrid(self.splitter, ViewportGrid.CREATENEW)
     sizer = wx.BoxSizer(wx.VERTICAL)
     assert self.sideBarSplitter.SplitHorizontally(self.sceneGraphTree, self.propertyGrid)
-    assert self.splitter.SplitVertically(self.sideBarSplitter, self.viewport, 200)
+    assert self.splitter.SplitVertically(self.sideBarSplitter, self.vs, 200)
     sizer.Add(self.splitter, 1, wx.EXPAND, 0)
     self.SetSizer(sizer)
     self.Layout()
+    self.initialize()
     
     # Setup some events
-    self.initialize()
     base.accept("c", self.onCenterTrackball)
     
     # If a model-translate-rotate-scale tool is selected the automatic mouse
@@ -131,10 +131,10 @@ class EditorApp(AppShell):
   def initialize(self):
     """Initializes the viewports and editor."""
     self.Update()
-    self.viewport.Update()
+    ViewportManager.updateAll()
     self.wxStep()
-    self.viewport.initialize()
-    self.editorInstance.toggle(True)
+    ViewportManager.initializeAll()
+    #self.editorInstance.toggle(True)
     # Position the camera
     if base.trackball != None:
       base.trackball.node().setPos(0, 30, 0)
