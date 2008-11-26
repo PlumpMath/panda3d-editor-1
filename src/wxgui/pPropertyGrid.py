@@ -75,6 +75,7 @@ class PropertyGrid(Grid, DirectObject):
   
   def onCellChange(self, evt):
      """Invoked when a cell is modified."""
+     if self.object == None: return
      if evt.Col != 1: return
      value = self.GetCellValue(evt.Row, 1)
      try:
@@ -87,4 +88,3 @@ class PropertyGrid(Grid, DirectObject):
        print ex
        evt.Veto()
      self.SetCellValue(evt.Row, 1, prop.ValueAsString(prop.GetValue(self.object)))
-

@@ -1,6 +1,7 @@
 """Contains classes useful for 3D viewports."""
-__all__ = ["Viewport", "ViewportManager", "ViewportSplitter", "ViewportGrid"]
+__all__ = ["Viewport", "ViewportManager", "ViewportSplitter", "ViewportGrid", "ViewportMenu"]
 
+from direct.showbase.DirectObject import DirectObject
 from pandac.PandaModules import WindowProperties, OrthographicLens, Point3
 import wx
 
@@ -28,7 +29,7 @@ class ViewportManager(WindowManager):
     for v in ViewportManager.viewports:
       v.Update(*args, **kwargs)
 
-class Viewport(wx.Panel, Window):
+class Viewport(wx.Panel, Window, DirectObject):
   """Class representing a 3D Viewport."""
   CREATENEW  = CREATENEW
   VPLEFT     = VPLEFT
@@ -36,11 +37,13 @@ class Viewport(wx.Panel, Window):
   VPTOP      = VPTOP
   VPPERSPECTIVE = VPPERSPECTIVE
   def __init__(self, *args, **kwargs):
+    DirectObject.__init__(self)
     wx.Panel.__init__(self, *args, **kwargs)
     ViewportManager.viewports.append(self)
     self.lens = None
     self.camPos = None
     self.camLookAt = None
+    self.Bind(wx.EVT_RIGHT_DOWN, self.onRightDown)
   
   def initialize(self):
     self.Update()
@@ -54,6 +57,7 @@ class Viewport(wx.Panel, Window):
     if self.camPos != None:    self.camera.setPos(self.camPos)
     if self.camLookAt != None: self.camera.lookAt(self.camLookAt)
     self.Bind(wx.EVT_SIZE, self.onSize)
+    self.accept("mouse3", self.onRightDown)
   
   def onSize(self, evt):
     """Invoked when the viewport is resized."""
@@ -62,6 +66,18 @@ class Viewport(wx.Panel, Window):
       wp.setOrigin(0, 0)
       wp.setSize(self.ClientSize.GetWidth(), self.ClientSize.GetHeight())
       self.win.requestProperties(wp)
+  
+  def onRightDown(self, evt = None):
+    """Invoked when the viewport is right-clicked."""
+    menu = ViewportMenu(self)
+    if evt == None:
+      mpos = wx.GetMouseState()
+      mpos = self.ScreenToClient((mpos.x, mpos.y))
+    else:
+      mpos = evt.GetPosition()
+    self.Update()
+    self.PopupMenu(menu, mpos)
+    menu.Destroy()
   
   @staticmethod
   def make(parent, vpType = None):
@@ -201,3 +217,33 @@ class ViewportGrid(ViewportSplitter):
     self.SetSashPosition(self.ClientSize.GetWidth() / 2)
     for s in range(len(self)):
       self[s].SetSashPosition(self.ClientSize.GetHeight() / 2)
+
+class ViewportMenu(wx.Menu):
+  """Represents a menu that appears when right-clicking a viewport."""
+  def __init__(self, viewport):
+    wx.Menu.__init__(self)
+    self.viewport = viewport
+    self.addItem("&Refresh", self.viewport.Update)
+    self.addItem("&Background Color...", self.onChooseColor)
+  
+  def addItem(self, name, call = None, id = None):
+    if id == None: id = wx.NewId()
+    item = wx.MenuItem(self, id, name)
+    self.AppendItem(item)
+    if call != None:
+      self.Bind(wx.EVT_MENU, call, item)
+  
+  def onChooseColor(self, evt = None):
+    """Change the background color of the viewport."""
+    data = wx.ColourData()
+    bgcolor = self.viewport.win.getClearColor()
+    bgcolor = bgcolor[0] * 255.0, bgcolor[1] * 255.0, bgcolor[2] * 255.0
+    data.SetColour(bgcolor)
+    dlg = wx.ColourDialog(self, data)
+    try:
+      if dlg.ShowModal() == wx.ID_OK:
+        data = dlg.GetColourData().GetColour()
+        data = data[0] / 255.0, data[1] / 255.0, data[2] / 255.0
+        self.viewport.win.setClearColor(*data)
+    finally:
+      dlg.Destroy()

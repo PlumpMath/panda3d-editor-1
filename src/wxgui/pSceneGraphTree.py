@@ -39,7 +39,6 @@ class SceneGraphTree(wx.TreeCtrl, DirectObject):
     if not isinstance(item, wx.TreeItemId):
       item = item.GetItem()
     modelController.selectModel(self.GetItemPyData(item))
-    #base.messenger.send(EVENT_MODELCONTROLLER_SELECT_MODEL, [self.GetItemPyData(item)])
   
   def selectNodePath(self, model):
     """Selects the given NodePath in the tree."""

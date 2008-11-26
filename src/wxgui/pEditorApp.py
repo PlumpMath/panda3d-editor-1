@@ -117,7 +117,6 @@ class EditorApp(AppShell):
     self.menuBar.Append(self.menuView, "&View")
     self.Bind(wx.EVT_MENU, self.onToggleGrid, self.menuView.AppendCheckItem(ID_ENABLE_GRID, "E&nable Grid"))
     self.Bind(wx.EVT_MENU, self.onCenterTrackball, self.menuView.Append(wx.ID_ANY, "&Center Model"))
-    self.Bind(wx.EVT_MENU, self.onChooseColor, self.menuView.Append(wx.ID_ANY, "&Background Color..."))
     self.menuBar.Check(ID_ENABLE_GRID, True)
   
   def createInterface(self):
@@ -220,7 +219,7 @@ class EditorApp(AppShell):
   def onToggleGrid(self, evt = None):
     """Toggles the grid on/off."""
     if evt.GetEventObject().IsChecked(ID_ENABLE_GRID):
-      self.grid.enable(parent = render)
+      self.grid.enable()
     else:
       self.grid.disable()
   
@@ -256,19 +255,3 @@ class EditorApp(AppShell):
     # Also set the movement scale on the trackball to be consistent
     # with the size of the model and the lens field-of-view.
     base.trackball.node().setForwardScale(distance * 0.006)
-  
-  def onChooseColor(self, evt = None):
-    """Change the background color of the viewport."""
-    data = wx.ColourData()
-    bgcolor = base.getBackgroundColor()
-    bgcolor = bgcolor[0] * 255.0, bgcolor[1] * 255.0, bgcolor[2] * 255.0
-    data.SetColour(bgcolor)
-    dlg = wx.ColourDialog(self, data)
-    try:
-      if dlg.ShowModal() == wx.ID_OK:
-        data = dlg.GetColourData().GetColour()
-        data = data[0] / 255.0, data[1] / 255.0, data[2] / 255.0
-        base.setBackgroundColor(*data)
-    finally:
-      dlg.Destroy()
-
