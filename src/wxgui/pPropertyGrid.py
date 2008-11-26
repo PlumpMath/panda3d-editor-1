@@ -1,22 +1,14 @@
 __all__ = ["PropertyGrid"]
+from pandac.PandaModules import NodePath
 from direct.showbase.DirectObject import DirectObject
 from wx.grid import *
 import wx, re
 
 # Local imports
 from core.pConfigDefs import *
+from core.pModelController import modelController
 from core.modules.pLightNodeWrapper import LightNodeWrapper
 from pProperties import EnumProperty, Enums, Properties
-
-"""
-class PropertyGridTable(PyGridTableBase);
-  def GetNumberRows(self): return 20
-  def GetNumberCols(self): return 20
-  def IsEmptyCell(self, row, col): return False
-  def GetTypeName(self, row, col): return None
-  def GetValue(self, row, col): return "cell"
-  def SetValue(self, row, col, value): pass
-"""
 
 class PropertyGrid(Grid, DirectObject):
   """The grid to edit node properties."""
@@ -36,7 +28,7 @@ class PropertyGrid(Grid, DirectObject):
     self.Bind(EVT_GRID_CELL_CHANGE, self.onCellChange)
     self.Bind(wx.EVT_SIZE, self.onSize)
     self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, self.viewForNodePath)
-    self.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, self.viewForNodePath)
+    self.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, self.viewForSelection)
   
   def onSize(self, evt = None):
     """Invoked when the size has changed."""
@@ -60,7 +52,11 @@ class PropertyGrid(Grid, DirectObject):
       else:
         props = Properties.NodePathWrapper
       for propName, prop in props.items():
-        self.addProperty(propName, prop, prop.GetValue(nodePath))
+        if prop != None: self.addProperty(propName, prop, prop.GetValue(nodePath))
+  
+  def viewForSelection(self):
+    """Similar to viewForNodePath, but this uses the currently selected model."""
+    return self.viewForNodePath(modelController.getSelectedModel())
   
   def addProperty(self, propName, prop, value = None):
     """ Adds a new property to the control. """
@@ -84,6 +80,9 @@ class PropertyGrid(Grid, DirectObject):
      try:
        prop = self.properties[evt.Row]
        prop.SetValue(self.object, prop.StringToValue(value))
+       # If it changed the nodepath name, reload the scene graph tree.
+       if prop.setter == NodePath.setName:
+         messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
      except Exception, ex: # Stop the change if the value is invalid.
        print ex
        evt.Veto()

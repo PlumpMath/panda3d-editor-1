@@ -24,6 +24,9 @@ class Property:
     else:
       return self.getter(obj)
 
+class StringProperty(Property):
+  IsReadOnly = False
+
 class NumberProperty(Property):
   IsReadOnly = False
   def MakeRenderer(self): return GridCellNumberRenderer()
@@ -101,7 +104,7 @@ def updated(parent, new):
 
 class Properties:
   NodePathWrapper = {
-    "Name"         : TupleProperty(3, NodePath.getName, NodePath.setName),
+    "Name"         : StringProperty(NodePath.getName, NodePath.setName),
     "Position"     : TupleProperty(3, NodePath.getPos, NodePath.setPos),
     "HPR"          : TupleProperty(3, NodePath.getHpr, NodePath.setHpr),
     "Scale"        : TupleProperty(3, NodePath.getScale, NodePath.setScale),
@@ -112,4 +115,5 @@ class Properties:
   LightNodeWrapper = updated(NodePathWrapper, {
     "Color"        : TupleProperty(4, LightNodeWrapper.getColor, LightNodeWrapper.setColor),
     "Priority"     : NumberProperty(LightNodeWrapper.getPriority, LightNodeWrapper.setPriority),
+    "Color Scale"  : None,
   })
