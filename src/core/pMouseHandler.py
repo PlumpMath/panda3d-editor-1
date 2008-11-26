@@ -70,13 +70,14 @@ class MouseHandlerClass:
   
   def setMouseCentered(self):
     """Set the mouse position into the center of the window"""
-    px, py = 0,0
-    self.setMousePos(px, py)
+    self.setMousePos(0, 0)
   
   def setMousePos(self, px, py):
     """Set the mouse position on the screen with a position x(-1,1) and y(-1,1)"""
-    base.win.movePointer(0,  px * base.win.getXSize() / 2 + base.win.getXSize() / 2
-                          , -py * base.win.getYSize() / 2 + base.win.getYSize() / 2)
+    if WindowManager.activeWindow == None: return
+    win = WindowManager.activeWindow.win
+    win.movePointer(0,  px * win.getXSize() / 2 + win.getXSize() / 2
+                     , -py * win.getYSize() / 2 + win.getYSize() / 2)
   
   def setMouseHidden(self, state = None):
     """Hides/Shows the mouse"""
@@ -92,7 +93,9 @@ class MouseHandlerClass:
       wp.setMouseMode(WindowProperties.MRelative)
     else:
       wp.setMouseMode(WindowProperties.MAbsolute)
-    base.win.requestProperties(wp)
+    
+    for w in WindowManager.windows:
+      w.win.requestProperties(wp)
   
   def getMousePos(self):
     return self.mousePosX, self.mousePosY

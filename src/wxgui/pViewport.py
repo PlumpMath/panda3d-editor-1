@@ -6,8 +6,8 @@ import wx
 
 from core.pWindow import WindowManager, Window
 
-HORIZONTAL = wx.HORIZONTAL
-VERTICAL   = wx.VERTICAL
+HORIZONTAL = wx.SPLIT_HORIZONTAL
+VERTICAL   = wx.SPLIT_VERTICAL
 CREATENEW  = 99
 VPLEFT     = 10
 VPFRONT    = 11
@@ -81,6 +81,7 @@ class Viewport(wx.Panel, Window):
   def makeOrthographic(parent, campos):
     v = Viewport(parent)
     v.lens = OrthographicLens()
+    v.lens.setFilmSize(30)
     v.camPos = campos
     v.camLookAt = Point3(0, 0, 0)
     return v
@@ -88,16 +89,16 @@ class Viewport(wx.Panel, Window):
   @staticmethod
   def makePerspective(parent):
     v = Viewport(parent)
-    v.camPos = Point3(10, 10, 10)
+    v.camPos = Point3(30, 30, 30)
     v.camLookAt = Point3(0, 0, 0)
     return v
   
   @staticmethod
-  def makeLeft(parent): return Viewport.makeOrthographic(parent, Point3(30, 0, 0))
+  def makeLeft(parent): return Viewport.makeOrthographic(parent, Point3(1, 0, 0))
   @staticmethod
-  def makeFront(parent): return Viewport.makeOrthographic(parent, Point3(0, 30, 0))
+  def makeFront(parent): return Viewport.makeOrthographic(parent, Point3(0, 1, 0))
   @staticmethod
-  def makeTop(parent): return Viewport.makeOrthographic(parent, Point3(0, 0, 30))
+  def makeTop(parent): return Viewport.makeOrthographic(parent, Point3(0, 0, 1))
 
 class ViewportSplitter(wx.SplitterWindow):
   """ A splitterwindow used to split two viewports. """
@@ -114,9 +115,20 @@ class ViewportSplitter(wx.SplitterWindow):
     wx.SplitterWindow.__init__(self, parent)
     self.win1 = win1
     self.win2 = win2
+    self.prevSize = self.ClientSize
     if win1 != None and win2 != None and orientation != None:
       self.split(win1, win2, orientation)
     self.Bind(wx.EVT_SPLITTER_DCLICK, lambda evt: evt.Veto(0))
+  
+  def onSize(self, evt):
+    d = self.ClientSize - self.prevSize
+    self.prevSize = self.ClientSize
+    if self.GetSplitMode() == wx.SPLIT_VERTICAL:
+      d = d.GetWidth()
+    elif self.GetSplitMode() == wx.SPLIT_HORIZONTAL:
+      d = d.GetHeight()
+    else: return
+    self.SetSashPosition(self.GetSashPosition() + (d / 2))
   
   def split(self, win1, win2, orientation):
     win1 = Viewport.make(self, win1)
@@ -129,6 +141,7 @@ class ViewportSplitter(wx.SplitterWindow):
       self.SplitHorizontally(win1, win2)
     elif orientation == self.VERTICAL:
       self.SplitVertically(win1, win2)
+    self.Bind(wx.EVT_SIZE, self.onSize)
   
   def initialize(self, *args, **kwargs):
     self.win1.initialize(*args, **kwargs)
@@ -140,16 +153,19 @@ class ViewportSplitter(wx.SplitterWindow):
     wx.SplitterWindow.Update(self, *args, **kwargs)
   
   def __getitem__(self, num):
-    assert num == 0 or num == 1
+    if num != 0 and num != 1: return
     if num == 0: return self.win1
     if num == 1: return self.win2
   
   def __setitem__(self, num, value):
-    assert num == 0 or num == 1
+    if num != 0 and num != 1: return
     if value == self.CREATENEW:
       value = Viewport(self)
     if num == 0: self.win1 = value
     if num == 1: self.win2 = value
+  
+  def __len__(self):
+    return 2
 
 class ViewportGrid(ViewportSplitter):
   """Represents a 4x4 grid of viewports. It's pretty limited right now."""
@@ -179,3 +195,9 @@ class ViewportGrid(ViewportSplitter):
       lambda evt: self[1].SetSashPosition(self[0].GetSashPosition()))
     splitters[1].Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED,
       lambda evt: self[0].SetSashPosition(self[1].GetSashPosition()))
+  
+  def center(self):
+    """Centers the splitters."""
+    self.SetSashPosition(self.ClientSize.GetWidth() / 2)
+    for s in range(len(self)):
+      self[s].SetSashPosition(self.ClientSize.GetHeight() / 2)

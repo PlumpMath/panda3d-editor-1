@@ -24,6 +24,8 @@ class ModelController( DirectObject ):
     self.modelModeNode = NodePath('temp')
     
     self.enabled = False
+    
+    self.accept( EVENT_WINDOW_FOCUS_CHANGE, self.onWindowFocusChange )
   
   def toggle( self, state=None ):
     if state is None:
@@ -43,7 +45,8 @@ class ModelController( DirectObject ):
       # create another ray which copy's the mouseray of the camera
       # using the real mouseray can cause problems
       self.mouseRayCameraNodePath = NodePath( 'editorMouseRayNodePath' )
-      self.mouseRayCameraNodePath.reparentTo( WindowManager.getDefaultCamera() )
+      if WindowManager.getDefaultCamera() != None:
+        self.mouseRayCameraNodePath.reparentTo( WindowManager.getDefaultCamera() )
       self.mouseRayNodePath = NodePath( 'editorMouseRayNodePath' )
       self.mouseRayNodePath.reparentTo( self.mouseRayCameraNodePath )
       
@@ -102,6 +105,17 @@ class ModelController( DirectObject ):
       self.mouseRayCameraNodePath.detachNode()
       
       self.destroyCollisionPicker()
+  
+  def onWindowFocusChange( self ):
+    """Used if the focused window has changed."""
+    if len(WindowManager.windows) == 1: return
+    if WindowManager.activeWindow == None:
+      self.mouseRayCameraNodePath.detachNode()
+      self.editorPickerNodePath.detachNode()
+    else:
+      self.mouseRayCameraNodePath.reparentTo(WindowManager.activeWindow.camera)
+      self.editorPickerNodePath.reparentTo(WindowManager.activeWindow.camera)
+    self.updatePickerRay()
   
   def mouseButtonPress( self ):
     if self.enabled:
@@ -318,7 +332,10 @@ class ModelController( DirectObject ):
     self.editorCollTraverser    = CollisionTraverser()
     self.editorCollHandler      = CollisionHandlerQueue()
     self.editorPickerNode       = CollisionNode('mouseRay')
-    self.editorPickerNodePath   = WindowManager.getDefaultCamera().attachNewNode(self.editorPickerNode)
+    if WindowManager.getDefaultCamera() != None:
+      self.editorPickerNodePath   = WindowManager.getDefaultCamera().attachNewNode(self.editorPickerNode)
+    else:
+      self.editorPickerNodePath   = NodePath(self.editorPickerNode)
     self.editorPickerRay        = CollisionRay()
     self.editorPickerNode.addSolid( self.editorPickerRay )
     self.editorPickerNode.setFromCollideMask( DEFAULT_EDITOR_COLLIDEMASK )
@@ -339,7 +356,10 @@ class ModelController( DirectObject ):
   def updatePickerRay( self ):
     #print "editor.editorClass.updatePickerRay"
     mx,my = mouseHandler.getMousePos()
-    self.editorPickerRay.setFromLens(WindowManager.getDefaultCamera().node(), mx, my)
+    if WindowManager.getDefaultCamera() != None:
+      self.editorPickerRay.setFromLens(WindowManager.getDefaultCamera().node(), mx, my)
+    else:
+      pass # How to unset it?
     return True
   
   def getMouseOverNode( self ):

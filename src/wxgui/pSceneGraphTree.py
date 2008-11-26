@@ -67,10 +67,10 @@ class SceneGraphTree(wx.TreeCtrl, DirectObject):
     for c in xrange(nodePath.getNumChildren()):
       childNodePath = nodePath.getChild(c)
       childModel = modelIdManager.getObject(modelIdManager.getObjectId(childNodePath))
-      if childNodePath.hasTag( ENABLE_SCENEGRAPHBROWSER_MODEL_TAG ):
+      if childNodePath.hasTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG):
         treeItem = self.AppendItem(treeParent, childNodePath.getName())
         self.SetItemPyData(treeItem, childModel)
         self.modelDict[childNodePath] = treeItem
-        # search the childrens
+        # Iterate through the children
         self.__appendChildren(treeItem, childNodePath)
 

@@ -13,6 +13,8 @@ EVENT_MODELCONTROLLER_SELECT_MODEL = 'modelEdit-selectModel'
 EVENT_MODELCONTROLLER_FULL_REFRESH = 'refreshModelEdit-full'
 # this event is sent when a object has been modified (can be sent every frame)
 EVENT_MODELCONTROLLER_FAST_REFRESH = 'refreshModelEdit-fast'
+# this event is invoked when you have multiple windows and the focus switches from one to the other.
+EVENT_WINDOW_FOCUS_CHANGE = 'active-window-changed'
 
 EVENT_MODELCONTROLLER_EDITTOOL_SELECTED = 'modelController-edittool-selected'
 EVENT_MODELCONTROLLER_EDITTOOL_DESELECTED = 'modelController-edittool-deselected'

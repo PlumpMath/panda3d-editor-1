@@ -41,9 +41,7 @@ class EditorApp(AppShell):
     self.wxApp = wx.App(redirect = False)
     self.wxApp.SetAppName("Panda Editor")
     self.wxApp.SetClassName("PEditor")
-     
-    #TODO: get out self.scene
-    self.scene = render.attachNewNode("scene")
+    
     self.modified = True
     self.filename = Filename()
     
@@ -53,11 +51,11 @@ class EditorApp(AppShell):
     self.sideBarSplitter = wx.SplitterWindow(self.splitter, style = wx.SP_3D | wx.SP_BORDER)
     self.sceneGraphTree = SceneGraphTree(self.sideBarSplitter)
     self.propertyGrid = PropertyGrid(self.sideBarSplitter)
-    self.vs = ViewportGrid(self.splitter, [[Viewport.VPTOP,  Viewport.VPFRONT],
+    self.vgrid = ViewportGrid(self.splitter, [[Viewport.VPTOP,  Viewport.VPFRONT],
                                            [Viewport.VPLEFT, Viewport.VPPERSPECTIVE]])
     sizer = wx.BoxSizer(wx.VERTICAL)
     assert self.sideBarSplitter.SplitHorizontally(self.sceneGraphTree, self.propertyGrid)
-    assert self.splitter.SplitVertically(self.sideBarSplitter, self.vs, 200)
+    assert self.splitter.SplitVertically(self.sideBarSplitter, self.vgrid, 200)
     sizer.Add(self.splitter, 1, wx.EXPAND, 0)
     self.SetSizer(sizer)
     self.Layout()
@@ -71,6 +69,7 @@ class EditorApp(AppShell):
     # Hmm doesnt really work as well... (camera is still moved)
     base.accept(EVENT_MODELCONTROLLER_EDITTOOL_SELECTED, base.disableMouse)
     base.accept(EVENT_MODELCONTROLLER_EDITTOOL_DESELECTED, base.enableMouse)
+    base.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, self.__setattr__, ["modified", True])
     # The object has been modified in the scene, this event happens every frame
     #base.accept(EVENT_MODELCONTROLLER_FAST_REFRESH, )
     # The editor has been disabled, collisions etc are deleted
@@ -133,7 +132,7 @@ class EditorApp(AppShell):
     ViewportManager.updateAll()
     self.wxStep()
     ViewportManager.initializeAll()
-    #self.editorInstance.toggle(True)
+    self.editorInstance.toggle(True)
     # Position the camera
     if base.trackball != None:
       base.trackball.node().setPos(0, 30, 0)
@@ -142,6 +141,7 @@ class EditorApp(AppShell):
     # Load the direct things
     self.grid = DirectGrid(parent = render)
     self.sceneGraphTree.reload()
+    self.vgrid.center()
   
   def wxStep(self, task = None):
     """A step in the WX event loop. You can either call this yourself or use as task."""
@@ -158,8 +158,7 @@ class EditorApp(AppShell):
     self.filename = Filename()
     self.modified = True
     self.SetTitle("Panda Editor")
-    self.scene.removeNode()
-    self.scene = render.attachNewNode("scene")
+    self.editorInstance.destroyAllModels()
   
   def onOpen(self, evt = None):
     filter = "Panda3D Egg Format (*.egg)|*.[eE][gG][gG]"
@@ -180,9 +179,6 @@ class EditorApp(AppShell):
         self.SetTitle(p3dFilename.getBasename() + " - Panda Editor")
         self.modified = False
         self.editorInstance.loadEggModelsFile( self.filename )
-        #self.scene.removeNode()
-        #self.scene = loader.loadModel(self.filename)
-        #self.scene.reparentTo(render)
         # Reset the camera
         base.trackball.node().setPos(0, 30, 0)
         base.trackball.node().setHpr(0, 15, 0)
@@ -205,7 +201,7 @@ class EditorApp(AppShell):
           self.filename = Filename.fromOsSpecific(dlg.GetPath())
           self.SetTitle(self.filename.getBasename() + " - Panda Editor")
           self.modified = False
-          self.scene.writeBamFile(self.filename)
+          self.editorInstance.saveEggModelsFile(self.filename.getFullpath())
       finally:
         dlg.Destroy()
   
@@ -217,7 +213,7 @@ class EditorApp(AppShell):
         self.filename = Filename.fromOsSpecific(dlg.GetPath())
         self.SetTitle(self.filename.getBasename() + " - Panda Editor")
         self.modified = False
-        self.scene.writeBamFile(self.filename)
+        self.editorInstance.saveEggModelsFile(self.filename.getFullpath())
     finally:
       dlg.Destroy()
   
@@ -230,8 +226,7 @@ class EditorApp(AppShell):
   
   def onCenterTrackball(self, evt = None):
     """Center the trackball, like 'c' does in pview."""
-    #TODO: get out self.scene.
-    gbv = self.scene.getBounds();
+    gbv = render.getBounds();
     # Determine the bounding sphere around the object.
     if gbv.isInfinite(): return
     if gbv.isEmpty(): return

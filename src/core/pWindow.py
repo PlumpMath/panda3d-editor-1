@@ -4,74 +4,97 @@ from pandac.PandaModules import WindowProperties, loadPrcFileData, Trackball, Dr
 from pandac.PandaModules import MouseAndKeyboard, MouseWatcher, KeyboardButton, ButtonThrower, ModifierButtons
 from direct.showbase.ShowBase import ShowBase
 
+from core.pConfigDefs import EVENT_WINDOW_FOCUS_CHANGE
+
 class WindowManager:
   """Manages the windows in the editor."""
   allowMultipleWindows = False
   windows = [] # Don't add windows to this list yourself!
+  activeWindow = None
   
-  @classmethod
-  def startBase(self, showDefaultWindow = True, allowMultipleWindows = False):
+  @staticmethod
+  def startBase(showDefaultWindow = True, allowMultipleWindows = False):
     """Starts up Panda3D by loading the ShowBase modules."""
-    self.allowMultipleWindows = allowMultipleWindows
+    WindowManager.allowMultipleWindows = allowMultipleWindows
     assert not (allowMultipleWindows and showDefaultWindow)
     # Load up showbase. If we want a default window, make sure one gets opened.
     nbase = ShowBase()
     nbase.windowType = "onscreen"
     if showDefaultWindow:
-      Window()
+      activeWindow = Window()
+    nbase.taskMgr.add(WindowManager.checkActiveWindow, "checkActiveWindow")
     return nbase
   
-  @classmethod
-  def getDefaultCamera(self):
-    """Returns the default camera. Only use this when allowMultipleWindows is False."""
-    assert len(self.windows) == 1
-    return self.windows[0].camera
+  @staticmethod
+  def getDefaultCamera():
+    """Returns the default camera. If there are multiple, returns the one with the mouse focus."""
+    if len(WindowManager.windows) == 0: return None
+    if len(WindowManager.windows) == 1: return WindowManager.windows[0].camera
+    for w in WindowManager.windows:
+      if w.mouseWatcherNode.hasMouse():
+        return w.camera
   
-  @classmethod
-  def getDefaultGraphicsWindow(self):
-    """Returns the default graphics window. Only use this when allowMultipleWindows is False."""
-    assert len(self.windows) == 1
-    return self.windows[0].win
+  @staticmethod
+  def getDefaultGraphicsWindow():
+    """Returns the default graphics window. If there are multiple, returns the one with the mouse focus."""
+    if len(WindowManager.windows) == 0: return None
+    if len(WindowManager.windows) == 1: return WindowManager.windows[0].win
+    for w in WindowManager.windows:
+      if w.mouseWatcherNode.hasMouse():
+        return w.win
+    return None
   
-  @classmethod
-  def hasMouse(self):
+  @staticmethod
+  def hasMouse():
     """Returns whether any of the windows has mouse."""
-    for w in self.windows:
+    for w in WindowManager.windows:
       if w.mouseWatcherNode.hasMouse():
         return True
     return False
 
-  @classmethod
-  def getMouse(self):
+  @staticmethod
+  def getMouse():
     """Returns the coordinates of the window which has currently the mouse."""
-    for w in self.windows:
+    for w in WindowManager.windows:
       if w.mouseWatcherNode.hasMouse():
         return w.mouseWatcherNode.getMouse()
     return None
   
-  @classmethod
-  def getMouseX(self):
+  @staticmethod
+  def getMouseX():
     """Returns the X coordinate of the window which has currently the mouse."""
-    for w in self.windows:
+    for w in WindowManager.windows:
       if w.mouseWatcherNode.hasMouse():
         return w.mouseWatcherNode.getMouseX()
     return None
   
-  @classmethod
-  def getMouseY(self):
+  @staticmethod
+  def getMouseY():
     """Returns the X coordinate of the window which has currently the mouse."""
-    for w in self.windows:
+    for w in WindowManager.windows:
       if w.mouseWatcherNode.hasMouse():
         return w.mouseWatcherNode.getMouseY()
     return None
   
-  @classmethod
-  def getMouseWatcherNode(self):
+  @staticmethod
+  def getMouseWatcherNode():
     """Returns the mouse watcher node of the window which currently has the mouse."""
-    for w in self.windows:
+    for w in WindowManager.windows:
       if w.mouseWatcherNode.hasMouse():
         return w.mouseWatcherNode
     return None
+  
+  @staticmethod
+  def checkActiveWindow(task = None):
+    activeWindow = None
+    for w in WindowManager.windows:
+      if w.mouseWatcherNode.hasMouse():
+        activeWindow = w
+    if activeWindow != WindowManager.activeWindow:
+      WindowManager.activeWindow = activeWindow
+      messenger.send(EVENT_WINDOW_FOCUS_CHANGE)
+    if task != None:
+      return task.cont
 
 class Window(object):
   """Class representing a graphics window."""
