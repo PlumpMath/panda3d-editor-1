@@ -5,7 +5,7 @@ from pandac.PandaModules import WindowProperties, Vec3
 
 from core.pWindow import WindowManager
 
-MOUSE_REFRESH_RATE = 1./60.
+MOUSE_REFRESH_RATE = 1./30.
 
 class MouseHandlerClass:
   def __init__(self):
@@ -19,7 +19,7 @@ class MouseHandlerClass:
     self.taskTimer = 0
     self.enabled = False
   
-  def toggle(self, state = None):
+  '''def toggle(self, state = None):
     if state is None:
       state = not self.enabled
     
@@ -29,7 +29,16 @@ class MouseHandlerClass:
     else:
       taskMgr.remove('mouseHandlerTask')
     
-    self.enabled = state
+    self.enabled = state'''
+  
+  '''def toggle(self, state = None):
+    if state is None:
+      state = not self.enabled
+    
+    if state:
+    else:
+    
+    self.enabled = state'''
   
   def toggleMouseFixed(self, state = None):
     """Set the mouse fixed"""
@@ -37,38 +46,43 @@ class MouseHandlerClass:
       state = not self.mouseFixed
     self.mouseFixed = state
     if self.mouseFixed:
-      self.prevMousePos = self.mousePosX, self.mousePosY
-      self.discardFrame = True
+      self.prevMousePos = self._getCurrentMousePos()
+      #self.discardFrame = True
+      taskMgr.remove('mouseHandlerTask')
+      #taskMgr.doMethodLater(MOUSE_REFRESH_RATE, self.mouseHandlerTask, 'mouseHandlerTask')
+      taskMgr.add(self.mouseHandlerTask, 'mouseHandlerTask')
     else:
       self.setMousePos(*self.prevMousePos)
+      taskMgr.remove('mouseHandlerTask')
     self.setMouseHidden(self.mouseFixed)
   
   def mouseHandlerTask(self, task):
-    self.taskTimer += globalClock.getDt()
-    # only allow the reset happening every MOUSE_REFRESH_RATE seconds
-    if self.taskTimer > MOUSE_REFRESH_RATE:
-      # if discardframe is defined, dont return the real mouse movement
-      # instead return 0/0 and set the mouse centered
-      # (this is used when a relative movement is needed, but the mouse
-      # is not centered on the screen in the first frame)
-      if self.discardFrame:
-        self.mousePosX, self.mousePosY = 0,0
-        self.discardFrame = False
+    # dont return the real mouse movement offset in the first frame
+    if not task.frame:
+      print "skip", task.frame
+      self.mousePosX, self.mousePosY = 0,0
+      self.setMouseCentered()
+      self.lastTaskTime = globalClock.getFrameTime()
+      return task.cont
+    
+    curTime = globalClock.getFrameTime()
+    if (curTime - MOUSE_REFRESH_RATE > self.lastTaskTime):
+      self.lastTaskTime = curTime
+      # cache the mouse position
+      self.mousePosX, self.mousePosY = self._getCurrentMousePos()
+      
+      # if the mouse is fixed to the center of the window, reset the mousepos
+      if self.mouseFixed:
         self.setMouseCentered()
-        return task.again
-      
-      self.taskTimer -= MOUSE_REFRESH_RATE
-      
-      # read the mouse position
+    
+    return task.cont
+  
+  def _getCurrentMousePos(self):
+    if WindowManager.hasMouse():
       mpos = WindowManager.getMouse()
       if mpos != None:
-        self.mousePosX, self.mousePosY = mpos.getX(), mpos.getY()
-        
-        # if the mouse is fixed to the center of the window, reset the mousepos
-        if self.mouseFixed:
-          self.setMouseCentered()
-    
-    return task.again
+        return mpos.getX(), mpos.getY()
+    return 0,0
   
   def setMouseCentered(self):
     """Set the mouse position into the center of the window"""
@@ -79,8 +93,8 @@ class MouseHandlerClass:
     if WindowManager.activeWindow == None: return
     px, py = float(px), float(py)
     win = WindowManager.activeWindow.win
-    win.movePointer(0,  px * win.getXSize() / 2 + win.getXSize() / 2
-                     , -py * win.getYSize() / 2 + win.getYSize() / 2)
+    win.movePointer(0, int( px * win.getXSize() / 2 + win.getXSize() / 2)
+                     , int(-py * win.getYSize() / 2 + win.getYSize() / 2) )
   
   def setMouseHidden(self, state = None):
     """Hides/Shows the mouse"""
@@ -101,7 +115,11 @@ class MouseHandlerClass:
       w.win.requestProperties(wp)
   
   def getMousePos(self):
-    return self.mousePosX, self.mousePosY
+    if self.mouseFixed:
+      # return cached mouse position
+      return self.mousePosX, self.mousePosY
+    # read current mouse position
+    return self._getCurrentMousePos()
 
 mouseHandler = MouseHandlerClass()
 

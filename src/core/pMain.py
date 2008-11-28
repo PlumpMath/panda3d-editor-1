@@ -61,7 +61,7 @@ class EditorClass(DirectObject):
           model.enableEditmode()
       
       modelController.toggle(True)
-      mouseHandler.toggle(True)
+      #mouseHandler.toggle(True)
       
       self.accept(EDITOR_TOGGLE_OFF_EVENT, self.toggle, [False])
   
@@ -79,7 +79,7 @@ class EditorClass(DirectObject):
           model.disableEditmode()
       
       modelController.toggle(False)
-      mouseHandler.toggle(False)
+      #mouseHandler.toggle(False)
     
     self.accept( EDITOR_TOGGLE_ON_EVENT, self.toggle, [True] )
   
