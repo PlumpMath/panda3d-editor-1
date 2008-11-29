@@ -176,6 +176,7 @@ class panda3dIOClass( DirectObject.DirectObject ):
       self.accept( self.gui_key, self.toggleConsole )
     else:
       self.ignoreAll()
+      self.accept( self.gui_key, self.toggleConsole )
       #base.buttonThrowers[0].node().setPrefix(self.event_prefix)
       self.accept( self.event_prefix+'page_up', self.scroll, [-5] )
       self.accept( self.event_prefix+'page_up-repeat', self.scroll, [-5] )
