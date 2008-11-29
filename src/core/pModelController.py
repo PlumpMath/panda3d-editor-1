@@ -203,7 +203,6 @@ class ModelController( DirectObject ):
     self.selectModel( object )
   
   def selectModel( self, model=None ):
-    messenger.send( EVENT_MODELCONTROLLER_SELECT_MODEL, [model] )
     if DEBUG:
       print "I: modelController.selectModel", model
     if model is None:
@@ -233,6 +232,7 @@ class ModelController( DirectObject ):
         self.__modelMode = MODEL_MODIFICATION_MODES[0]
         self.__selectModel()
         self.__setMode()
+    messenger.send( EVENT_MODELCONTROLLER_SELECT_MODEL, [model] )
   
   def getSelectedModel( self ):
     return self.__selectedModel
