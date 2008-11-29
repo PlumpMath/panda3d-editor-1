@@ -18,6 +18,21 @@ EDITOR_DGUI_TOGGLE_BUTTON = 'f11'
 
 DEBUG = False
 
+import types
+def parents( c, seen=None ):
+    """Python class base-finder"""
+    if type( c ) == types.ClassType:
+        if seen is None:
+            seen = {}
+        seen[c] = None
+        items = [c]
+        for base in c.__bases__:
+            if not seen.has_key(base):
+                items.extend( parents(base, seen))
+        return items
+    else:
+        return list(c.__mro__)
+
 # Function to put instructions on the screen.
 def addInstructions(pos, msg, mutable=False):
     return OnscreenText(text=msg, style=1, fg=(1,1,1,1),
@@ -91,8 +106,8 @@ class EditorApp(DirectObject):
       self.accept( 'r', messenger.send, [EVENT_SCENEGRAPHBROWSER_REFRESH] )
       
       # enable console
-      console = pandaConsole( INPUT_GUI|OUTPUT_PYTHON, locals() )
-      console.toggle()
+      #console = pandaConsole( INPUT_GUI|OUTPUT_PYTHON, locals() )
+      #console.toggle()
       
       buttonDefinitions = [ ['model', self.crateFilebrowserModelWrapper, ['NodePathWrapper']]
                           , ['particlesystem', self.crateFilebrowserModelWrapper, ['ParticleSystemWrapper']]
@@ -123,7 +138,8 @@ class EditorApp(DirectObject):
       
       messenger.send(EDITOR_TOGGLE_ON_EVENT)
       
-      self.editorObject = None
+      self.editorObjectGuiInstance = None
+      self.lastSelectedObject = None
       self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, self.createObjectEditor)
       
       self.accept('f5', self.saveEggModelsFile)
@@ -131,6 +147,54 @@ class EditorApp(DirectObject):
       self.accept('f11', self.toggle)
     
     self.accept(EDITOR_DGUI_TOGGLE_BUTTON, self.toggle)
+    
+    
+    self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, self.modelSelected)
+  
+  def modelSelected(self, model):
+    try:
+      print "I: EditorApp.modelSelected", model
+      print "  -", modelController.getSelectedModel()
+      print "  -", modelController.getSelectedModel().__class__.__name__
+      if self.lastSelectedObject != modelController.getSelectedModel():
+        print "  - new object selected"
+        # selected model has been changed
+        if self.editorObjectGuiInstance is not None:
+          print "  - destryoing old selected gui"
+          # destroy gui instance of old object
+          self.editorObjectGuiInstance.stopEdit()
+        
+        # save the object as the new object
+        self.lastSelectedObject = modelController.getSelectedModel()
+        
+        if modelController.getSelectedModel() is not None:
+          # create gui instance of new object
+          objType = modelController.getSelectedModel().__class__
+          # the codenode inherits from the real class we use...
+          # but we need the name of the internal class, 
+          bases = list()
+          for base in objType.__bases__:
+            bases.append(base.__name__)
+          if 'CodeNodeWrapper' in bases:
+            objType = 'CodeNodeWrapper'
+          else:
+            objType = objType.__name__
+          module = __import__("dgui.modules.p%s" % objType, globals(), locals(), [objType], -1)
+          #try:
+          self.editorObjectGuiInstance = getattr(module, objType)(modelController.getSelectedModel())
+          #except:
+          #  print "E: EditorApp.modelSelected: object", objType
+          #  traceback.print_exc()
+          self.editorObjectGuiInstance.startEdit()
+        else:
+          self.editorObjectGuiInstance = None
+      else:
+        print "  - same object selected"
+        # the same object is selected again
+        pass
+    except:
+      print "E: EditorApp.modelSelected: object", model
+      traceback.print_exc()
   
   def saveEggModelsFile(self):
     if DEBUG:
@@ -170,15 +234,17 @@ class EditorApp(DirectObject):
         print "  - creating new editor"
   
   def crateFilebrowserModelWrapper(self, type):
-    exec("from core.modules.p%s import %s" % (type, type))
+    # open the file browser to select a object
+    module = __import__("core.modules.p%s" % type, globals(), locals(), [type], -1)
     modelParent = modelController.getSelectedModel()
     FG.openFileBrowser()
-    exec("FG.accept('selectionMade', %s.onCreateInstance, [modelParent])" % (type))
-  
+    exec("FG.accept('selectionMade', module.%s.onCreateInstance, [modelParent])" % (type))
   def createModelWrapper(self, type):
-    exec("from core.modules.p%s import %s" % (type, type))
+    # create the actual wrapper of the object
+    module = __import__("core.modules.p%s" % type, globals(), locals(), [type], -1)
     modelParent = modelController.getSelectedModel()
-    exec("%s.onCreateInstance( modelParent )" % type)
+    exec("objectInstance = module.%s.onCreateInstance( modelParent )" % type)
+    modelController.selectModel( objectInstance )
   
   def disable( self ):
     if self.enabled:
@@ -197,7 +263,7 @@ class EditorApp(DirectObject):
       cameraController.disable()
       
       self.accept( EDITOR_DGUI_TOGGLE_BUTTON, self.toggle )
-
+  
   def createInterface( self, buttonDefinitions ):
     buttons = list()
     for name, functionCall, extraArgs in buttonDefinitions:
