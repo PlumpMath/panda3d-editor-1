@@ -59,8 +59,9 @@ class CodeNodeWrapper(VirtualNodeWrapper):
     return objectInstance
   loadFromEggGroup = classmethod(loadFromEggGroup)
   
-  def __init__(self, name=None, parent=None):
-    self.scriptFilepath = name
+  def __init__(self, filepath=None, parent=None):
+    self.scriptFilepath = filepath
+    name = filepath.split('/')[-1]
     VirtualNodeWrapper.__init__(self, CODE_WRAPPER_DUMMYOBJECT, name, parent) 
   
   def getSaveData( self, relativeTo ):

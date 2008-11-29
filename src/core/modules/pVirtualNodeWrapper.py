@@ -16,7 +16,7 @@ class VirtualNodeWrapper( BaseWrapper ):
     # enable this object to be editable
     objectInstance.enableEditmode()
     # the editor should select this model
-    modelController.selectModel( objectInstance )
+    #modelController.selectModel( objectInstance )
     # update the scenegraph
     messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
   onCreateInstance = classmethod(onCreateInstance)
