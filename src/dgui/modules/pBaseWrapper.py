@@ -3,14 +3,19 @@ from direct.gui.DirectGui import *
 
 from core.pModelIdManager import modelIdManager
 from core.pConfigDefs import *
+from dgui.directWindow.src.directWindow import DirectWindow
 
 class BaseWrapper( NodePath ):
-  def __init__( self, name=None, parent=None ):
-    print "I: BaseWrapper.__init__:", name, parent
+  def __init__( self, object ):
+    print "I: BaseWrapper.__init__:", object
+    self.object = object
     self.mutableParameters = {
-        'posX': ['float', 'getX', 'setX']
-      , 'posY': ['float', 'getY', 'setY']
-      , 'posZ': ['float', 'getZ', 'setZ']
+        'posXa': ['float', 'getX', 'setX']
+      , 'posYa': ['float', 'getY', 'setY']
+      , 'posZa': ['float', 'getZ', 'setZ']
+      , 'pos' : { 'posX': ['float', 'getX', 'setX']
+                , 'posY': ['float', 'getY', 'setY']
+                , 'posZ': ['float', 'getZ', 'setZ'] }
       , 'H': ['float', 'getH', 'setH']
       , 'P': ['float', 'getP', 'setP']
       , 'R': ['float', 'getR', 'setR']
@@ -33,45 +38,76 @@ class BaseWrapper( NodePath ):
     # the object is selected to be edited
     # creates a directFrame to edit this object
     #self.createEditWindow()
-    pass
+    self.createEditWindow()
   def stopEdit( self ):
     # the object is deselected from being edited
     #self.destroyEditWindow()
-    pass
+    self.destroyEditWindow()
   
   def createEditWindow( self ):
     print "I: baseWrapper.createEditWindow"
     if self.buttonsWindow is None:
+      ySize = len(self.mutableParametersSorting)
       self.buttonsWindow = DirectWindow( title='%s-editWindow' % self.getName()
                                         , pos = ( .63, 0 )
-                                        , maxSize = ( .8, 1 )
-                                        , minSize = ( .8, 1 )
+                                        , virtualSize = (0.8,ySize*.11)
+#                                        , maxSize = ( .8, 1 )
+#                                        , minSize = ( .8, 1 )
                                        )
       self.parameterEntries = dict()
-      for i in xrange(len(self.mutableParametersSorting)):
-        paramName = self.mutableParametersSorting[i]
-        paramType, getter, setter = self.mutableParameters[paramName]
-        if paramType == 'str' or paramType == 'float' or paramType == 'int':
-          paramLabel = DirectLabel( text = paramName
-                                  , parent = self.buttonsWindow
-                                  , scale=.05
-                                  , pos = (0.20, 0, .9 - i*0.1)
-                                  , text_align = TextNode.ARight )
-          paramEntry = DirectEntry( text = ""
-                                  , scale=.05
-                                  , pos = (0.25, 0, .9 - i*0.1)
-                                  , parent = self.buttonsWindow
-                                  , initialText="Type Something"
-                                  , numLines = 1
-                                  , focus=0
-                                  , focusOutCommand=self.setEntry
-                                  , focusOutExtraArgs=[paramName]
-                                  , command=self.setEntry
-                                  , extraArgs=[paramName]
-                                  , text_align = TextNode.ALeft)
+      for i in xrange(ySize):
+        yParamName = self.mutableParametersSorting[i]
+        if type(self.mutableParameters[paramName]) == dict:
+          # it's a horizontal list of parameters
+          xSize = len(self.mutableParameters[paramName])
+          xParamName = self.mutableParametersSorting[i]
+          
+          for j in xrange(xSize):
+            paramType, getter, setter = self.mutableParameters[paramName]
+            if paramType == 'str' or paramType == 'float' or paramType == 'int':
+              paramLabel = DirectLabel( text = paramName
+                                      , parent = self.buttonsWindow
+                                      , scale=.05
+                                      , pos = (0.20, 0, -0.1 - i*0.1)
+                                      , text_align = TextNode.ARight )
+              paramEntry = DirectEntry( text = ""
+                                      , scale=.05
+                                      , pos = (0.25, 0, -0.1 - i*0.1)
+                                      , parent = self.buttonsWindow
+                                      , initialText=""
+                                      , numLines = 1
+                                      , focus=0
+                                      , focusOutCommand=self.setEntry
+                                      , focusOutExtraArgs=[paramName]
+                                      , command=self.setEntry
+                                      , extraArgs=[paramName]
+                                      , text_align = TextNode.ALeft)
+            else:
+              paramEntry = None
+            self.parameterEntries[paramName] = paramEntry
         else:
-          paramEntry = None
-        self.parameterEntries[paramName] = paramEntry
+          paramType, getter, setter = self.mutableParameters[yParamName]
+          if paramType == 'str' or paramType == 'float' or paramType == 'int':
+            paramLabel = DirectLabel( text = paramName
+                                    , parent = self.buttonsWindow
+                                    , scale=.05
+                                    , pos = (0.20, 0, -0.1 - i*0.1)
+                                    , text_align = TextNode.ARight )
+            paramEntry = DirectEntry( text = ""
+                                    , scale=.05
+                                    , pos = (0.25, 0, -0.1 - i*0.1)
+                                    , parent = self.buttonsWindow
+                                    , initialText=""
+                                    , numLines = 1
+                                    , focus=0
+                                    , focusOutCommand=self.setEntry
+                                    , focusOutExtraArgs=[paramName]
+                                    , command=self.setEntry
+                                    , extraArgs=[paramName]
+                                    , text_align = TextNode.ALeft)
+          else:
+            paramEntry = None
+          self.parameterEntries[yParamName] = paramEntry
       self.updateAllEntires()
   
   def destroyEditWindow( self ):
@@ -106,7 +142,7 @@ class BaseWrapper( NodePath ):
       elif paramType == 'int':
         execCmd = 'setValue = str(%s(%s))' % (paramType, paramValue)
       exec( execCmd )
-      execCmd = 'self.%s( %s )' % (setter, setValue)
+      execCmd = 'self.object.%s( %s )' % (setter, setValue)
       exec( execCmd )
       
       #print "done"
@@ -116,11 +152,11 @@ class BaseWrapper( NodePath ):
     if self.buttonsWindow:
       for paramName, [paramType, getter, setter] in self.mutableParameters.items():
         if paramType == 'float':
-          execCmd = 'currentValue = self.%s()' % getter
+          execCmd = 'currentValue = self.object.%s()' % getter
           exec( execCmd )
           currentValue = '%.3f' % currentValue
         elif paramType == 'str' or paramType == 'int':
-          execCmd = 'currentValue = self.%s()' % getter
+          execCmd = 'currentValue = self.object.%s()' % getter
           exec( execCmd )
         else:
           currentValue = ''

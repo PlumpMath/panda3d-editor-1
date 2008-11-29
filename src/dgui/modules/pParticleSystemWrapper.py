@@ -13,17 +13,15 @@ if PARTICLESYSTEMWRAPPER_SHOW_PARTICLEPANEL:
     print "W: ParticleSystemWrapper: tkInter is not installed, editing particlesystems impossible"
 
 class ParticleSystemWrapper( BaseWrapper ):
-  def startEdit( self ):
+  def startEdit(self):
     # the object is selected to be edited
     # creates a directFrame to edit this object
-    self.model.showBounds()
-    BaseWrapper.startEdit( self )
+    BaseWrapper.startEdit(self)
     if TKINTER_AVAILABLE:
-      self.particlePanel = ParticlePanel( self.particleSystem )
-  def stopEdit( self ):
+      self.particlePanel = ParticlePanel( self.object.particleSystem )
+  def stopEdit(self):
     # the object is deselected from being edited
-    self.model.hideBounds()
-    BaseWrapper.stopEdit( self )
+    BaseWrapper.stopEdit(self)
     if TKINTER_AVAILABLE:
       try:
         self.particlePanel.destroy()

@@ -1,4 +1,4 @@
 from dgui.modules.pBaseWrapper import *
 
-class NodePathWrapper(BaseWrapper):
+class LightNodeWrapper(BaseWrapper):
   pass
