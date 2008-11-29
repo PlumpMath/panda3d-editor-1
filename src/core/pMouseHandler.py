@@ -19,27 +19,6 @@ class MouseHandlerClass:
     self.taskTimer = 0
     self.enabled = False
   
-  '''def toggle(self, state = None):
-    if state is None:
-      state = not self.enabled
-    
-    if state:
-      taskMgr.remove('mouseHandlerTask')
-      taskMgr.add(self.mouseHandlerTask, 'mouseHandlerTask')
-    else:
-      taskMgr.remove('mouseHandlerTask')
-    
-    self.enabled = state'''
-  
-  '''def toggle(self, state = None):
-    if state is None:
-      state = not self.enabled
-    
-    if state:
-    else:
-    
-    self.enabled = state'''
-  
   def toggleMouseFixed(self, state = None):
     """Set the mouse fixed"""
     if state == None:
@@ -47,9 +26,7 @@ class MouseHandlerClass:
     self.mouseFixed = state
     if self.mouseFixed:
       self.prevMousePos = self._getCurrentMousePos()
-      #self.discardFrame = True
       taskMgr.remove('mouseHandlerTask')
-      #taskMgr.doMethodLater(MOUSE_REFRESH_RATE, self.mouseHandlerTask, 'mouseHandlerTask')
       taskMgr.add(self.mouseHandlerTask, 'mouseHandlerTask')
     else:
       self.setMousePos(*self.prevMousePos)
