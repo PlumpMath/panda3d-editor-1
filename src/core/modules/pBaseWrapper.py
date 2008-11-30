@@ -12,27 +12,6 @@ class BaseWrapper( NodePath ):
   def __init__( self, name=None, parent=None ):
     if DEBUG:
       print "I: BaseWrapper.__init__:", name, parent
-    self.mutableParameters = {
-        'posX': ['float', 'getX', 'setX']
-      , 'posY': ['float', 'getY', 'setY']
-      , 'posZ': ['float', 'getZ', 'setZ']
-      , 'H': ['float', 'getH', 'setH']
-      , 'P': ['float', 'getP', 'setP']
-      , 'R': ['float', 'getR', 'setR']
-      , 'scaleX': ['float', 'getSx', 'setSx']
-      , 'scaleY': ['float', 'getSy', 'setSy']
-      , 'scaleZ': ['float', 'getSz', 'setSz']
-      , 'transparency': ['bool', 'getTransparency', 'setTransparency' ]
-      , 'nodeName': ['str', 'getName', 'setName' ]
-    }
-    self.mutableParametersSorting = [
-      'posX', 'posY', 'posZ'
-    , 'H', 'P', 'R'
-    , 'scaleX', 'scaleY', 'scaleZ'
-    , 'transparency'
-    , 'nodeName'
-    ]
-    self.buttonsWindow = None
     
     # get a uniq id for this object
     self.id = modelIdManager.getId()
