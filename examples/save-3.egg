@@ -1,0 +1,171 @@
+<CoordinateSystem> { Z-Up }
+
+<Instance> testObjectExtension.py-1-Group {
+  <Transform> {
+    <Matrix4> {
+      0.43206 0.901844 0 0
+      -0.901844 0.43206 0 0
+      0 0 1 0
+      -0.0126715 4.4883 0 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    CodeNodeWrapper
+  }
+  <File> CodeNodeWrapper-EggExternalReference {
+    testObjectExtension.py
+  }
+  <Instance> teapot.egg.pz-2-Group {
+    <Transform> {
+      <Matrix4> {
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0.208336 1
+      }
+    }
+    <Tag> modelWrapperTypeTag {
+      NodePathWrapper
+    }
+    <Comment> BaseWrapper-params {
+      "{'color': [1.0, 1.0, 1.0, 1.0], 'transparency': 0, 'colorScale': [1.0, 0.0, 1.0, 1.0]}"
+    }
+    <File> teapot.egg.pz-2-EggExternalReference {
+      teapot.egg.pz
+    }
+    <Instance> teapot.egg.pz-3-Group {
+      <Transform> {
+        <Matrix4> {
+          1 0 0 0
+          0 1 0 0
+          0 0 1 0
+          0 0 9.85417 1
+        }
+      }
+      <Tag> modelWrapperTypeTag {
+        NodePathWrapper
+      }
+      <Comment> BaseWrapper-params {
+        "{'color': [1.0, 2.0, 1.0, 1.0], 'colorScale': [1.0, 1.0, 3.0000002384185791, 1.0]}"
+      }
+      <File> teapot.egg.pz-3-EggExternalReference {
+        teapot.egg.pz
+      }
+      <Instance> DirectionalLight-4-Group {
+        <Transform> {
+          <Matrix4> {
+            1 0 0 0
+            0 1 0 0
+            0 0 1 0
+            0 -48.2292 0 1
+          }
+        }
+        <Tag> modelWrapperTypeTag {
+          DirectionalLightNodeWrapper
+        }
+      }
+    }
+  }
+  <Instance> smokering.ptf-5-Group {
+    <Transform> {
+      <Matrix4> {
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 13.3542 0 1
+      }
+    }
+    <Tag> modelWrapperTypeTag {
+      ParticleSystemWrapper
+    }
+    <File> smokering.ptf-5-EggExternalReference {
+      smokering.ptf
+    }
+  }
+}
+<Instance> teapot.egg.pz-6-Group {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      0 -5.75 0.645827 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> BaseWrapper-params {
+    "{'color': [1.0, 1.0, 0.0, 1.0], 'transparency': 0}"
+  }
+  <File> teapot.egg.pz-6-EggExternalReference {
+    teapot.egg.pz
+  }
+  <Instance> teapot.egg.pz-7-Group {
+    <Transform> {
+      <Matrix4> {
+        0.888851 0.458197 0 0
+        -0.458197 0.888851 0 0
+        0 0 1 0
+        17.2708 0 0 1
+      }
+    }
+    <Tag> modelWrapperTypeTag {
+      NodePathWrapper
+    }
+    <Comment> BaseWrapper-params {
+      "{'color': [1.0, 1.0, 4.0, 1.0], 'transparency': 1, 'colorScale': [1.0, 1.0, 2.0, 1.0]}"
+    }
+    <File> teapot.egg.pz-7-EggExternalReference {
+      teapot.egg.pz
+    }
+  }
+  <Instance> teapot.egg.pz-8-Group {
+    <Transform> {
+      <Matrix4> {
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        6.55208 0 12.7188 1
+      }
+    }
+    <Tag> modelWrapperTypeTag {
+      NodePathWrapper
+    }
+    <File> teapot.egg.pz-8-EggExternalReference {
+      teapot.egg.pz
+    }
+  }
+}
+<Instance> testObjectExtension.py-9-Group {
+  <Transform> {
+    <Matrix4> {
+      0.43206 0.901844 0 0
+      -0.901844 0.43206 0 0
+      0 0 1 0
+      -3.58816 18.2976 0 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    CodeNodeWrapper
+  }
+  <File> CodeNodeWrapper-EggExternalReference {
+    testObjectExtension.py
+  }
+  <Instance> smokering.ptf-10-Group {
+    <Transform> {
+      <Matrix4> {
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        30.7812 4.91667 0 1
+      }
+    }
+    <Tag> modelWrapperTypeTag {
+      ParticleSystemWrapper
+    }
+    <File> smokering.ptf-10-EggExternalReference {
+      smokering.ptf
+    }
+  }
+}
