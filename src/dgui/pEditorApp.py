@@ -233,17 +233,21 @@ class EditorApp(DirectObject):
       if DEBUG:
         print "  - creating new editor"
   
-  def crateFilebrowserModelWrapper(self, type):
+  def crateFilebrowserModelWrapper(self, objectType):
     # open the file browser to select a object
-    module = __import__("core.modules.p%s" % type, globals(), locals(), [type], -1)
-    modelParent = modelController.getSelectedModel()
     FG.openFileBrowser()
-    exec("FG.accept('selectionMade', module.%s.onCreateInstance, [modelParent])" % (type))
+    FG.accept('selectionMade', self.onCrateFilebrowserModelWrapper, [objectType])
+  def onCrateFilebrowserModelWrapper(self, objectType, filepath):
+    print "I: EditorApp.onCrateFilebrowserModelWrapper:", objectType, filepath
+    modelParent = modelController.getSelectedModel()
+    module = __import__("core.modules.p%s" % objectType, globals(), locals(), [objectType], -1)
+    exec("objectInstance = module.%s.onCreateInstance(modelParent, filepath)" % (objectType))
+    modelController.selectModel( objectInstance )
   def createModelWrapper(self, type):
     # create the actual wrapper of the object
     module = __import__("core.modules.p%s" % type, globals(), locals(), [type], -1)
     modelParent = modelController.getSelectedModel()
-    exec("objectInstance = module.%s.onCreateInstance( modelParent )" % type)
+    exec("objectInstance = module.%s.onCreateInstance(modelParent)" % type)
     modelController.selectModel( objectInstance )
   
   def disable( self ):
