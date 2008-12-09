@@ -22,7 +22,7 @@ class VirtualNodeWrapper(BaseWrapper):
   onCreateInstance = classmethod(onCreateInstance)
   
   def loadFromEggGroup(self, eggGroup, parent, filepath):
-    eggComment = eggGroup.getChildren()[0]
+    #eggComment = eggGroup.getChildren()
     objectInstance = self(parent)
     objectInstance.enableEditmode()
     return objectInstance

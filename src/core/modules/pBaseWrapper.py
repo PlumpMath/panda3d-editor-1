@@ -76,7 +76,7 @@ class BaseWrapper(NodePath):
     if data.has_key('transparency'):
       self.setTransparency(data['transparency'])
     if data.has_key('colorScale'):
-      self.setColorScale(data['colorScale'])
+      self.setColorScale(VBase4(*data['colorScale']))
   
   def enableEditmode(self):
     # enables the edit methods of this object
