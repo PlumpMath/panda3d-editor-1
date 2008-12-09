@@ -23,7 +23,7 @@ class BaseWrapper(DirectObject):
       , 'sY': ['float', 'getSy', 'setSy', None]
       , 'sZ': ['float', 'getSz', 'setSz', None]
       , 'color': ['vec4', 'getColor', 'setColor', 'hasColor']
-      , 'colorScale': ['vec4', 'getColorScale', 'getColorScale', 'hasColorScale']
+      , 'colorScale': ['vec4', 'getColorScale', 'setColorScale', 'hasColorScale']
       , 'transparency': ['bool', 'getTransparency', 'setTransparency', 'hasTransparency' ]
       , 'nodeName': ['str', 'getName', 'setName', None ]
     }
@@ -112,12 +112,12 @@ class BaseWrapper(DirectObject):
           paramLabel = DirectLabel( text = yParamName
                                   , parent = self.buttonsWindow
                                   , scale=.05
-                                  , pos = (0.20, 0, -0.1 - y*0.1)
+                                  , pos = (0.35, 0, -0.1 - y*0.1)
                                   , text_align = TextNode.ARight )
           if paramType == 'str' or paramType == 'float' or paramType == 'int' or paramType == 'vec4':
             paramEntry = DirectEntry( text = ""
                                     , scale=.05
-                                    , pos = (0.25, 0, -0.1 - y*0.1)
+                                    , pos = (0.4, 0, -0.1 - y*0.1)
                                     , parent = self.buttonsWindow
                                     , initialText=""
                                     , numLines = 1
@@ -130,7 +130,7 @@ class BaseWrapper(DirectObject):
                                     , text_align = TextNode.ALeft)
           elif paramType == 'bool':
             paramEntry = DirectCheckButton( scale=.05
-                                    , pos = (0.25, 0, -0.1 - y*0.1)
+                                    , pos = (0.45, 0, -0.08 - y*0.1)
                                     , parent = self.buttonsWindow
 #                                    , focus=0
 #                                    , width=10
