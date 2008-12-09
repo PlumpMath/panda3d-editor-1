@@ -13,3 +13,13 @@ class AmbientLightNodeWrapper( LightNodeWrapper ):
     LightNodeWrapper.__init__(self, name, AmbientLight, AMBIENTLIGHT_WRAPPER_DUMMYOBJECT, name, parent)
     
     self.light.setColor(VBase4(.25,.25,.25,1))
+  
+  def getSaveData(self, relativeTo):
+    instance = LightNodeWrapper.getSaveData(self, relativeTo)
+    # get the data
+    parameters = dict()
+    if len(parameters) > 0:
+      # add the data to the egg-file
+      comment = EggComment( 'AmbientLightNodeWrapper-params', str(parameters) )
+      instance.addChild(comment)
+    return instance

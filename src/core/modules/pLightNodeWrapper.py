@@ -34,6 +34,11 @@ class LightNodeWrapper(VirtualNodeWrapper):
     VirtualNodeWrapper.destroy(self)
   
   def getSaveData(self, relativeTo):
-    parameters = list()
-    pickledData = pickle.dumps(parameters)
-    return VirtualNodeWrapper.getSaveData(self, relativeTo, pickledData)
+    instance = VirtualNodeWrapper.getSaveData(self, relativeTo)
+    # get the data
+    parameters = dict()
+    if len(parameters) > 0:
+      # add the data to the egg-file
+      comment = EggComment( 'LightNodeWrapper-params', str(parameters) )
+      instance.addChild(comment)
+    return instance

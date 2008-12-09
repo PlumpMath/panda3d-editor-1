@@ -7,8 +7,6 @@ from core.pCommonPath import *
 DEBUG = False
 
 class NodePathWrapper(BaseWrapper):
-  wrapperTypeTag = 'NodePathWrapper'
-  
   def onCreateInstance(self, parent, filepath):
     if DEBUG:
       print "I: NodePathWrapper.onCreateInstance:", parent, "'%s'" % filepath
@@ -42,11 +40,23 @@ class NodePathWrapper(BaseWrapper):
   def loadFromEggGroup(self, eggGroup, parent, filepath):
     if DEBUG:
       print "I: NodePathWrapper.loadFromEggGroup:"
-    eggExternalReference = eggGroup.getChildren()[0]
-    referencedFilename = eggExternalReference.getFilename()
-    filename = os.path.join(filepath,str(referencedFilename))
-    objectInstance = self.onCreateInstance(parent, filename)
-    return objectInstance
+      #print "I: NodePathWrapper.loadFromEggGroup:", dir(eggGroup.getChildren()[0])
+      #print "I: NodePathWrapper.loadFromEggGroup:", type(eggGroup.getChildren()[0])
+    eggExternalReference = None
+    for child in eggGroup.getChildren():
+      if type(child) == EggExternalReference:
+        #print "I: NodePathWrapper.loadFromEggGroup: externalReference found", child
+        eggExternalReference = child
+    if eggExternalReference is not None:
+      referencedFilename = eggExternalReference.getFilename()
+      filename = os.path.join(filepath,str(referencedFilename))
+      objectInstance = self.onCreateInstance(parent, filename)
+      objectInstance.getLoadData(eggGroup)
+      return objectInstance
+    else:
+      print "I: NodePathWrapper.loadFromEggGroup: no externalReference found in"
+      print eggGroup
+    return None
   loadFromEggGroup = classmethod(loadFromEggGroup)
   
   def __init__(self, filepath, parent=None):
@@ -70,7 +80,7 @@ class NodePathWrapper(BaseWrapper):
     # make the model visible
     self.model.reparentTo(self)
   
-  def destroy( self ):
+  def destroy(self):
     # destroy this object
     self.stopEdit()
     self.disableEditmode()
@@ -79,7 +89,7 @@ class NodePathWrapper(BaseWrapper):
     self.model.removeNode()
     BaseWrapper.destroy(self)
   
-  def enableEditmode( self ):
+  def enableEditmode(self):
     # enables the edit methods of this object
     # makes it pickable etc.
     # edit mode is enabled
@@ -92,33 +102,21 @@ class NodePathWrapper(BaseWrapper):
     BaseWrapper.disableEditmode( self )
     self.setCollideMask(BitMask32.allOff())
   
-  def startEdit( self ):
+  def startEdit(self):
     # the object is selected to be edited
     # creates a directFrame to edit this object
     BaseWrapper.startEdit(self)
     self.model.showBounds()
-  def stopEdit( self ):
+  def stopEdit(self):
     # the object is deselected from being edited
     BaseWrapper.stopEdit(self)
     self.model.hideBounds()
   
-  def getSaveData( self, relativeTo ):
+  def getSaveData(self, relativeTo):
     ''' link the egg-file into the egg we save
     '''
     name = self.getName()
-    # convert the matrix, very ugly right now
-    om = self.getMat()
-    nm = Mat4D()
-    for x in xrange(4):
-        for y in xrange(4):
-            nm.setCell(x, y, om.getCell(x,y))
-    # the matrix we define must be applied to the nodes in "local space"
-    instance = EggGroup(name+"-Group")
-    instance.setGroupType(EggGroup.GTInstance)
-    instance.setTransform3d( nm )
-    # userdata is not written to the eggFile
-    #instance.setUserData( self.wrapperTypeTag )
-    instance.setTag(MODEL_WRAPPER_TYPE_TAG, self.wrapperTypeTag)
+    instance = BaseWrapper.getSaveData(self, relativeTo)
     # convert to a relative path
     modelFilepath = relpath(relativeTo, os.path.abspath(self.modelFilepath))
     if DEBUG:
@@ -128,3 +126,5 @@ class NodePathWrapper(BaseWrapper):
     instance.addChild(ext)
     return instance
   
+  def getLoadData(self, eggGroup):
+    BaseWrapper.getLoadData(self, eggGroup)

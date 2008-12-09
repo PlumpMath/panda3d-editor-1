@@ -8,7 +8,7 @@ from core.pModelController import modelController
 # parent class for all nodetypes that have no real model
 # like lights, particle systems etc. (well most except the NodePath)
 # (might be useful for all virtual objects?)
-class VirtualNodeWrapper( BaseWrapper ):
+class VirtualNodeWrapper(BaseWrapper):
   def onCreateInstance(self, parent):
     ''' called when the user presses the button to create a nodePathWrapper
     '''
@@ -23,8 +23,8 @@ class VirtualNodeWrapper( BaseWrapper ):
   
   def loadFromEggGroup(self, eggGroup, parent, filepath):
     eggComment = eggGroup.getChildren()[0]
-    #objectInstance = AmbientLightNodeWrapper( parent )
     objectInstance = self(parent)
+    objectInstance.enableEditmode()
     return objectInstance
   loadFromEggGroup = classmethod(loadFromEggGroup)
   
@@ -75,21 +75,12 @@ class VirtualNodeWrapper( BaseWrapper ):
     self.virtualModel.hideBounds()
     BaseWrapper.stopEdit( self )
   
-  def getSaveData(self, relativeTo, pickledData):
-    # convert the matrix, very ugly right now
-    om = self.getMat()
-    nm = Mat4D()
-    for x in xrange(4):
-        for y in xrange(4):
-            nm.setCell( x, y, om.getCell(x,y) )
-    # the matrix we define must be applied to the nodes in "local space"
-    nodeName = self.getName()
-    instance = EggGroup( nodeName+"-Group" )
-    instance.setGroupType(EggGroup.GTInstance)
-    instance.setTransform3d( nm )
-    className = self.__class__.__name__
-    instance.setTag( MODEL_WRAPPER_TYPE_TAG, className )
-    # add the data to the egg-file
-    comment = EggComment( 'parameters', pickledData )
-    instance.addChild(comment)
+  def getSaveData(self, relativeTo):
+    instance = BaseWrapper.getSaveData(self, relativeTo)
+    # get the data
+    parameters = dict()
+    if len(parameters) > 0:
+      # add the data to the egg-file
+      comment = EggComment( 'VirtualNodeWrapper-params', str(parameters) )
+      instance.addChild(comment)
     return instance
