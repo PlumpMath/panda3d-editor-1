@@ -61,7 +61,6 @@ class EditorClass(DirectObject):
           model.enableEditmode()
       
       modelController.toggle(True)
-      #mouseHandler.toggle(True)
       
       self.accept(EDITOR_TOGGLE_OFF_EVENT, self.toggle, [False])
   
@@ -175,7 +174,7 @@ class EditorClass(DirectObject):
           # search for childrens
           for childData in eggParentData.getChildren():
             # search the children
-            parent = loadRecursiveChildrens(childData, object, transform, filepath)
+            parent = loadRecursiveChildrens(childData, parent, transform, filepath)
       else:
         if DEBUG:
           print "W: EditorApp.loadEggModelsFile.loadRecursiveChildrens:"
@@ -183,33 +182,34 @@ class EditorClass(DirectObject):
       
       return parent
     
-    # destroy old models
-    self.destroyAllModels()
-    
-    eggData = EggData()
-    eggData.read(Filename(filename))
-    
-    # the absolute path of the file we load, referenced files are relative
-    # to this path
-    filepath = os.path.dirname(os.path.abspath(filename))
-    
-    # add the path to the model-path
-    print "I: EditorApp.loadEggModelsFile: adding to model-path:", filepath
-    from pandac.PandaModules import getModelPath
-    getModelPath().appendPath(filepath)
-    # read the eggData
-    loadRecursiveChildrens(eggData, render, Mat4.identMat(), filepath)
-    
-    if self.enabled:
-      # enable the editing on the objects when editing is enabled
-      for model in modelIdManager.getAllModels():
-        if model.hasTag(EDITABLE_OBJECT_TAG):
-          model.enableEditmode()
-      # select no model
-      modelController.selectModel(None)
-    
-    # refresh the scenegraphbrowser
-    messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+    if filename != None and filename != '' and filename != ' ':
+      # destroy old models
+      self.destroyAllModels()
+      
+      eggData = EggData()
+      eggData.read(Filename(filename))
+      
+      # the absolute path of the file we load, referenced files are relative
+      # to this path
+      filepath = os.path.dirname(os.path.abspath(filename))
+      
+      # add the path to the model-path
+      print "I: EditorApp.loadEggModelsFile: adding to model-path:", filepath
+      from pandac.PandaModules import getModelPath
+      getModelPath().appendPath(filepath)
+      # read the eggData
+      loadRecursiveChildrens(eggData, render, Mat4.identMat(), filepath)
+      
+      if self.enabled:
+        # enable the editing on the objects when editing is enabled
+        for model in modelIdManager.getAllModels():
+          if model.hasTag(EDITABLE_OBJECT_TAG):
+            model.enableEditmode()
+        # select no model
+        modelController.selectModel(None)
+      
+      # refresh the scenegraphbrowser
+      messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
   
   def destroyModel(self):
     #print "editor.editorClass.destroyModel"
