@@ -15,8 +15,6 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
       
       # create instance of this class
       objectInstance = self(parent, filepath)
-      # enable editing of this object
-      objectInstance.enableEditmode()
       
       return objectInstance
     return None
@@ -37,21 +35,13 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
       print "I: PgmmNodeWrapper.loadFromEggGroup: no externalReference found in"
       print "  -", eggGroup
     return None
-#    objectInstance = self.onCreateInstance(parent, filepath)
-#    return objectInstance
   loadFromEggGroup = classmethod(loadFromEggGroup)
   
   def enableEditmode(self):
-    # enables the edit methods of this object
-    # makes it pickable etc.
-    # edit mode is enabled
     BaseWrapper.enableEditmode(self)
     self.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
   def disableEditmode(self):
-    # disables the edit methods of this object
-    # -> performance increase
-    # edit mode is disabled
-    BaseWrapper.disableEditmode( self )
+    BaseWrapper.disableEditmode(self)
     self.setCollideMask(BitMask32.allOff())
   
   def __init__(self, parent, filepath):

@@ -30,17 +30,7 @@ class CodeNodeWrapper(VirtualNodeWrapper):
         except:
           print "W: CodeNodeWrapper.onCreateInstance: error creating code instance"
           traceback.print_exc()
-        try:
-          #
-          objectInstance.enableEditmode()
-          # set as active object be the editor
-          #modelController.selectModel( objectInstance )
-          #
-          #messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
-          return objectInstance
-        except:
-          print "W: CodeNodeWrapper.onCreateInstance: error enabling the editor on code instance"
-          traceback.print_exc()
+        return objectInstance
     return None
   onCreateInstance=classmethod(onCreateInstance)
   

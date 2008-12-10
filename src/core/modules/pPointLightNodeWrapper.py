@@ -11,8 +11,6 @@ class PointLightNodeWrapper(LightNodeWrapper):
     # define the name of this object
     name = 'PointLight'
     LightNodeWrapper.__init__(self, name, PointLight, POINTLIGHT_WRAPPER_DUMMYOBJECT, name, parent)
-    
-    #self.light.setColor(VBase4(1,1,1,1))
   
   def getSaveData(self, relativeTo):
     instance = LightNodeWrapper.getSaveData(self, relativeTo)

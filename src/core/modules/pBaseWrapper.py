@@ -28,6 +28,9 @@ class BaseWrapper(NodePath):
     if parent is None:
       parent = render
     self.reparentTo( parent )
+    # set this object editable, is required to be stored on the object even
+    # if the editor is not used (only way to store persistently for toggling)
+    self.setTag( EDITABLE_OBJECT_TAG, self.id)
   
   def destroy(self):
     self.detachNode()
@@ -79,18 +82,15 @@ class BaseWrapper(NodePath):
       self.setColorScale(VBase4(*data['colorScale']))
   
   def enableEditmode(self):
-    # enables the edit methods of this object
-    # makes it pickable etc.
-    # edit mode is enabled
-    
+    ''' enables the edit methods of this object
+    makes it pickable etc.
+    edit mode is enabled'''
     # make this a editable object
-    self.setTag(EDITABLE_OBJECT_TAG, self.id)
     self.setTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG, '')
   def disableEditmode(self):
-    # disables the edit methods of this object
-    # -> performance increase
-    # edit mode is disabled
-    self.clearTag(EDITABLE_OBJECT_TAG)
+    ''' disables the edit methods of this object
+    -> performance increase
+    edit mode is disabled'''
     self.clearTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG)
   
   def startEdit(self):

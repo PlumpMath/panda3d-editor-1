@@ -13,20 +13,12 @@ class VirtualNodeWrapper(BaseWrapper):
     ''' called when the user presses the button to create a nodePathWrapper
     '''
     objectInstance = self(parent)
-    # enable this object to be editable
-    objectInstance.enableEditmode()
-    # the editor should select this model
-    #modelController.selectModel( objectInstance )
-    # update the scenegraph
-    #messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
   
   def loadFromEggGroup(self, eggGroup, parent, filepath):
-    #eggComment = eggGroup.getChildren()
     objectInstance = self(parent)
     objectInstance.setLoadData(eggGroup)
-    objectInstance.enableEditmode()
     return objectInstance
   loadFromEggGroup = classmethod(loadFromEggGroup)
   

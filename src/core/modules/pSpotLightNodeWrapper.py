@@ -11,8 +11,6 @@ class SpotLightNodeWrapper(LightNodeWrapper):
     # define the name of this object
     name = 'SpotLight'
     LightNodeWrapper.__init__(self, name, Spotlight, SPOTLIGHT_WRAPPER_DUMMYOBJECT, name, parent)
-    
-    #self.light.setColor(VBase4(1,1,1,1))
   
   def getSaveData(self, relativeTo):
     instance = LightNodeWrapper.getSaveData(self, relativeTo)

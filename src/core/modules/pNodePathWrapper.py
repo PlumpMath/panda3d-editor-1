@@ -27,10 +27,6 @@ class NodePathWrapper(BaseWrapper):
     
     # create instance of this class
     objectInstance = self(parent, filepath)
-    # enable editing of this object
-    objectInstance.enableEditmode()
-    # update the scenegraph
-    #messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
     
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
@@ -72,8 +68,6 @@ class NodePathWrapper(BaseWrapper):
       print "W: editorModelClass: model %s not found, loading dummy" % self.model
       self.model = loader.loadModel(MODEL_NOT_FOUND_MODEL)
     
-    # set the model invisible in the scenegraphbrowser
-    self.model.setTag(EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG,'')
     # make the model visible
     self.model.reparentTo(self)
   

@@ -31,12 +31,6 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
     
     # create instance of this class
     objectInstance = self(parent, filepath)
-    # enable editing of this object
-    objectInstance.enableEditmode()
-    # set as active object be the editor
-    #modelController.selectModel( objectInstance )
-    # update the scenegraph
-    messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
     
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
