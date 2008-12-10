@@ -161,13 +161,17 @@ class EditorClass(DirectObject):
             print eggParentData
             print "I: --- end of invalid data ---"
             object = parent.attachNewNode('%s-failed' % wrapperType)
-          # apply the transformation on the object
-          object.setMat(transform)
-          transform = Mat4.identMat()
-          # if it contains additional childrens recurse into them
-          for childData in eggParentData.getChildren()[1:]:
-            # search the children
-            loadRecursiveChildrens(childData, object, transform, filepath)
+          if object is not None:
+            # apply the transformation on the object
+            object.setMat(transform)
+            transform = Mat4.identMat()
+            # if it contains additional childrens recurse into them
+            for childData in eggParentData.getChildren()[1:]:
+              # search the children
+              loadRecursiveChildrens(childData, object, transform, filepath)
+          else:
+            print "E: core.EditorClass.loadEggModelsFile: no object returned (most likely error in module)"
+            print "  -", wrapperType
         else:
           if DEBUG:
             print "eggParentData.getTag: has no tag"
