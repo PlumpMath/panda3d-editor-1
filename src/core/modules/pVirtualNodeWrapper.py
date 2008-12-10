@@ -18,12 +18,14 @@ class VirtualNodeWrapper(BaseWrapper):
     # the editor should select this model
     #modelController.selectModel( objectInstance )
     # update the scenegraph
-    messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
+    #messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
+    return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
   
   def loadFromEggGroup(self, eggGroup, parent, filepath):
     #eggComment = eggGroup.getChildren()
     objectInstance = self(parent)
+    objectInstance.setLoadData(eggGroup)
     objectInstance.enableEditmode()
     return objectInstance
   loadFromEggGroup = classmethod(loadFromEggGroup)
@@ -84,3 +86,5 @@ class VirtualNodeWrapper(BaseWrapper):
       comment = EggComment( 'VirtualNodeWrapper-params', str(parameters) )
       instance.addChild(comment)
     return instance
+  def setLoadData(self, eggGroup):
+    BaseWrapper.setLoadData(self, eggGroup)

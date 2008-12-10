@@ -30,7 +30,7 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
       getModelPath().appendPath( pandaPath )
     
     # create instance of this class
-    objectInstance = self(filepath, parent)
+    objectInstance = self(parent, filepath)
     # enable editing of this object
     objectInstance.enableEditmode()
     # set as active object be the editor
@@ -61,7 +61,7 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
     return objectInstance
   loadFromEggGroup = classmethod(loadFromEggGroup)'''
   
-  def __init__( self, filepath, parent=None ):
+  def __init__( self, parent=None, filepath=None ):
     print "I: ParticleSystemWrapper.__init__:"
     print "  - filepath", filepath
     print "  - parent", parent

@@ -26,13 +26,11 @@ class NodePathWrapper(BaseWrapper):
       getModelPath().appendPath(pandaPath)
     
     # create instance of this class
-    objectInstance = self(filepath, parent)
+    objectInstance = self(parent, filepath)
     # enable editing of this object
     objectInstance.enableEditmode()
-    # set as active object be the editor
-    #modelController.selectModel(objectInstance)
     # update the scenegraph
-    messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
+    #messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
     
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
@@ -40,26 +38,25 @@ class NodePathWrapper(BaseWrapper):
   def loadFromEggGroup(self, eggGroup, parent, filepath):
     if DEBUG:
       print "I: NodePathWrapper.loadFromEggGroup:"
-      #print "I: NodePathWrapper.loadFromEggGroup:", dir(eggGroup.getChildren()[0])
-      #print "I: NodePathWrapper.loadFromEggGroup:", type(eggGroup.getChildren()[0])
+    # search for a external reference
     eggExternalReference = None
     for child in eggGroup.getChildren():
       if type(child) == EggExternalReference:
-        #print "I: NodePathWrapper.loadFromEggGroup: externalReference found", child
         eggExternalReference = child
+    # read the reference if it is found
     if eggExternalReference is not None:
       referencedFilename = eggExternalReference.getFilename()
       filename = os.path.join(filepath,str(referencedFilename))
       objectInstance = self.onCreateInstance(parent, filename)
-      objectInstance.getLoadData(eggGroup)
+      objectInstance.setLoadData(eggGroup)
       return objectInstance
     else:
       print "I: NodePathWrapper.loadFromEggGroup: no externalReference found in"
-      print eggGroup
+      print "  -",eggGroup
     return None
   loadFromEggGroup = classmethod(loadFromEggGroup)
   
-  def __init__(self, filepath, parent=None):
+  def __init__(self, parent=None, filepath=None):
     if DEBUG:
       print "I: NodePathWrapper.__init__:", filepath
     # define the name of this object

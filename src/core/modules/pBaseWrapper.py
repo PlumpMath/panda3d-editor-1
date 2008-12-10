@@ -64,7 +64,7 @@ class BaseWrapper(NodePath):
       instance.addChild(comment)
     return instance
   
-  def getLoadData(self, eggGroup):
+  def setLoadData(self, eggGroup):
     #print "I: BaseWrapper.setFromData:", eggGroup
     data = dict()
     for child in eggGroup.getChildren():

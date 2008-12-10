@@ -5,7 +5,7 @@ from core.pModelController import modelController
 from core.pCommonPath import *
 from core.pConfigDefs import *
 
-DEBUG = True
+DEBUG = False
 
 class CodeNodeWrapper(VirtualNodeWrapper):
   def onCreateInstance(self, parent, filepath):
@@ -26,7 +26,7 @@ class CodeNodeWrapper(VirtualNodeWrapper):
           traceback.print_exc()
         try:
           objectClass = getattr(module, filebase[0].upper()+filebase[1:])
-          objectInstance = objectClass(filepath, parent)
+          objectInstance = objectClass(parent, filepath)
         except:
           print "W: CodeNodeWrapper.onCreateInstance: error creating code instance"
           traceback.print_exc()
@@ -34,9 +34,9 @@ class CodeNodeWrapper(VirtualNodeWrapper):
           #
           objectInstance.enableEditmode()
           # set as active object be the editor
-          modelController.selectModel( objectInstance )
+          #modelController.selectModel( objectInstance )
           #
-          messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
+          #messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
           return objectInstance
         except:
           print "W: CodeNodeWrapper.onCreateInstance: error enabling the editor on code instance"
@@ -59,7 +59,7 @@ class CodeNodeWrapper(VirtualNodeWrapper):
     return objectInstance
   loadFromEggGroup = classmethod(loadFromEggGroup)
   
-  def __init__(self, filepath=None, parent=None):
+  def __init__(self, parent=None, filepath=None):
     self.scriptFilepath = filepath
     name = filepath.split('/')[-1]
     VirtualNodeWrapper.__init__(self, CODE_WRAPPER_DUMMYOBJECT, name, parent) 

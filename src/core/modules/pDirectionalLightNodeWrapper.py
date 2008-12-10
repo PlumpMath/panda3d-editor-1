@@ -12,7 +12,7 @@ class DirectionalLightNodeWrapper(LightNodeWrapper):
     name = 'DirectionalLight'
     LightNodeWrapper.__init__(self, name, DirectionalLight, DIRECTIONALLIGHT_WRAPPER_DUMMYOBJECT, name, parent)
     
-    self.light.setColor(VBase4(1,1,1,1))
+    #self.light.setColor(VBase4(.75,.75,.75,1))
   
   def getSaveData(self, relativeTo):
     instance = LightNodeWrapper.getSaveData(self, relativeTo)
@@ -23,3 +23,5 @@ class DirectionalLightNodeWrapper(LightNodeWrapper):
       comment = EggComment( 'DirectionalLightNodeWrapper-params', str(parameters) )
       instance.addChild(comment)
     return instance
+  def setLoadData(self, eggGroup):
+    LightNodeWrapper.setLoadData(self, eggGroup)

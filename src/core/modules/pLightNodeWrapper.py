@@ -10,11 +10,12 @@ class LightNodeWrapper(VirtualNodeWrapper):
   def __init__(self, name, lightType, *args, **kwargs):
     VirtualNodeWrapper.__init__(self, *args, **kwargs)
     
+    # create a instance of the light
     self.light = lightType(name)
     self.lightNodePath = self.attachNewNode(self.light)
     # create the light
     render.setLight(self.lightNodePath)
-
+  
   def getColor(self, *args, **kwargs):
     return self.light.getColor(*args, **kwargs)
   
@@ -26,6 +27,13 @@ class LightNodeWrapper(VirtualNodeWrapper):
   
   def setPriority(self, *args, **kwargs):
     return self.light.setPriority(*args, **kwargs)
+  
+  def hasColor(self, *args, **kwargs):
+    # basewrapper only includes the color of objects if hasColor returns true
+    return True
+  
+  def hasPriority(self, *args, **kwargs):
+    return True
   
   def destroy(self):
     # destroy this object

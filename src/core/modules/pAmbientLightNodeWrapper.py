@@ -12,7 +12,7 @@ class AmbientLightNodeWrapper( LightNodeWrapper ):
     name = 'AmbientLight'
     LightNodeWrapper.__init__(self, name, AmbientLight, AMBIENTLIGHT_WRAPPER_DUMMYOBJECT, name, parent)
     
-    self.light.setColor(VBase4(.25,.25,.25,1))
+    #self.light.setColor(VBase4(.25,.25,.25,1))
   
   def getSaveData(self, relativeTo):
     instance = LightNodeWrapper.getSaveData(self, relativeTo)
