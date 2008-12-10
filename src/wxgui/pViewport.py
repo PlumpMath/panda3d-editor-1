@@ -21,11 +21,13 @@ class ViewportManager(WindowManager):
   
   @staticmethod
   def initializeAll(*args, **kwargs):
+    """Calls initialize() on all the viewports."""
     for v in ViewportManager.viewports:
       v.initialize(*args, **kwargs)
   
   @staticmethod
   def updateAll(*args, **kwargs):
+    """Calls Update() on all the viewports."""
     for v in ViewportManager.viewports:
       v.Update(*args, **kwargs)
 
@@ -58,6 +60,11 @@ class Viewport(wx.Panel, Window, DirectObject):
     if self.camLookAt != None: self.camera.lookAt(self.camLookAt)
     self.Bind(wx.EVT_SIZE, self.onSize)
     #self.accept("mouse3", self.onRightDown)
+  
+  def close(self):
+    """Closes the viewport."""
+    Window.close(self)
+    ViewportManager.viewports.remove(self)
   
   def onSize(self, evt):
     """Invoked when the viewport is resized."""
@@ -147,6 +154,7 @@ class ViewportSplitter(wx.SplitterWindow):
     self.SetSashPosition(self.GetSashPosition() + (d / 2))
   
   def split(self, win1, win2, orientation):
+    self.Unsplit()
     win1 = Viewport.make(self, win1)
     win2 = Viewport.make(self, win2)
     assert isinstance(win1, Viewport) or isinstance(win1, ViewportSplitter)
@@ -154,9 +162,9 @@ class ViewportSplitter(wx.SplitterWindow):
     self.win1 = win1
     self.win2 = win2
     if orientation == self.HORIZONTAL:
-      self.SplitHorizontally(win1, win2)
+      assert self.SplitHorizontally(win1, win2)
     elif orientation == self.VERTICAL:
-      self.SplitVertically(win1, win2)
+      assert self.SplitVertically(win1, win2)
     self.Bind(wx.EVT_SIZE, self.onSize)
   
   def initialize(self, *args, **kwargs):
@@ -167,6 +175,11 @@ class ViewportSplitter(wx.SplitterWindow):
     self.win1.Update()
     self.win2.Update()
     wx.SplitterWindow.Update(self, *args, **kwargs)
+  
+  def close(self):
+    """Removes the viewports."""
+    self.win1.close()
+    self.win2.close()
   
   def __getitem__(self, num):
     if num != 0 and num != 1: return
@@ -211,6 +224,11 @@ class ViewportGrid(ViewportSplitter):
       lambda evt: self[1].SetSashPosition(self[0].GetSashPosition()))
     splitters[1].Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED,
       lambda evt: self[0].SetSashPosition(self[1].GetSashPosition()))
+  
+  def close(self):
+    """Removes the viewports."""
+    for s in range(len(self)):
+      self[s].close()
   
   def center(self):
     """Centers the splitters."""

@@ -9,11 +9,12 @@ from core.pConfigDefs import *
 from core.pWindow import WindowManager
 import wx
 from math import tan
+from gc import collect
 
 # Local imports
 from pPropertyGrid import PropertyGrid
 from pSceneGraphTree import SceneGraphTree
-from pViewport import Viewport, ViewportGrid, ViewportManager
+from pViewport import *
 
 # Get the default window origin
 defWP = WindowProperties.getDefault()
@@ -23,6 +24,10 @@ else:
   origin = (0, 0)
 
 ID_ENABLE_GRID = 2
+ID_SINGLE_VIEWPORT = 3
+ID_4x4_GRID = 4
+ID_2_HORIZONTAL = 5
+ID_2_VERTICAL = 6
 
 class EditorApp(AppShell):
   appversion    = "cvs"
@@ -52,11 +57,10 @@ class EditorApp(AppShell):
     self.sideBarSplitter = wx.SplitterWindow(self.splitter, style = wx.SP_3D | wx.SP_BORDER)
     self.sceneGraphTree = SceneGraphTree(self.sideBarSplitter)
     self.propertyGrid = PropertyGrid(self.sideBarSplitter)
-    self.vgrid = ViewportGrid(self.splitter, [[Viewport.VPTOP,  Viewport.VPFRONT],
-                                              [Viewport.VPLEFT, Viewport.VPPERSPECTIVE]])
+    self.view = Viewport.makePerspective(self.splitter)
     sizer = wx.BoxSizer(wx.VERTICAL)
     assert self.sideBarSplitter.SplitHorizontally(self.sceneGraphTree, self.propertyGrid)
-    assert self.splitter.SplitVertically(self.sideBarSplitter, self.vgrid, 200)
+    assert self.splitter.SplitVertically(self.sideBarSplitter, self.view, 200)
     sizer.Add(self.splitter, 1, wx.EXPAND, 0)
     self.SetSizer(sizer)
     self.Layout()
@@ -119,6 +123,17 @@ class EditorApp(AppShell):
     self.Bind(wx.EVT_MENU, self.onToggleGrid, self.menuView.AppendCheckItem(ID_ENABLE_GRID, "E&nable Grid"))
     self.Bind(wx.EVT_MENU, self.onCenterTrackball, self.menuView.Append(wx.ID_ANY, "&Center Model"))
     self.menuBar.Check(ID_ENABLE_GRID, True)
+    
+    # Viewports menu
+    self.menuViewports = wx.Menu()
+    self.menuBar.Append(self.menuViewports, "View&ports")
+    self.Bind(wx.EVT_MENU, self.onChangeViewports, self.menuViewports.AppendRadioItem(ID_SINGLE_VIEWPORT, "&Single Viewport"))
+    self.Bind(wx.EVT_MENU, self.onChangeViewports, self.menuViewports.AppendRadioItem(ID_4x4_GRID, "4x4 &Grid"))
+    self.Bind(wx.EVT_MENU, self.onChangeViewports, self.menuViewports.AppendRadioItem(ID_2_HORIZONTAL, "2 &Horizontal"))
+    self.Bind(wx.EVT_MENU, self.onChangeViewports, self.menuViewports.AppendRadioItem(ID_2_VERTICAL, "2 &Vertical"))
+    self.menuBar.Check(ID_SINGLE_VIEWPORT, True)
+    self.menuViewports.AppendSeparator()
+    self.viewportMenus = []
   
   def createInterface(self):
     """Overridden from WxAppShell.py."""
@@ -132,6 +147,7 @@ class EditorApp(AppShell):
     ViewportManager.updateAll()
     self.wxStep()
     ViewportManager.initializeAll()
+    self.reloadViewportMenus()
     self.editorInstance.toggle(True)
     # Position the camera
     if base.trackball != None:
@@ -141,7 +157,18 @@ class EditorApp(AppShell):
     # Load the direct things
     self.grid = DirectGrid(parent = render)
     self.sceneGraphTree.reload()
-    self.vgrid.center()
+    if not isinstance(self.view, Viewport):
+      self.view.center()
+  
+  def reloadViewportMenus(self):
+    """Reloads the viewport menus."""
+    # Add the individual viewport menus
+    for m in self.viewportMenus:
+      m.Destroy()
+    self.viewportMenus = []
+    collect()
+    #for v in range(len(ViewportManager.viewports)):
+    #  self.viewportMenus.append(self.menuViewports.AppendSubMenu(ViewportMenu(ViewportManager.viewports[v]), "Viewport %d" % (v + 1)))
   
   def wxStep(self, task = None):
     """A step in the WX event loop. You can either call this yourself or use as task."""
@@ -216,6 +243,42 @@ class EditorApp(AppShell):
         self.editorInstance.saveEggModelsFile(self.filename.getFullpath())
     finally:
       dlg.Destroy()
+  
+  def onChangeViewports(self, e):
+    """Invoked when the user changes viewport layout."""
+    self.Update()
+    sashpos = self.splitter.GetSashPosition()
+    if e.Id == ID_SINGLE_VIEWPORT:
+      if isinstance(self.view, Viewport): return
+      self.view.close()
+      self.view = Viewport.makePerspective(self.splitter)
+    elif e.Id == ID_4x4_GRID:
+      if isinstance(self.view, ViewportGrid): return
+      self.view.close()
+      self.view = ViewportGrid(self.splitter, [[Viewport.VPTOP,  Viewport.VPFRONT],
+                                               [Viewport.VPLEFT, Viewport.VPPERSPECTIVE]])
+      self.view.center()
+    else:
+      if e.Id == ID_2_HORIZONTAL: orientation = wx.SPLIT_HORIZONTAL
+      elif e.Id == ID_2_VERTICAL: orientation = wx.SPLIT_VERTICAL
+      else: return
+      if isinstance(self.view, ViewportSplitter):
+        if self.view.GetSplitMode() == orientation: return
+        self.view.close()
+        self.view.split(Viewport.VPTOP, Viewport.VPPERSPECTIVE, orientation)
+      else:
+        self.view.close()
+        self.view = ViewportSplitter(self.splitter, Viewport.VPTOP, Viewport.VPPERSPECTIVE, orientation)
+    self.splitter.Unsplit()
+    assert self.splitter.SplitVertically(self.sideBarSplitter, self.view, sashpos)
+    # Reload the menus
+    collect()
+    self.reloadViewportMenus()
+    # Make sure the viewports are initialized correctly
+    self.Update()
+    ViewportManager.updateAll()
+    self.wxStep()
+    ViewportManager.initializeAll()
   
   def onToggleGrid(self, evt = None):
     """Toggles the grid on/off."""

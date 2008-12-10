@@ -116,6 +116,11 @@ class Window(object):
     self.setupMouse(self.win)
     WindowManager.windows.append(self)
   
+  def close(self):
+    """Closes the window."""
+    base.closeWindow(self.win)
+    WindowManager.windows.remove(self)
+  
   # Viciously stolen from ShowBase.py
   def setupMouse(self, win):
     """
