@@ -63,6 +63,9 @@ class EditorClass(DirectObject):
       modelController.toggle(True)
       
       self.accept(EDITOR_TOGGLE_OFF_EVENT, self.toggle, [False])
+      
+      # refresh the scenegraphbrowser
+      messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
   
   def disableEditmode(self):
     if self.enabled:
@@ -78,7 +81,6 @@ class EditorClass(DirectObject):
           model.disableEditmode()
       
       modelController.toggle(False)
-      #mouseHandler.toggle(False)
     
     self.accept( EDITOR_TOGGLE_ON_EVENT, self.toggle, [True] )
   
