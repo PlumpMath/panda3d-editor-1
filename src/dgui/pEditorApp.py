@@ -86,7 +86,7 @@ class EditorApp(DirectObject):
                  # selectTag and noSelectTag are used to filter the selectable nodes.
                  # The unselectable nodes will be grayed.
                  # You should use only selectTag or noSelectTag at a time. Don't use both at the same time.
-                 selectTag=[ENABLE_SCENEGRAPHBROWSER_MODEL_TAG],   # only nodes which have the tag(s) are selectable. You could use multiple tags.
+                 selectTag=[ENABLE_SCENEGRAPHBROWSER_MODEL_TAG, EDITABLE_OBJECT_TAG],   # only nodes which have the tag(s) are selectable. You could use multiple tags.
                  #noSelectTag=['noSelect','dontSelectMe'], # only nodes which DO NOT have the tag(s) are selectable. You could use multiple tags.
                  # nodes which have exclusionTag wouldn't be displayed at all
                  exclusionTag=[EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG],
