@@ -170,20 +170,44 @@ class BaseWrapper(DirectObject):
         paramType, getter, setter, enabled = self.mutableParameters[paramName]
         if paramType == 'float':
           floatVal = float(paramValue)
-          execCmd = 'self.object.%s( str("%.3f") )' % (setter, floatVal)
-          exec( execCmd )
+          execCmd = 'self.object.%s( %.3f )' % (setter, floatVal)
+          try:
+            exec( execCmd )
+          except:
+            print "W: dgui.BaseWrapper.setEntry: command failed"
+            print "  -", execCmd
+            traceback.print_exc()
         elif paramType == 'str':
           execCmd = 'self.object.%s( str("%s") )' % (setter, paramValue)
-          exec( execCmd )
+          try:
+            exec( execCmd )
+          except:
+            print "W: dgui.BaseWrapper.setEntry: command failed"
+            print "  -", execCmd
         elif paramType == 'int':
           execCmd = 'self.object.%s( %i )' % (setter, paramValue)
-          exec( execCmd )
+          try:
+            exec( execCmd )
+          except:
+            print "W: dgui.BaseWrapper.setEntry: command failed"
+            print "  -", execCmd
+            traceback.print_exc()
         elif paramType == 'vec4':
           execCmd = 'self.object.%s( Vec4(*%s) )' % (setter, str(paramValue))
-          exec( execCmd )
+          try:
+            exec( execCmd )
+          except:
+            print "W: dgui.BaseWrapper.setEntry: command failed"
+            print "  -", execCmd
+            traceback.print_exc()
         elif paramType == 'bool':
           execCmd = 'self.object.%s( %i )' % (setter, paramValue)
-          exec( execCmd )
+          try:
+            exec( execCmd )
+          except:
+            print "W: dgui.BaseWrapper.setEntry: command failed"
+            print "  -", execCmd
+            traceback.print_exc()
         else:
           print "W: BaseWrapper.setEntry: unknown type", paramType
         self.updateAllEntires()
