@@ -116,6 +116,7 @@ class EditorApp(DirectObject):
                           , ['ambientlight', self.createModelWrapper, ['AmbientLightNodeWrapper']]
                           , ['pointlight', self.createModelWrapper, ['PointLightNodeWrapper']]
                           , ['codeNode', self.crateFilebrowserModelWrapper, ['CodeNodeWrapper']]
+                          , ['GeoMipTerrain', self.crateFilebrowserModelWrapper, ['GeoMipTerrainNodeWrapper']]
                           , ['destroy model', self.editorInstance.destroyModel, []]
                           , ['load', self.loadEggModelsFile, []]
                           , ['save', self.saveEggModelsFile, []] ]
@@ -127,7 +128,7 @@ class EditorApp(DirectObject):
       helpTexts = [ "LeftMouse: select object to move, select again to rotate, select again to scale"
                   , "MittleMouse: press & drag to rotate camera, turn to zoom (or page_up/down)"
                   , "RightMouse: press & drag to move camera pivot"
-                  , "%s: Toggle Editor On/off" % EDITOR_DGUI_TOGGLE_BUTTON.upper()
+                  , "%s: Toggle Editor On/off (currently buggy)" % EDITOR_DGUI_TOGGLE_BUTTON.upper()
                   , "F5: save scene      F9: load scene" ]
       for i in xrange( len(helpTexts) ):
         self.helpText.append( addInstructions(1.0-0.05*(i+1), helpTexts[i]) )
@@ -242,12 +243,14 @@ class EditorApp(DirectObject):
     modelParent = modelController.getSelectedModel()
     module = __import__("core.modules.p%s" % objectType, globals(), locals(), [objectType], -1)
     exec("objectInstance = module.%s.onCreateInstance(modelParent, filepath)" % (objectType))
+    messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
     modelController.selectModel( objectInstance )
   def createModelWrapper(self, type):
     # create the actual wrapper of the object
     module = __import__("core.modules.p%s" % type, globals(), locals(), [type], -1)
     modelParent = modelController.getSelectedModel()
     exec("objectInstance = module.%s.onCreateInstance(modelParent)" % type)
+    messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
     modelController.selectModel( objectInstance )
   
   def disable( self ):
