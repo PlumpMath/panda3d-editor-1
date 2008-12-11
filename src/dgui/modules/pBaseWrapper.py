@@ -9,7 +9,7 @@ from dgui.directWindow.src.directWindow import DirectWindow
 from direct.showbase.DirectObject import DirectObject
 
 class BaseWrapper(DirectObject):
-  def __init__( self, object ):
+  def __init__(self, object):
     print "I: BaseWrapper.__init__:", object
     self.object = object
     self.mutableParameters = {
@@ -79,7 +79,13 @@ class BaseWrapper(DirectObject):
                                     , scale=.05
                                     , pos = (.05+0.35*(x), 0, -0.1 - y*0.1)
                                     , text_align = TextNode.ARight )
-            if paramType == 'str' or paramType == 'float' or paramType == 'int' or paramType == 'vec4':
+            if paramType == 'str' or \
+                paramType == 'float' or \
+                paramType == 'int' or \
+                paramType == 'vec4' or \
+                paramType == 'vec2' or \
+                paramType == 'vec3' or \
+                paramType == 'point3':
               paramEntry = DirectEntry( text = ""
                                       , scale=.05
                                       , pos = (.10+0.35*(x), 0, -0.1 - y*0.1)
@@ -114,7 +120,13 @@ class BaseWrapper(DirectObject):
                                   , scale=.05
                                   , pos = (0.35, 0, -0.1 - y*0.1)
                                   , text_align = TextNode.ARight )
-          if paramType == 'str' or paramType == 'float' or paramType == 'int' or paramType == 'vec4':
+          if paramType == 'str' or \
+              paramType == 'float' or \
+              paramType == 'int' or \
+              paramType == 'vec4' or \
+              paramType == 'vec2' or \
+              paramType == 'vec3' or \
+              paramType == 'point3':
             paramEntry = DirectEntry( text = ""
                                     , scale=.05
                                     , pos = (0.4, 0, -0.1 - y*0.1)
@@ -169,7 +181,10 @@ class BaseWrapper(DirectObject):
         paramEntry = self.parameterEntries[paramName]
         paramType, getter, setter, enabled = self.mutableParameters[paramName]
         if paramType == 'float':
-          floatVal = float(paramValue)
+          try:
+            floatVal = float(paramValue)
+          except ValueError:
+            floatVal = 0.0
           execCmd = 'self.object.%s( %.3f )' % (setter, floatVal)
           try:
             exec( execCmd )
@@ -186,6 +201,30 @@ class BaseWrapper(DirectObject):
             print "  -", execCmd
         elif paramType == 'int':
           execCmd = 'self.object.%s( %i )' % (setter, paramValue)
+          try:
+            exec( execCmd )
+          except:
+            print "W: dgui.BaseWrapper.setEntry: command failed"
+            print "  -", execCmd
+            traceback.print_exc()
+        elif paramType == 'vec2':
+          execCmd = 'self.object.%s( Vec2(*%s) )' % (setter, str(paramValue))
+          try:
+            exec( execCmd )
+          except:
+            print "W: dgui.BaseWrapper.setEntry: command failed"
+            print "  -", execCmd
+            traceback.print_exc()
+        elif paramType == 'point3':
+          execCmd = 'self.object.%s( Point3(*%s) )' % (setter, str(paramValue))
+          try:
+            exec( execCmd )
+          except:
+            print "W: dgui.BaseWrapper.setEntry: command failed"
+            print "  -", execCmd
+            traceback.print_exc()
+        elif paramType == 'vec3':
+          execCmd = 'self.object.%s( Vec3(*%s) )' % (setter, str(paramValue))
           try:
             exec( execCmd )
           except:
@@ -218,30 +257,48 @@ class BaseWrapper(DirectObject):
   def updateAllEntires(self):
     if self.buttonsWindow:
       for paramName, [paramType, getter, setter, enabled] in self.mutableParameters.items():
-        if paramType == 'float':
-          execCmd = 'currentValue = self.object.%s()' % getter
-          exec( execCmd )
-          currentValue = '%.3f' % currentValue
-          self.parameterEntries[paramName].enterText(str(currentValue))
-        elif paramType == 'str' or paramType == 'int':
-          execCmd = 'currentValue = self.object.%s()' % getter
-          exec( execCmd )
-          self.parameterEntries[paramName].enterText(str(currentValue))
-        elif paramType == 'vec4':
-          execCmd = 'v = self.object.%s()' % getter
-          exec(execCmd)
-          currentValue = "(%.2f, %.2f, %.2f, %.2f)" % (v.getX(), v.getY(), v.getZ(), v.getW())
-          self.parameterEntries[paramName].enterText(str(currentValue))
-        elif paramType == 'bool':
-          execCmd = 'v = self.object.%s()' % getter
-          exec(execCmd)
-          self.parameterEntries[paramName]["indicatorValue"] = v
-          self.parameterEntries[paramName].setIndicatorValue()
-        else:
-          print "W: BaseWrapper.updateAllEntires: unknown type", paramType
-          #currentValue = ''
-          #self.parameterEntries[paramName].enterText(str(currentValue))
-        
+        try:
+          if paramType == 'float':
+            execCmd = 'currentValue = self.object.%s()' % getter
+            exec( execCmd )
+            currentValue = '%.3f' % currentValue
+            self.parameterEntries[paramName].enterText(str(currentValue))
+          elif paramType == 'str' or paramType == 'int':
+            execCmd = 'currentValue = self.object.%s()' % getter
+            exec( execCmd )
+            self.parameterEntries[paramName].enterText(str(currentValue))
+          elif paramType == 'vec2':
+            execCmd = 'v = self.object.%s()' % getter
+            exec(execCmd)
+            currentValue = "(%.2f, %.2f)" % (v.getX(), v.getY())
+            self.parameterEntries[paramName].enterText(str(currentValue))
+          elif paramType == 'point3' or paramType == 'vec3':
+            execCmd = 'v = self.object.%s()' % getter
+            exec(execCmd)
+            currentValue = "(%.2f, %.2f, %.2f)" % (v.getX(), v.getY(), v.getZ())
+            self.parameterEntries[paramName].enterText(str(currentValue))
+          elif paramType == 'vec4':
+            execCmd = 'v = self.object.%s()' % getter
+            exec(execCmd)
+            currentValue = "(%.2f, %.2f, %.2f, %.2f)" % (v.getX(), v.getY(), v.getZ(), v.getW())
+            self.parameterEntries[paramName].enterText(str(currentValue))
+          elif paramType == 'bool':
+            execCmd = 'v = self.object.%s()' % getter
+            exec(execCmd)
+            self.parameterEntries[paramName]["indicatorValue"] = v
+            self.parameterEntries[paramName].setIndicatorValue()
+          else:
+            print "W: BaseWrapper.updateAllEntires: unknown type", paramType
+            #currentValue = ''
+            #self.parameterEntries[paramName].enterText(str(currentValue))
+        except:
+          print "E: dgui.BaseWrapper.updateAllEntires: error in reading value"
+          print "  -", paramName, paramType, getter, setter, enabled
+          try:
+            print "  -", currentValue
+          except:
+            pass
+          traceback.print_exc()
         #if paramName is not None:
         #  if self.parameterEntries[paramName] is not None:
         #    self.parameterEntries[paramName].enterText(str(currentValue))
