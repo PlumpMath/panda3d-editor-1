@@ -57,8 +57,10 @@ class EditorClass(DirectObject):
         render.setShaderOff(10000)
       
       for model in modelIdManager.getAllModels():
-        if model.hasTag( EDITABLE_OBJECT_TAG ):
+        try:
           model.enableEditmode()
+        except:
+          pass # some objects are not part of the scene (like arrows to move etc.)
       
       modelController.toggle(True)
       
@@ -209,8 +211,10 @@ class EditorClass(DirectObject):
       if self.enabled:
         # enable the editing on the objects when editing is enabled
         for model in modelIdManager.getAllModels():
-          if model.hasTag(EDITABLE_OBJECT_TAG):
+          try:
             model.enableEditmode()
+          except:
+            pass # some objects are not part of the scene (like arrows to move etc.)
         # select no model
         modelController.selectModel(None)
       

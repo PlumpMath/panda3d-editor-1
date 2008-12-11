@@ -29,11 +29,6 @@ class SpotLightNodeWrapper(LightNodeWrapper):
   def setFov(self, *args, **kwargs):
     return self.lens.setFov(*args, **kwargs)
   
-  '''def getVfov(self, *args, **kwargs):
-    self.lens.getVfov(*args, **kwargs)
-  def setVfov(self, *args, **kwargs):
-    self.lens.setVfov(*args, **kwargs)'''
-  
   def getSaveData(self, relativeTo):
     instance = LightNodeWrapper.getSaveData(self, relativeTo)
     # get the data

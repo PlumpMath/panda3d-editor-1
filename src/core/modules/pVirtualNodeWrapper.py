@@ -35,39 +35,43 @@ class VirtualNodeWrapper(BaseWrapper):
     BaseWrapper.destroy( self )
   
   def enableEditmode( self ):
-    # load a dummy model
-    self.virtualModel = loader.loadModel( self.virtualModelpath )
-    # set the model invisible in the scenegraphbrowser
-    self.virtualModel.setTag(EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG,'')
-    self.virtualModel.setLightOff()
-    # make the model visible
-    self.virtualModel.reparentTo( self )
-    # enable picking of the object
-    self.setCollideMask( DEFAULT_EDITOR_COLLIDEMASK )
-    # enables the edit methods of this object
-    # makes it pickable etc.
-    # edit mode is enabled
-    BaseWrapper.enableEditmode( self )
+    ''' enables the edit methods of this object
+    makes it pickable etc.'''
+    if not self.editModeEnabled: # variable will be changed by basewrapper
+      # load a dummy model
+      self.virtualModel = loader.loadModel( self.virtualModelpath )
+      # set the model invisible in the scenegraphbrowser
+      self.virtualModel.setTag(EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG,'')
+      self.virtualModel.setLightOff()
+      # make the model visible
+      self.virtualModel.reparentTo( self )
+      # enable picking of the object
+      self.setCollideMask( DEFAULT_EDITOR_COLLIDEMASK )
+      # edit mode is enabled
+      BaseWrapper.enableEditmode( self )
   def disableEditmode( self ):
-    # disables the edit methods of this object
-    # -> performance increase
-    # edit mode is disabled
-    BaseWrapper.disableEditmode( self )
-    # remove the dummy model
-    self.virtualModel.removeNode()
-    self.virtualModel.detachNode()
-    # disable picking of the object
-    self.setCollideMask( BitMask32.allOff() )
+    ''' disables the edit methods of this object
+     -> performance increase'''
+    if self.editModeEnabled:
+      # edit mode is disabled
+      BaseWrapper.disableEditmode( self )
+      # remove the dummy model
+      self.virtualModel.removeNode()
+      self.virtualModel.detachNode()
+      # disable picking of the object
+      self.setCollideMask( BitMask32.allOff() )
   
   def startEdit( self ):
     # the object is selected to be edited
     # creates a directFrame to edit this object
-    self.virtualModel.showBounds()
-    BaseWrapper.startEdit( self )
+    if self.editModeEnabled:
+      self.virtualModel.showBounds()
+    BaseWrapper.startEdit(self)
   def stopEdit( self ):
     # the object is deselected from being edited
-    self.virtualModel.hideBounds()
-    BaseWrapper.stopEdit( self )
+    if self.editModeEnabled:
+      self.virtualModel.hideBounds()
+    BaseWrapper.stopEdit(self)
   
   def getSaveData(self, relativeTo):
     instance = BaseWrapper.getSaveData(self, relativeTo)

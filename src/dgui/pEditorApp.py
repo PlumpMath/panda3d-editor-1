@@ -243,6 +243,8 @@ class EditorApp(DirectObject):
     modelParent = modelController.getSelectedModel()
     module = __import__("core.modules.p%s" % objectType, globals(), locals(), [objectType], -1)
     exec("objectInstance = module.%s.onCreateInstance(modelParent, filepath)" % (objectType))
+    if objectInstance is not None:
+      objectInstance.enableEditmode()
     messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
     modelController.selectModel( objectInstance )
   def createModelWrapper(self, type):
@@ -250,6 +252,8 @@ class EditorApp(DirectObject):
     module = __import__("core.modules.p%s" % type, globals(), locals(), [type], -1)
     modelParent = modelController.getSelectedModel()
     exec("objectInstance = module.%s.onCreateInstance(modelParent)" % type)
+    if objectInstance is not None:
+      objectInstance.enableEditmode()
     messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
     modelController.selectModel( objectInstance )
   

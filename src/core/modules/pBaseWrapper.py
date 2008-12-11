@@ -28,9 +28,7 @@ class BaseWrapper(NodePath):
     if parent is None:
       parent = render
     self.reparentTo( parent )
-    # set this object editable, is required to be stored on the object even
-    # if the editor is not used (only way to store persistently for toggling)
-    self.setTag( EDITABLE_OBJECT_TAG, self.id)
+    self.editModeEnabled = False
   
   def destroy(self):
     self.detachNode()
@@ -85,18 +83,26 @@ class BaseWrapper(NodePath):
     ''' enables the edit methods of this object
     makes it pickable etc.
     edit mode is enabled'''
-    # make this a editable object
-    self.setTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG, '')
+    if not self.editModeEnabled:
+      # make this a editable object
+      self.setTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG, '')
+      self.setTag(EDITABLE_OBJECT_TAG, self.id)
+      self.editModeEnabled = True
   def disableEditmode(self):
     ''' disables the edit methods of this object
     -> performance increase
     edit mode is disabled'''
-    self.clearTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG)
+    if self.editModeEnabled:
+      self.clearTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG)
+      self.clearTag(EDITABLE_OBJECT_TAG)
+      self.editModeEnabled = False
   
   def startEdit(self):
     # the object is selected to be edited
     # creates a directFrame to edit this object
-    pass
+    if not self.editModeEnabled:
+      print "E: code.BaseWrapper.startEdit: object is not in editmode", self
   def stopEdit(self):
     # the object is deselected from being edited
-    pass
+    if not self.editModeEnabled:
+      print "E: code.BaseWrapper.stopEdit: object is not in editmode", self

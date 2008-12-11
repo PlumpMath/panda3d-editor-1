@@ -81,27 +81,27 @@ class NodePathWrapper(BaseWrapper):
     BaseWrapper.destroy(self)
   
   def enableEditmode(self):
-    # enables the edit methods of this object
-    # makes it pickable etc.
-    # edit mode is enabled
-    BaseWrapper.enableEditmode(self)
-    self.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
+    if not self.editModeEnabled:
+      # edit mode is enabled
+      BaseWrapper.enableEditmode(self)
+      self.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
   def disableEditmode(self):
-    # disables the edit methods of this object
-    # -> performance increase
-    # edit mode is disabled
-    BaseWrapper.disableEditmode( self )
-    self.setCollideMask(BitMask32.allOff())
+    if self.editModeEnabled:
+      # edit mode is disabled
+      BaseWrapper.disableEditmode( self )
+      self.setCollideMask(BitMask32.allOff())
   
   def startEdit(self):
     # the object is selected to be edited
     # creates a directFrame to edit this object
     BaseWrapper.startEdit(self)
-    self.model.showBounds()
+    if self.editModeEnabled:
+      self.model.showBounds()
   def stopEdit(self):
     # the object is deselected from being edited
+    if self.editModeEnabled:
+      self.model.hideBounds()
     BaseWrapper.stopEdit(self)
-    self.model.hideBounds()
   
   def getSaveData(self, relativeTo):
     ''' link the egg-file into the egg we save

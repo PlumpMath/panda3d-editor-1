@@ -21,7 +21,7 @@ class ModelController( DirectObject ):
     self.selectedObjectDistance = 0
     self.selectedObjectRelativePos = Vec3(0,0,0)
     self.__relativeModificationTo = None
-    self.modelModeNode = NodePath('temp')
+    self.modelModeNode = None
     
     self.enabled = False
     
@@ -39,6 +39,7 @@ class ModelController( DirectObject ):
   
   def enable(self):
     if not self.enabled:
+      self.modelModeNode = NodePath('temp')
       
       self.createCollisionPicker()
       
