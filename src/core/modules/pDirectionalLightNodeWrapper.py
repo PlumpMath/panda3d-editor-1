@@ -11,8 +11,9 @@ class DirectionalLightNodeWrapper(LightNodeWrapper):
     # define the name of this object
     name = 'DirectionalLight'
     LightNodeWrapper.__init__(self, name, DirectionalLight, DIRECTIONALLIGHT_WRAPPER_DUMMYOBJECT, name, parent)
-    
-    #self.light.setColor(VBase4(.75,.75,.75,1))
+  
+  def hasAttenuation(self, *args, **kwargs):
+    return False
   
   def getSaveData(self, relativeTo):
     instance = LightNodeWrapper.getSaveData(self, relativeTo)
