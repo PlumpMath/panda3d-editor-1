@@ -39,7 +39,8 @@ class PropertyGrid(Grid, DirectObject):
     """Entirely resets the grid."""
     self.properties = []
     self.ClearGrid()
-    self.DeleteRows(0, self.GetNumberRows())
+    if self.GetNumberRows() > 0:
+      self.DeleteRows(0, self.GetNumberRows())
   
   def viewForNodePath(self, nodePath):
     """Updates the control based on the specified NodePath."""
