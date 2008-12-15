@@ -45,6 +45,7 @@ class Viewport(wx.Panel, Window, DirectObject):
     self.lens = None
     self.camPos = None
     self.camLookAt = None
+    self.initialized = False
     self.Bind(wx.EVT_RIGHT_DOWN, self.onRightDown)
   
   def initialize(self):
@@ -55,6 +56,7 @@ class Viewport(wx.Panel, Window, DirectObject):
     assert self.GetHandle() != 0
     wp.setParentWindow(self.GetHandle())
     Window.__init__(self, extraProps = wp)
+    self.initialized = True
     if self.lens != None:      self.camera.node().setLens(self.lens)
     if self.camPos != None:    self.camera.setPos(self.camPos)
     if self.camLookAt != None: self.camera.lookAt(self.camLookAt)
@@ -63,7 +65,8 @@ class Viewport(wx.Panel, Window, DirectObject):
   
   def close(self):
     """Closes the viewport."""
-    Window.close(self)
+    if self.initialized:
+      Window.close(self)
     ViewportManager.viewports.remove(self)
   
   def onSize(self, evt):
