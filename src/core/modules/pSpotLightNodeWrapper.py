@@ -7,10 +7,8 @@ from core.pModelController import modelController
 from core.pConfigDefs import *
 
 class SpotLightNodeWrapper(LightNodeWrapper):
-  def __init__(self, parent=None):
-    # define the name of this object
-    name = 'SpotLight'
-    LightNodeWrapper.__init__(self, name, Spotlight, SPOTLIGHT_WRAPPER_DUMMYOBJECT, name, parent)
+  def __init__(self, parent=None, name='SpotLight'):
+    LightNodeWrapper.__init__(self, parent, name, SPOTLIGHT_WRAPPER_DUMMYOBJECT, Spotlight)
     self.lens = PerspectiveLens()
     self.light.setLens(self.lens)
   
@@ -41,8 +39,8 @@ class SpotLightNodeWrapper(LightNodeWrapper):
       comment = EggComment('SpotLightNodeWrapper-params', str(parameters))
       instance.addChild(comment)
     return instance
-  def setLoadData(self, eggGroup):
-    LightNodeWrapper.setLoadData(self, eggGroup)
+  def loadFromData(self, eggGroup, filepath):
+    LightNodeWrapper.loadFromData(self, eggGroup, filepath)
     data = dict()
     for child in eggGroup.getChildren():
       if type(child) == EggComment:

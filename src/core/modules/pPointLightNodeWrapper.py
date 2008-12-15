@@ -7,10 +7,10 @@ from core.pModelController import modelController
 from core.pConfigDefs import *
 
 class PointLightNodeWrapper(LightNodeWrapper):
-  def __init__(self, parent=None):
+  def __init__(self, parent=None, name='PointLight'):
     # define the name of this object
     name = 'PointLight'
-    LightNodeWrapper.__init__(self, name, PointLight, POINTLIGHT_WRAPPER_DUMMYOBJECT, name, parent)
+    LightNodeWrapper.__init__(self, parent, name, POINTLIGHT_WRAPPER_DUMMYOBJECT, PointLight)
   
   def getSaveData(self, relativeTo):
     instance = LightNodeWrapper.getSaveData(self, relativeTo)

@@ -126,12 +126,12 @@ class EditorClass(DirectObject):
   def loadEggModelsFile(self, filename):
     # read the eggData
     
-    def loadRecursiveChildrens(eggParentData, parent, transform, filepath):
+    def loadRecursiveChildrens(eggParentData, parent, transform, filepath, loadedObjects):
       if type(eggParentData) == EggData:
         # search the childrens
         for childData in eggParentData.getChildren():
           # search the children
-          parent = loadRecursiveChildrens(childData, parent, transform, filepath)
+          parent, loadedObjects = loadRecursiveChildrens(childData, parent, transform, filepath, loadedObjects)
       
       elif type(eggParentData) == EggGroup:
         
@@ -152,12 +152,10 @@ class EditorClass(DirectObject):
           try:
             # import the module responsible for handling the data
             module = __import__('core.modules.p%s' % wrapperType, globals(), locals(), [wrapperType], -1)
-            print "I: EditorClass.loadEggModelsFile"
-            print "  - parent:", parent
-            print "  - filepath:", filepath
-            print "  - module:", wrapperType
             # load the eggParentData using the module
             object = getattr(module, wrapperType).loadFromEggGroup(eggParentData, parent, filepath)
+            # append loaded object to list
+            loadedObjects.append([object, eggParentData])
           except:
             print "I: EditorClass.loadEggModelsFile: unknown or invalid entry"
             traceback.print_exc()
@@ -172,7 +170,7 @@ class EditorClass(DirectObject):
             # if it contains additional childrens recurse into them
             for childData in eggParentData.getChildren()[1:]:
               # search the children
-              loadRecursiveChildrens(childData, object, transform, filepath)
+              loadRecursiveChildrens(childData, object, transform, filepath, loadedObjects)
           else:
             print "E: core.EditorClass.loadEggModelsFile: no object returned (most likely error in module)"
             print "  -", wrapperType
@@ -182,13 +180,13 @@ class EditorClass(DirectObject):
           # search for childrens
           for childData in eggParentData.getChildren():
             # search the children
-            parent = loadRecursiveChildrens(childData, parent, transform, filepath)
+            parent, loadedObjects = loadRecursiveChildrens(childData, parent, transform, filepath)
       else:
         if DEBUG:
           print "W: EditorApp.loadEggModelsFile.loadRecursiveChildrens:"
           print "   - skipping unkown eggData", type(eggParentData)
       
-      return parent
+      return parent, loadedObjects
     
     if filename != None and filename != '' and filename != ' ':
       # destroy old models
@@ -202,11 +200,14 @@ class EditorClass(DirectObject):
       filepath = os.path.dirname(os.path.abspath(filename))
       
       # add the path to the model-path
-      print "I: EditorApp.loadEggModelsFile: adding to model-path:", filepath
+      #print "I: EditorApp.loadEggModelsFile: adding to model-path:", filepath
       from pandac.PandaModules import getModelPath
       getModelPath().appendPath(filepath)
       # read the eggData
-      loadRecursiveChildrens(eggData, render, Mat4.identMat(), filepath)
+      parent, loadedObjects = loadRecursiveChildrens(eggData, render, Mat4.identMat(), filepath, list())
+      
+      for objectInstance, eggData in loadedObjects:
+        objectInstance.loadFromData( eggData, filepath )
       
       if self.enabled:
         # enable the editing on the objects when editing is enabled

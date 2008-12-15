@@ -8,66 +8,52 @@ DEBUG = False
 
 class NodePathWrapper(BaseWrapper):
   def onCreateInstance(self, parent, filepath):
-    if DEBUG:
-      print "I: NodePathWrapper.onCreateInstance:", parent, "'%s'" % filepath
-    filepath = str(Filename.fromOsSpecific(filepath))
-    
-    # add the model path to the panda-path
-    pandaPath = None
-    from pandac.PandaModules import getModelPath
-    for searchPath in str(getModelPath()).split():
-      if searchPath == filepath:
-        pandaPath = searchPath
-    if pandaPath is None:
-      pandaPath = '/'.join(filepath.split('/')[:-1])
-      from pandac.PandaModules import getModelPath
-      if DEBUG:
-        print "  - adding to pandapath:", pandaPath
-      getModelPath().appendPath(pandaPath)
-    
     # create instance of this class
-    objectInstance = self(parent, filepath)
-    
+    if filepath is not None:
+      name = filepath.split('/')[-1]
+    else:
+      name = 'NodePath'
+    objectInstance = super(NodePathWrapper, self).onCreateInstance(parent, name)
+    objectInstance.setModel(filepath)
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
   
-  def loadFromEggGroup(self, eggGroup, parent, filepath):
-    if DEBUG:
-      print "I: NodePathWrapper.loadFromEggGroup:"
-    # search for a external reference
-    eggExternalReference = None
-    for child in eggGroup.getChildren():
-      if type(child) == EggExternalReference:
-        eggExternalReference = child
-    # read the reference if it is found
-    if eggExternalReference is not None:
-      referencedFilename = eggExternalReference.getFilename()
-      filename = os.path.join(filepath,str(referencedFilename))
-      objectInstance = self.onCreateInstance(parent, filename)
-      objectInstance.setLoadData(eggGroup)
-      return objectInstance
-    else:
-      print "I: NodePathWrapper.loadFromEggGroup: no externalReference found in"
-      print "  -",eggGroup
-    return None
-  loadFromEggGroup = classmethod(loadFromEggGroup)
+  def __init__(self, parent=None, name=None):
+    BaseWrapper.__init__(self, parent, name)
+    self.model = None
+    # content must be loaded using setModel
+    # (done by onCreateInstance and loadFromEggGroup)
   
-  def __init__(self, parent=None, filepath=None):
-    if DEBUG:
-      print "I: NodePathWrapper.__init__:", filepath
-    # define the name of this object
-    name = filepath.split('/')[-1]
-    BaseWrapper.__init__(self, name, parent)
+  def setModel(self, modelFilepath):
+    # if there is already a model defined, remove it
+    if self.model is not None:
+      self.model.detachNode()
     
-    # the path to the model we handle
-    self.modelFilepath = filepath
-    # load the model
-    self.model = loader.loadModel(filepath)
-    # if the model loading fails, use a dummy object
+    if modelFilepath is not None:
+      filepath = str(Filename.fromOsSpecific(modelFilepath))
+      # add the model path to the panda-path
+      pandaPath = None
+      from pandac.PandaModules import getModelPath
+      for searchPath in str(getModelPath()).split():
+        if searchPath == filepath:
+          pandaPath = searchPath
+      if pandaPath is None:
+        pandaPath = '/'.join(filepath.split('/')[:-1])
+        from pandac.PandaModules import getModelPath
+        if DEBUG:
+          print "I: NodePathWrapper.setModel: adding to pandapath:"
+          print "  -", pandaPath
+        getModelPath().appendPath(pandaPath)
+    
+      # the path to the model we handle
+      self.modelFilepath = modelFilepath
+      # load the model
+      self.model = loader.loadModel(modelFilepath)
+    
+    # if the model loading fails or no path given, use a dummy object
     if self.model is None:
-      print "W: editorModelClass: model %s not found, loading dummy" % self.model
+      print "W: NodePathWrapper.setModel: model %s not found, loading dummy" % self.model
       self.model = loader.loadModel(MODEL_NOT_FOUND_MODEL)
-    
     # make the model visible
     self.model.reparentTo(self)
   
@@ -117,5 +103,18 @@ class NodePathWrapper(BaseWrapper):
     instance.addChild(ext)
     return instance
   
-  def getLoadData(self, eggGroup):
-    BaseWrapper.getLoadData(self, eggGroup)
+  def loadFromData(self, eggGroup, filepath):
+    # search for a external reference
+    eggExternalReference = None
+    for child in eggGroup.getChildren():
+      if type(child) == EggExternalReference:
+        eggExternalReference = child
+    # read the reference if it is found
+    if eggExternalReference is not None:
+      referencedFilename = eggExternalReference.getFilename()
+      filename = os.path.join(filepath,str(referencedFilename))
+      self.setModel(filename)
+    else:
+      print "I: NodePathWrapper.loadFromData: no externalReference found in"
+      print "  -",eggGroup
+    BaseWrapper.loadFromData(self, eggGroup, filepath)

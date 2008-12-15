@@ -6,7 +6,7 @@
       1 0 0 0
       0 0.999936 -0.0112746 0
       0 0.0112746 0.999936 0
-      -45.9167 35.4404 33.1779 1
+      -45.9167 35.6598 52.635 1
     }
   }
   <Tag> modelWrapperTypeTag {
@@ -19,83 +19,13 @@
     "{'attenuation': [0.89999997615814209, 0.0099999997764825821, 0.0]}"
   }
 }
-<Instance> testObjectExtension.py-2-Group {
-  <Transform> {
-    <Matrix4> {
-      0.721427 -0.69249 0 0
-      0.69249 0.721427 0 0
-      0 0 1 0
-      -0.0126715 4.4883 0 1
-    }
-  }
-  <Tag> modelWrapperTypeTag {
-    CodeNodeWrapper
-  }
-  <File> CodeNodeWrapper-EggExternalReference {
-    testObjectExtension.py
-  }
-  <Instance> teapot.egg.pz-3-Group {
-    <Transform> {
-      <Matrix4> {
-        1 0 0 0
-        0 1 0 0
-        0 0 1 0
-        0 0 13.1875 1
-      }
-    }
-    <Tag> modelWrapperTypeTag {
-      NodePathWrapper
-    }
-    <Comment> BaseWrapper-params {
-      "{'color': [1.0, 1.0, 1.0, 1.0], 'transparency': 0, 'colorScale': [1.0, 0.0, 1.0, 1.0]}"
-    }
-    <File> teapot.egg.pz-3-EggExternalReference {
-      teapot.egg.pz
-    }
-    <Instance> teapot.egg.pz-4-Group {
-      <Transform> {
-        <Matrix4> {
-          1 0 0 0
-          0 1 0 0
-          0 0 1 0
-          -12.125 0 9.85417 1
-        }
-      }
-      <Tag> modelWrapperTypeTag {
-        NodePathWrapper
-      }
-      <Comment> BaseWrapper-params {
-        "{'color': [1.0, 2.0, 1.0, 1.0], 'colorScale': [1.0, 1.0, 3.0000002384185791, 1.0]}"
-      }
-      <File> teapot.egg.pz-4-EggExternalReference {
-        teapot.egg.pz
-      }
-    }
-  }
-  <Instance> smokering.ptf-5-Group {
-    <Transform> {
-      <Matrix4> {
-        1 0 0 0
-        0 1 0 0
-        0 0 1 0
-        0 13.3542 13.6458 1
-      }
-    }
-    <Tag> modelWrapperTypeTag {
-      ParticleSystemWrapper
-    }
-    <File> smokering.ptf-5-EggExternalReference {
-      smokering.ptf
-    }
-  }
-}
 <Instance> teapot.egg.pz-6-Group {
   <Transform> {
     <Matrix4> {
       1 0 0 0
       0 1 0 0
       0 0 1 0
-      0 -5.75 9.06249 1
+      0 -5.75 26.9896 1
     }
   }
   <Tag> modelWrapperTypeTag {
@@ -104,7 +34,7 @@
   <Comment> BaseWrapper-params {
     "{'color': [1.0, 1.0, 0.0, 1.0], 'transparency': 0}"
   }
-  <File> teapot.egg.pz-6-EggExternalReference {
+  <File> teapot.egg.pz-6-Group-EggExternalReference {
     teapot.egg.pz
   }
   <Instance> teapot.egg.pz-7-Group {
@@ -122,7 +52,7 @@
     <Comment> BaseWrapper-params {
       "{'color': [1.0, 1.0, 4.0, 1.0], 'transparency': 1, 'colorScale': [1.0, 1.0, 2.0, 1.0]}"
     }
-    <File> teapot.egg.pz-7-EggExternalReference {
+    <File> teapot.egg.pz-7-Group-EggExternalReference {
       teapot.egg.pz
     }
   }
@@ -138,7 +68,7 @@
     <Tag> modelWrapperTypeTag {
       NodePathWrapper
     }
-    <File> teapot.egg.pz-8-EggExternalReference {
+    <File> teapot.egg.pz-8-Group-EggExternalReference {
       teapot.egg.pz
     }
   }
@@ -146,10 +76,10 @@
 <Instance> testObjectExtension.py-9-Group {
   <Transform> {
     <Matrix4> {
-      0.721427 -0.69249 0 0
-      0.69249 0.721427 0 0
+      -0.906953 -0.421231 0 0
+      0.421231 -0.906953 0 0
       0 0 1 0
-      -0.0126715 4.4883 19.8542 1
+      -0.0126715 4.4883 37.5834 1
     }
   }
   <Tag> modelWrapperTypeTag {
@@ -173,7 +103,7 @@
     <Comment> BaseWrapper-params {
       "{'color': [1.0, 1.0, 1.0, 1.0], 'transparency': 0, 'colorScale': [1.0, 0.0, 1.0, 1.0]}"
     }
-    <File> teapot.egg.pz-10-EggExternalReference {
+    <File> teapot.egg.pz-10-Group-EggExternalReference {
       teapot.egg.pz
     }
     <Instance> teapot.egg.pz-11-Group {
@@ -191,7 +121,7 @@
       <Comment> BaseWrapper-params {
         "{'color': [1.0, 2.0, 1.0, 1.0], 'colorScale': [1.0, 1.0, 3.0000002384185791, 1.0]}"
       }
-      <File> teapot.egg.pz-11-EggExternalReference {
+      <File> teapot.egg.pz-11-Group-EggExternalReference {
         teapot.egg.pz
       }
       <Instance> DirectionalLight-12-Group {
@@ -216,10 +146,10 @@
 <Instance> testObjectExtension.py-13-Group {
   <Transform> {
     <Matrix4> {
-      0.721427 -0.69249 0 0
-      0.69249 0.721427 0 0
+      -0.906953 -0.421231 0 0
+      0.421231 -0.906953 0 0
       0 0 1 0
-      -3.58816 18.2976 23.5208 1
+      -3.58816 18.2976 37.2916 1
     }
   }
   <Tag> modelWrapperTypeTag {
@@ -228,7 +158,7 @@
   <File> CodeNodeWrapper-EggExternalReference {
     testObjectExtension.py
   }
-  <Instance> smokering.ptf-14-Group {
+  <Instance> smokering.ptf-14-Group-Group-Group-Group {
     <Transform> {
       <Matrix4> {
         1 0 0 0
@@ -240,7 +170,7 @@
     <Tag> modelWrapperTypeTag {
       ParticleSystemWrapper
     }
-    <File> smokering.ptf-14-EggExternalReference {
+    <File> smokering.ptf-14-Group-Group-Group-EggExternalReference {
       smokering.ptf
     }
     <Instance> SpotLight-15-Group {
@@ -273,7 +203,7 @@
       5 0 0 0
       0 5 0 0
       0 0 1 0
-      -500 -500 -10 1
+      -207.5 -155 -10 1
     }
   }
   <Tag> modelWrapperTypeTag {
@@ -282,8 +212,27 @@
   <Comment> BaseWrapper-params {
     "{'color': [0.20000000298023224, 0.80000001192092896, 0.20000000298023224, 1.0]}"
   }
-  <File> GeoMipTerrain-terrain.png-16-EggExternalReference {
+  <File> GeoMipTerrain-terrain.png-16-Group-EggExternalReference {
     terrain.png
+  }
+  <Instance> terrain.png-14 {
+    <Transform> {
+      <Matrix4> {
+        0.1 0 0 0
+        0 0.1 0 0
+        0 0 0.1 0
+        30.6875 22.45 25 1
+      }
+    }
+    <Tag> modelWrapperTypeTag {
+      GeoMipTerrainNodeWrapper
+    }
+    <Comment> BaseWrapper-params {
+      "{'color': [1.0, 1.0, 1.0, 1.0], 'colorScale': [1.0, 1.0, 1.0, 1.0]}"
+    }
+    <File> terrain.png-14-EggExternalReference {
+      terrain.png
+    }
   }
 }
 <Instance> DirectionalLight-17-Group {
@@ -292,7 +241,7 @@
       1 0 0 0
       0 0.899272 -0.43739 0
       0 0.43739 0.899272 0
-      0 -40.9583 13.4896 1
+      0 -40.9583 20.49 1
     }
   }
   <Tag> modelWrapperTypeTag {

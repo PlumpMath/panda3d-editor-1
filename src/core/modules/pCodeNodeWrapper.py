@@ -9,11 +9,36 @@ DEBUG = False
 
 class CodeNodeWrapper(VirtualNodeWrapper):
   def onCreateInstance(self, parent, filepath):
+    # create instance of this class
+    name='CodeNode'
+    objectInstance = super(CodeNodeWrapper, self).onCreateInstance(parent, name)
+    objectInstance.setScript(filepath)
+    return objectInstance
+  onCreateInstance = classmethod(onCreateInstance)
+  
+  '''# parent, filepath
+  def loadFromEggGroup( self, eggGroup, parent, filepath ):
     if DEBUG:
-      print "I: pCodeNodeWrapper.onCreateInstance:"
-      print "  - parent", parent
-      print "  - script", filepath
+      print "I: CodeNodeWrapper.loadFromEggGroup:"
+    eggExternalReference = eggGroup.getChildren()[0]
+    referencedFilename = eggExternalReference.getFilename()
+    filepath = os.path.join(filepath,str(referencedFilename))
+    objectInstance = self.onCreateInstance(parent, filepath)
+    return objectInstance
+  loadFromEggGroup = classmethod(loadFromEggGroup)'''
+  
+  def __init__(self, parent, name='CodeNode'):
+    self.objectInstance = None
+    #name = filepath.split('/')[-1]
+    VirtualNodeWrapper.__init__(self, parent, name, CODE_WRAPPER_DUMMYOBJECT) 
+  
+  def setScript(self, filepath):
     if filepath != ' ':
+      if self.objectInstance is not None:
+        self.objectInstance.destroy()
+        del self.objectInstance
+        self.objectInstance = None
+      
       filename=os.path.basename(filepath)
       dirname=os.path.dirname(filepath)
       filebase, fileext = os.path.splitext(filename)
@@ -22,56 +47,30 @@ class CodeNodeWrapper(VirtualNodeWrapper):
         try:
           module = imp.load_module(filebase, fp, filename, description)
         except:
-          print "W: CodeNodeWrapper.onCreateInstance: find_module failed"
+          print "W: CodeNodeWrapper.setScript: find_module failed"
           traceback.print_exc()
         try:
           objectClass = getattr(module, filebase[0].upper()+filebase[1:])
-          objectInstance = objectClass(parent, filepath)
+          objectInstance = objectClass(self)
+          self.objectInstance = objectInstance
         except:
-          print "W: CodeNodeWrapper.onCreateInstance: error creating code instance"
+          print "W: CodeNodeWrapper.setScript: error creating code instance"
           traceback.print_exc()
-        return objectInstance
-    return None
-  onCreateInstance=classmethod(onCreateInstance)
+      self.scriptFilepath = filepath
   
-  # parent, filepath
-  def loadFromEggGroup( self, eggGroup, parent, filepath ):
-    if DEBUG:
-      print "I: CodeNodeWrapper.loadFromEggGroup:"
-    eggExternalReference = eggGroup.getChildren()[0]
-    referencedFilename = eggExternalReference.getFilename()
-    filepath = os.path.join(filepath,str(referencedFilename))
-    print "I: CodeNodeWrapper.loadFromEggGroup:"
-    print "  - referencedFilename:", referencedFilename
-    print "  - filepath:", filepath
-    print "  - parent:", parent
-    objectInstance = self.onCreateInstance(parent, filepath)
-    return objectInstance
-  loadFromEggGroup = classmethod(loadFromEggGroup)
+  def destroy(self):
+    VirtualNodeWrapper.destroy(self)
+    self.objectInstance.destroy()
+    del self.objectInstance
+    self.objectInstance = None
   
-  def __init__(self, parent=None, filepath=None):
-    self.scriptFilepath = filepath
-    name = filepath.split('/')[-1]
-    VirtualNodeWrapper.__init__(self, CODE_WRAPPER_DUMMYOBJECT, name, parent) 
-  
-  def getSaveData( self, relativeTo ):
+  def getSaveData(self, relativeTo):
     ''' link the egg-file into the egg we save
     '''
-    # convert the matrix, very ugly right now
-    om = self.getMat()
-    nm = Mat4D()
-    for x in xrange(4):
-        for y in xrange(4):
-            nm.setCell( x, y, om.getCell(x,y) )
-    # the matrix we define must be applied to the nodes in "local space"
-    nodeName = self.getName()
-    instance = EggGroup( nodeName+"-Group" )
-    instance.setGroupType(EggGroup.GTInstance)
-    instance.setTransform3d( nm )
-    # userdata is not written to the eggFile
-    #instance.setUserData( self.wrapperTypeTag )
+    name = self.getName()
+    instance = VirtualNodeWrapper.getSaveData(self, relativeTo)
     className = 'CodeNodeWrapper' #self.__class__.__name__ -> yields the wrong classname
-    instance.setTag( MODEL_WRAPPER_TYPE_TAG, className )
+    #instance.setTag( MODEL_WRAPPER_TYPE_TAG, className )
     # convert to a relative path
     scriptFilepath = relpath( relativeTo, os.path.abspath(self.scriptFilepath) )
     #print "I: CodeNodeWrapper.getSaveData: scriptFilepath:", scriptFilepath, self.scriptFilepath, relativeTo
@@ -79,3 +78,19 @@ class CodeNodeWrapper(VirtualNodeWrapper):
     ext = EggExternalReference( className+"-EggExternalReference", scriptFilepath )
     instance.addChild(ext)
     return instance
+  
+  def loadFromData(self, eggGroup, filepath):
+    # search for a external reference
+    eggExternalReference = None
+    for child in eggGroup.getChildren():
+      if type(child) == EggExternalReference:
+        eggExternalReference = child
+    # read the reference if it is found
+    if eggExternalReference is not None:
+      referencedFilename = eggExternalReference.getFilename()
+      filename = os.path.join(filepath,str(referencedFilename))
+      self.setScript(filename)
+    else:
+      print "I: NodePathWrapper.loadFromData: no externalReference found in"
+      print "  -",eggGroup
+    VirtualNodeWrapper.loadFromData(self, eggGroup, filepath)

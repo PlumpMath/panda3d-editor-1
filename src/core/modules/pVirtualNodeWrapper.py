@@ -9,23 +9,10 @@ from core.pModelController import modelController
 # like lights, particle systems etc. (well most except the NodePath)
 # (might be useful for all virtual objects?)
 class VirtualNodeWrapper(BaseWrapper):
-  def onCreateInstance(self, parent):
-    ''' called when the user presses the button to create a nodePathWrapper
-    '''
-    objectInstance = self(parent)
-    return objectInstance
-  onCreateInstance = classmethod(onCreateInstance)
-  
-  def loadFromEggGroup(self, eggGroup, parent, filepath):
-    objectInstance = self(parent)
-    objectInstance.setLoadData(eggGroup)
-    return objectInstance
-  loadFromEggGroup = classmethod(loadFromEggGroup)
-  
-  def __init__(self, virtualModelpath, *args, **kwargs):
-    self.virtualModel = None
+  def __init__(self, parent, name, virtualModelpath):
     self.virtualModelpath = virtualModelpath
-    BaseWrapper.__init__(self, *args, **kwargs)
+    self.virtualModel = None
+    BaseWrapper.__init__(self, parent, name)
   
   def destroy( self ):
     # destroy this object
@@ -82,5 +69,5 @@ class VirtualNodeWrapper(BaseWrapper):
       comment = EggComment( 'VirtualNodeWrapper-params', str(parameters) )
       instance.addChild(comment)
     return instance
-  def setLoadData(self, eggGroup):
-    BaseWrapper.setLoadData(self, eggGroup)
+  def loadFromData(self, eggGroup, filepath):
+    BaseWrapper.loadFromData(self, eggGroup, filepath)

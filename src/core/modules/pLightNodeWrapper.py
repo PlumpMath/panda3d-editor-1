@@ -7,8 +7,8 @@ from core.pModelController import modelController
 from core.pConfigDefs import *
 
 class LightNodeWrapper(VirtualNodeWrapper):
-  def __init__(self, name, lightType, *args, **kwargs):
-    VirtualNodeWrapper.__init__(self, *args, **kwargs)
+  def __init__(self, parent, name, lightModel, lightType):
+    VirtualNodeWrapper.__init__(self, parent, name, lightModel)
     
     # create a instance of the light
     self.light = lightType(name)
@@ -55,8 +55,8 @@ class LightNodeWrapper(VirtualNodeWrapper):
       comment = EggComment('LightNodeWrapper-params', str(parameters))
       instance.addChild(comment)
     return instance
-  def setLoadData(self, eggGroup):
-    VirtualNodeWrapper.setLoadData(self, eggGroup)
+  def loadFromData(self, eggGroup, filepath):
+    VirtualNodeWrapper.loadFromData(self, eggGroup, filepath)
     data = dict()
     for child in eggGroup.getChildren():
       if type(child) == EggComment:

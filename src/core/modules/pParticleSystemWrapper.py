@@ -9,72 +9,51 @@ from core.pModelController import modelController
 from core.pConfigDefs import *
 from core.pCommonPath import *
 
+base.enableParticles()
+
 DEBUG = False
 
 class ParticleSystemWrapper(VirtualNodeWrapper):
   def onCreateInstance(self, parent, filepath):
-    print "I: ParticleSystemWrapper.onCreateInstance:"
-    # check if model file is in pandaModelPath
-    filepath = str(Filename.fromOsSpecific(filepath))
-    
-    # add the model path to the panda-path
-    pandaPath = None
-    from pandac.PandaModules import getModelPath
-    for searchPath in str(getModelPath()).split():
-      if searchPath == filepath:
-        pandaPath = searchPath
-    if pandaPath is None:
-      pandaPath = '/'.join(filepath.split('/')[:-1])
-      from pandac.PandaModules import getModelPath
-      print "  - adding to pandapath:", pandaPath
-      getModelPath().appendPath( pandaPath )
-    
     # create instance of this class
-    objectInstance = self(parent, filepath)
-    
+    objectInstance = super(VirtualNodeWrapper, self).onCreateInstance(parent, filepath)
+    objectInstance.setParticleConfig(filepath)
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
   
-  # parent, filepath
-  def loadFromEggGroup( self, eggGroup, parent, eggfileFilepath ):
-    if DEBUG:
-      print "I: ParticleSystemWrapper.loadFromEggGroup:"
-    eggExternalReference = eggGroup.getChildren()[0]
-    referencedFilename = eggExternalReference.getFilename()
-    filepath = os.path.join(eggfileFilepath,str(referencedFilename))
-    print "I: ParticleSystemWrapper.loadFromEggGroup:"
-    print "  - referencedFilename:", referencedFilename
-    print "  - filepath:", filepath
-    print "  - parent:", parent
-    objectInstance = self.onCreateInstance(parent, filepath)
-    return objectInstance
-  loadFromEggGroup = classmethod(loadFromEggGroup)
-  '''def loadFromEggGroup(self, eggGroup, parent, filepath):
-    eggComment = eggGroup.getChildren()[0]
-    objectInstance = self(parent, filepath)
-    return objectInstance
-  loadFromEggGroup = classmethod(loadFromEggGroup)'''
-  
-  def __init__( self, parent=None, filepath=None ):
-    print "I: ParticleSystemWrapper.__init__:"
-    print "  - filepath", filepath
-    print "  - parent", parent
+  def __init__( self, parent=None, name=None ):
     # define the name of this object
-    name = filepath.split('/')[-1]
-    VirtualNodeWrapper.__init__(self, PARTICLE_WRAPPER_DUMMYOBJECT, name, parent)
+    VirtualNodeWrapper.__init__(self, parent, name, PARTICLE_WRAPPER_DUMMYOBJECT)
+    
+    self.particleSystem = ParticleEffect()
+  
+  def setParticleConfig(self, filepath):
+    if filepath is not None:
+      # check if model file is in pandaModelPath
+      filepath = str(Filename.fromOsSpecific(filepath))
+      
+      # add the model path to the panda-path
+      pandaPath = None
+      from pandac.PandaModules import getModelPath
+      for searchPath in str(getModelPath()).split():
+        if searchPath == filepath:
+          pandaPath = searchPath
+      if pandaPath is None:
+        pandaPath = '/'.join(filepath.split('/')[:-1])
+        from pandac.PandaModules import getModelPath
+        if DEBUG:
+          print "I: ParticleSystemWrapper.setParticleConfig: adding to pandapath:"
+          print "  -", pandaPath
+        getModelPath().appendPath( pandaPath )
     
     self.particleFilename = filepath
-    
-    base.enableParticles()
-    self.particleSystem = ParticleEffect()
-    self.loadParticleConfig( filepath )
-  
-  def loadParticleConfig(self, filepath):
     try:
       #Start of the code from steam.ptf
       self.particleSystem.loadConfig(Filename(filepath))
     except:
-      print "W: particleSystemWrapper.loadParticleConfig: Error loading file", filepath
+      print "W: particleSystemWrapper.setParticleConfig: Error loading file"
+      print "  -", filepath
+      print "  - Creating dummy particle Effect"
       traceback.print_exc()
       # create new one if loading failed (particlepanel requires at least one particle)
       particles = Particles()
@@ -115,4 +94,18 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
     instance.addChild(ext)
     return instance
   
-
+  def loadFromData(self, eggGroup, filepath):
+    # search for a external reference
+    eggExternalReference = None
+    for child in eggGroup.getChildren():
+      if type(child) == EggExternalReference:
+        eggExternalReference = child
+    # read the reference if it is found
+    if eggExternalReference is not None:
+      referencedFilename = eggExternalReference.getFilename()
+      filename = os.path.join(filepath,str(referencedFilename))
+      self.setParticleConfig(filename)
+    else:
+      print "I: NodePathWrapper.loadFromData: no externalReference found in"
+      print "  -",eggGroup
+    VirtualNodeWrapper.loadFromData(self, eggGroup, filepath)

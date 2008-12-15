@@ -9,33 +9,15 @@ DEBUG = False
 
 class GeoMipTerrainNodeWrapper(BaseWrapper):
   def onCreateInstance(self, parent, filepath):
-    if filepath != ' ' and filepath != None:
-      print "I: GeoMipTerrainNodeWrapper:", filepath
-      filepath = str(Filename.fromOsSpecific(filepath))
-      
-      # create instance of this class
-      objectInstance = self(parent, filepath)
-      
-      return objectInstance
-    return None
-  onCreateInstance = classmethod(onCreateInstance)
-  
-  def loadFromEggGroup(self, eggGroup, parent, filepath):
-    eggExternalReference = None
-    for child in eggGroup.getChildren():
-      if type(child) == EggExternalReference:
-        eggExternalReference = child
-    if eggExternalReference is not None:
-      referencedFilename = eggExternalReference.getFilename()
-      filename = os.path.join(filepath,str(referencedFilename))
-      objectInstance = self.onCreateInstance(parent, filename)
-      objectInstance.setLoadData(eggGroup)
-      return objectInstance
+    # create instance of this class
+    if filepath is not None:
+      name = filepath.split('/')[-1]
     else:
-      print "I: PgmmNodeWrapper.loadFromEggGroup: no externalReference found in"
-      print "  -", eggGroup
-    return None
-  loadFromEggGroup = classmethod(loadFromEggGroup)
+      name = 'GeoMipTerrain'
+    objectInstance = super(GeoMipTerrainNodeWrapper, self).onCreateInstance(parent, name)
+    objectInstance.setTerrain(filepath)
+    return objectInstance
+  onCreateInstance = classmethod(onCreateInstance)
   
   def enableEditmode(self):
     BaseWrapper.enableEditmode(self)
@@ -44,15 +26,20 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
     BaseWrapper.disableEditmode(self)
     self.setCollideMask(BitMask32.allOff())
   
-  def __init__(self, parent, filepath):
-    name = "GeoMipTerrain-"+filepath.split('/')[-1]
-    BaseWrapper.__init__(self, name, parent)
+  def __init__(self, parent=None, name=None):
+    #name = "GeoMipTerrain-"+filepath.split('/')[-1]
+    BaseWrapper.__init__(self, parent, name)
+    self.terrainNode = None
+  
+  def setTerrain(self, filepath):
+    if self.terrainNode is not None:
+      self.terrainNode.detachNode()
     self.terrainImageFilepath = filepath
-    terrain = GeoMipTerrain("mySimpleTerrain")
-    terrain.setHeightfield(Filename(filepath))
-    terrain.getRoot().reparentTo(self)
-    terrain.getRoot().setSz(25)
-    terrain.generate()
+    self.terrain = GeoMipTerrain("mySimpleTerrain")
+    self.terrain.setHeightfield(Filename(filepath))
+    self.terrain.getRoot().reparentTo(self)
+    self.terrain.getRoot().setSz(25)
+    self.terrainNode = self.terrain.generate()
   
   def getSaveData(self, relativeTo):
     ''' link the egg-file into the egg we save
@@ -67,5 +54,17 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
     ext = EggExternalReference(name+"-EggExternalReference", terrainImageFilepath)
     instance.addChild(ext)
     return instance
-  def setLoadData(self, eggGroup):
-    BaseWrapper.setLoadData(self, eggGroup)
+  
+  def loadFromData(self, eggGroup, filepath):
+    # search for a external reference
+    eggExternalReference = None
+    for child in eggGroup.getChildren():
+      if type(child) == EggExternalReference:
+        eggExternalReference = child
+    # read the reference if it is found
+    if eggExternalReference is not None:
+      referencedFilename = eggExternalReference.getFilename()
+      filename = os.path.join(filepath,str(referencedFilename))
+      self.setTerrain(filename)
+    BaseWrapper.loadFromData(self, eggGroup, filepath)
+

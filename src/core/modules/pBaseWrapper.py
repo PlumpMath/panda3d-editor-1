@@ -11,23 +11,35 @@ DEBUG = False
 BASEWRAPPER_DATA_TAG = 'BaseWrapper-params'
 
 class BaseWrapper(NodePath):
-  def __init__(self, name=None, parent=None):
+  def onCreateInstance(self, parent, name='BaseWrapper'):
+    # create instance of this class
+    objectInstance = self(parent, name)
+    return objectInstance
+  onCreateInstance = classmethod(onCreateInstance)
+  
+  def loadFromEggGroup(self, eggGroup, parent, filepath):
     if DEBUG:
-      print "I: BaseWrapper.__init__:", name, parent
+      print "I: NodePathWrapper.loadFromEggGroup:"
+    objectInstance = self(parent)
+    #objectInstance.loadFromData(eggGroup, filepath)
+    return objectInstance
+  loadFromEggGroup = classmethod(loadFromEggGroup)
+  
+  def __init__(self, parent, name):
+    if DEBUG:
+      print "I: BaseWrapper.__init__:", parent, name
     
     # get a uniq id for this object
     self.id = modelIdManager.getId()
     # define a name for this object
-    if name is None:
-      name = 'BaseWrapper'
     name = '%s-%s' % (name, self.id)
-    NodePath.__init__( self, name )
+    NodePath.__init__(self, name)
     # store this object
     modelIdManager.setObject(self, self.id)
     # reparent this nodePath
     if parent is None:
       parent = render
-    self.reparentTo( parent )
+    self.reparentTo(parent)
     self.editModeEnabled = False
   
   def destroy(self):
@@ -44,7 +56,7 @@ class BaseWrapper(NodePath):
       for y in xrange(4):
         nm.setCell( x, y, om.getCell(x,y) )
     # the matrix we define must be applied to the nodes in "local space"
-    instance = EggGroup(name+"-Group")
+    instance = EggGroup(name)
     instance.setGroupType(EggGroup.GTInstance)
     instance.setTransform3d( nm )
     # define the type of this object
@@ -65,7 +77,7 @@ class BaseWrapper(NodePath):
       instance.addChild(comment)
     return instance
   
-  def setLoadData(self, eggGroup):
+  def loadFromData(self, eggGroup, filepath):
     #print "I: BaseWrapper.setFromData:", eggGroup
     data = dict()
     for child in eggGroup.getChildren():
@@ -78,6 +90,7 @@ class BaseWrapper(NodePath):
       self.setTransparency(data['transparency'])
     if data.has_key('colorScale'):
       self.setColorScale(VBase4(*data['colorScale']))
+    self.setName(eggGroup.getName())
   
   def enableEditmode(self):
     ''' enables the edit methods of this object

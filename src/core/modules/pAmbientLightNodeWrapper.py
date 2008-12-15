@@ -7,10 +7,9 @@ from core.pModelController import modelController
 from core.pConfigDefs import *
 
 class AmbientLightNodeWrapper( LightNodeWrapper ):
-  def __init__(self, parent=None):
+  def __init__(self, parent=None, name='AmbientLight'):
     # define the name of this object
-    name = 'AmbientLight'
-    LightNodeWrapper.__init__(self, name, AmbientLight, AMBIENTLIGHT_WRAPPER_DUMMYOBJECT, name, parent)
+    LightNodeWrapper.__init__(self, parent, name, AMBIENTLIGHT_WRAPPER_DUMMYOBJECT, AmbientLight)
   
   def getSaveData(self, relativeTo):
     instance = LightNodeWrapper.getSaveData(self, relativeTo)
