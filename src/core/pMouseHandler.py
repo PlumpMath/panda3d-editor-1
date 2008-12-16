@@ -49,7 +49,7 @@ class MouseHandlerClass:
       self.mousePosX, self.mousePosY = self._getCurrentMousePos()
       
       # if the mouse is fixed to the center of the window, reset the mousepos
-      if self.mouseFixed:
+      if self.mouseFixed and (self.mousePosX != 0.0 or self.mousePosY != 0.0):
         self.setMouseCentered()
     
     return task.cont
