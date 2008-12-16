@@ -27,6 +27,13 @@ class SpotLightNodeWrapper(LightNodeWrapper):
   def setFov(self, *args, **kwargs):
     return self.lens.setFov(*args, **kwargs)
   
+  def getExponent(self, *args, **kwargs):
+    return self.light.getExponent(*args, **kwargs)
+  def setExponent(self, value):
+    # prevent a crash by limiting the value
+    value = min(127.0, max(0.0, value))
+    return self.light.setExponent(value)
+  
   def getSaveData(self, relativeTo):
     instance = LightNodeWrapper.getSaveData(self, relativeTo)
     # get the data
@@ -34,6 +41,7 @@ class SpotLightNodeWrapper(LightNodeWrapper):
     parameters['fov'] = [self.getFov()[0], self.getFov()[1]]
     parameters['near'] = self.getNear()
     parameters['far'] = self.getFar()
+    parameters['exponent'] = self.getExponent()
     if len(parameters) > 0:
       # add the data to the egg-file
       comment = EggComment('SpotLightNodeWrapper-params', str(parameters))
@@ -52,3 +60,5 @@ class SpotLightNodeWrapper(LightNodeWrapper):
       self.setNear(data['near'])
     if data.has_key('far'):
       self.setFar(data['far'])
+    if data.has_key('exponent'):
+      self.setExponent(data['exponent'])

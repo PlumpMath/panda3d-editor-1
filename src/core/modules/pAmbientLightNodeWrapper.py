@@ -11,6 +11,9 @@ class AmbientLightNodeWrapper( LightNodeWrapper ):
     # define the name of this object
     LightNodeWrapper.__init__(self, parent, name, AMBIENTLIGHT_WRAPPER_DUMMYOBJECT, AmbientLight)
   
+  def hasSpecularColor(self, *args, **kwargs):
+    return False
+  
   def getSaveData(self, relativeTo):
     instance = LightNodeWrapper.getSaveData(self, relativeTo)
     # get the data
