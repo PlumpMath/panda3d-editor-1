@@ -200,7 +200,7 @@ class BaseWrapper(DirectObject):
             print "W: dgui.BaseWrapper.setEntry: command failed"
             print "  -", execCmd
         elif paramType == 'int':
-          execCmd = 'self.object.%s( %i )' % (setter, paramValue)
+          execCmd = 'self.object.%s( %i )' % (setter, int(paramValue))
           try:
             exec( execCmd )
           except:

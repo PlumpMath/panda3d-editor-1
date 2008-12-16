@@ -8,6 +8,8 @@ class SpotLightNodeWrapper(LightNodeWrapper):
     #self.mutableParametersSorting.append(['H-Fov', 'V-Fov'])
     self.mutableParameters['Fov'] = ['vec2', 'getFov', 'setFov', None]
     self.mutableParametersSorting.append('Fov')
+    self.mutableParameters['Exponent'] = ['float', 'getExponent', 'setExponent', None]
+    self.mutableParametersSorting.append('Exponent')
     #self.mutableParameters['FilmSize'] = ['float2', 'getFilmSize, 'setFilmSize', None]
     #self.mutableParameters['FocalLength'] = ['float', 'getFocalLength', 'setFocalLength', None]
     #self.mutableParameters['AspectRatio'] = ['float', 'getAspectRatio', 'setAspectRatio', None]
