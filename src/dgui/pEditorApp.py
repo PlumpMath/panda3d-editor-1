@@ -48,7 +48,7 @@ class EditorApp(DirectObject):
     self.enabled = False
     self.accept( EDITOR_DGUI_TOGGLE_BUTTON, self.toggle )
     self.editorInstance = editorInstance
-    #cameraController = CameraController()
+    self.shaderAuto = False
   
   def toggle( self, state=None ):
     if DEBUG:
@@ -119,7 +119,8 @@ class EditorApp(DirectObject):
                           , ['GeoMipTerrain', self.crateFilebrowserModelWrapper, ['GeoMipTerrainNodeWrapper']]
                           , ['destroy model', self.editorInstance.destroyModel, []]
                           , ['load', self.loadEggModelsFile, []]
-                          , ['save', self.saveEggModelsFile, []] ]
+                          , ['save', self.saveEggModelsFile, []]
+                          , ['pix-light', self.toggleShaderAuto, []] ]
       self.createInterface(buttonDefinitions)
       
       # some help text nodes
@@ -148,9 +149,16 @@ class EditorApp(DirectObject):
       self.accept('f11', self.toggle)
     
     self.accept(EDITOR_DGUI_TOGGLE_BUTTON, self.toggle)
-    
-    
     self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, self.modelSelected)
+  
+  def toggleShaderAuto(self, state=None):
+    if state is None:
+      state = not self.shaderAuto
+    self.shaderAuto = state
+    if self.shaderAuto:
+      render.setShaderAuto()
+    else:
+      render.setShaderOff()
   
   def modelSelected(self, model):
     try:
