@@ -26,7 +26,7 @@ class SceneGraphBrowser(DirectObject):
             nameStr=' '.join(np.getName().splitlines())[:25]
             if len(nameStr)==25:
                nameStr+='....'
-            self.nameStr='(%s) %s' %(np.node().getType(), nameStr)
+            self.nameStr='%s' %(nameStr)
 
         def remove(self):
             if hasattr(self,'treeButton'):
@@ -475,28 +475,30 @@ class SceneGraphBrowser(DirectObject):
          self.childrenList[-1].VtreeLines.setX(-.5*self.itemIndent)
       for c in np.getChildrenAsList():
           tagExist=False
-          for t in self.exclusionTag:
-              tagExist|=c.hasTag(t)
-          if not tagExist:
-             noSelectTagExist=not editable
-             if self.selectTag:
-                tagExist=False
-                for t in self.selectTag:
-                    tagExist|=c.hasTag(t)
-                self.childrenList.append( self.SceneGraphItem(c,level,tagExist) )
-             elif self.noSelectTag:
-                if editable: # if parent is already not editable, no need to check child's tag(s)
-                   for t in self.noSelectTag:
-                       noSelectTagExist|=c.hasTag(t)
-                self.childrenList.append( self.SceneGraphItem(c,level,not noSelectTagExist) )
-             else:
-                self.childrenList.append( self.SceneGraphItem(c,level,True) )
-             lastNextLevel=len(self.childrenList)-1
-             self.__listchildren(c,level+1,editable=not noSelectTagExist)
-             if np!=self.root:
-                hor=self.horisontalTreeLine.instanceUnderNode(self.childrenList[lastNextLevel].HtreeLines,'')
-                hor.setPos(-1.5*self.itemIndent,0,self.itemScale*.25)
-             status=-1
+          #for t in self.exclusionTag:
+          #  tagExist|=c.hasTag(t)
+          for t in self.selectTag:
+            tagExist|=c.hasTag(t)
+          if tagExist:
+            noSelectTagExist=not editable
+            if self.selectTag:
+              tagExist=False
+              for t in self.selectTag:
+                tagExist|=c.hasTag(t)
+              self.childrenList.append( self.SceneGraphItem(c,level,tagExist) )
+            elif self.noSelectTag:
+              if editable: # if parent is already not editable, no need to check child's tag(s)
+                for t in self.noSelectTag:
+                  noSelectTagExist|=c.hasTag(t)
+              self.childrenList.append( self.SceneGraphItem(c,level,not noSelectTagExist) )
+            else:
+              self.childrenList.append( self.SceneGraphItem(c,level,True) )
+            lastNextLevel=len(self.childrenList)-1
+            self.__listchildren(c,level+1,editable=not noSelectTagExist)
+            if np!=self.root:
+              hor=self.horisontalTreeLine.instanceUnderNode(self.childrenList[lastNextLevel].HtreeLines,'')
+              hor.setPos(-1.5*self.itemIndent,0,self.itemScale*.25)
+            status=-1
       if status!=0:
          if np!=self.root:
             vert=self.verticalTreeLine.instanceUnderNode(self.childrenList[listIdx].VtreeLines,'')
