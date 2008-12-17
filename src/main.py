@@ -45,10 +45,4 @@ if __name__ == "__main__":
   if USE_GUI == "dgui":
     editor.toggle(True)
   
-  editor.saveEggModelsFile("/l/_PROGRAMMING/_PROJECTS/eggEditor-cvs/panda3d-editor/examples/win-save-1.egg")
-  
-  import time
-  while True:
-    taskMgr.step()
-    #time.sleep(0.05)
-
+  run()
