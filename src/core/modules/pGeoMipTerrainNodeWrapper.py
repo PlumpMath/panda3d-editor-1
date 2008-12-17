@@ -1,3 +1,5 @@
+import posixpath
+
 from pandac.PandaModules import *
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
@@ -47,7 +49,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
     name = self.getName()
     instance = BaseWrapper.getSaveData(self, relativeTo)
     # convert to a relative path
-    terrainImageFilepath = relpath(relativeTo, os.path.abspath(self.terrainImageFilepath))
+    terrainImageFilepath = relpath(relativeTo, posixpath.abspath(self.terrainImageFilepath))
     if DEBUG:
       print "I: GeoMipTerrainNodeWrapper.getSaveData: modelFilepath:", terrainImageFilepath, self.terrainImageFilepath, relativeTo
     # add the reference to the egg-file
@@ -64,7 +66,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
     # read the reference if it is found
     if eggExternalReference is not None:
       referencedFilename = eggExternalReference.getFilename()
-      filename = os.path.join(filepath,str(referencedFilename))
+      filename = posixpath.join(filepath,str(referencedFilename))
       self.setTerrain(filename)
     BaseWrapper.loadFromData(self, eggGroup, filepath)
 

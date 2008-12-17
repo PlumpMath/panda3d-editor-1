@@ -16,6 +16,7 @@ class TestObjectExtension(DirectObject):
     print "  - number of objects in scene", len(modelIdManager.getAllModels())
     
     self.accept('arrow_up', self.up)
+    print "  - done"
   
   def __del__(self):
     #print "I: TestObjectExtension.__del__"

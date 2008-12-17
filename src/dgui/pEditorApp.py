@@ -3,6 +3,7 @@ from direct.showbase.DirectObject import DirectObject
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.DirectButton import DirectButton
 from direct.gui.DirectScrolledList import DirectScrolledList
+from pandac.PandaModules import *
 
 from dgui.interactiveConsole.interactiveConsole import pandaConsole, INPUT_GUI, OUTPUT_PYTHON
 from dgui.filebrowser import FG
@@ -120,7 +121,8 @@ class EditorApp(DirectObject):
                           , ['destroy model', self.editorInstance.destroyModel, []]
                           , ['load', self.loadEggModelsFile, []]
                           , ['save', self.saveEggModelsFile, []]
-                          , ['pix-light', self.toggleShaderAuto, []] ]
+                          , ['pix-light', self.toggleShaderAuto, []]
+                          ]
       self.createInterface(buttonDefinitions)
       
       # some help text nodes
@@ -210,20 +212,24 @@ class EditorApp(DirectObject):
       print "I: EditorApp.saveEggModelsFile:"
     FG.openFileBrowser()
     FG.accept('selectionMade', self.saveEggModelsFileCallback)
-  def saveEggModelsFileCallback(self, filename):
+  def saveEggModelsFileCallback(self, filepath):
     if DEBUG:
       print "I: EditorApp.saveEggModelsFileCallback:", filename
-    self.editorInstance.saveEggModelsFile(filename)
+    if filepath != None and filepath != '' and filepath != ' ':
+      filepath = Filename.fromOsSpecific(filepath).getFullpath()
+      self.editorInstance.saveEggModelsFile(filepath)
   
   def loadEggModelsFile(self):
     if DEBUG:
       print "I: EditorApp.loadEggModelsFile:"
     FG.openFileBrowser()
     FG.accept('selectionMade', self.loadEggModelsFileCallback)
-  def loadEggModelsFileCallback(self, filename):
+  def loadEggModelsFileCallback(self, filepath):
     if DEBUG:
       print "I: EditorApp.loadEggModelsFileCallback:", filename
-    self.editorInstance.loadEggModelsFile(filename)
+    if filepath != None and filepath != '' and filepath != ' ':
+      filepath = Filename.fromOsSpecific(filepath).getFullpath()
+      self.editorInstance.loadEggModelsFile(filepath)
   
   def createObjectEditor(self, object):
     if DEBUG:
@@ -247,14 +253,17 @@ class EditorApp(DirectObject):
     FG.openFileBrowser()
     FG.accept('selectionMade', self.onCrateFilebrowserModelWrapper, [objectType])
   def onCrateFilebrowserModelWrapper(self, objectType, filepath):
-    print "I: EditorApp.onCrateFilebrowserModelWrapper:", objectType, filepath
-    modelParent = modelController.getSelectedModel()
-    module = __import__("core.modules.p%s" % objectType, globals(), locals(), [objectType], -1)
-    exec("objectInstance = module.%s.onCreateInstance(modelParent, filepath)" % (objectType))
-    if objectInstance is not None:
-      objectInstance.enableEditmode()
-    messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
-    modelController.selectModel( objectInstance )
+    if filepath != None and filepath != '' and filepath != ' ':
+      filepath = Filename.fromOsSpecific(filepath).getFullpath()
+      print "I: EditorApp.onCrateFilebrowserModelWrapper:", objectType, filepath
+      modelParent = modelController.getSelectedModel()
+      module = __import__("core.modules.p%s" % objectType, globals(), locals(), [objectType], -1)
+      exec("objectInstance = module.%s.onCreateInstance(modelParent, filepath)" % (objectType))
+      if objectInstance is not None:
+        objectInstance.enableEditmode()
+      messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
+      modelController.selectModel( objectInstance )
+  
   def createModelWrapper(self, type):
     # create the actual wrapper of the object
     module = __import__("core.modules.p%s" % type, globals(), locals(), [type], -1)
@@ -272,6 +281,10 @@ class EditorApp(DirectObject):
       # hide the text
       for text in self.helpText:
         text.detachNode()
+      
+      #self.modelSelected(None)
+      if self.editorObjectGuiInstance is not None:
+        self.editorObjectGuiInstance.stopEdit()
       
       self.scenegraphBrowserWindow.detachNode()
       
@@ -295,7 +308,7 @@ class EditorApp(DirectObject):
       buttons.append( button )
     itemHeight = 0.11
     
-    height = itemHeight * len(buttonDefinitions)
+    height = (itemHeight - 0.04) * len(buttonDefinitions)
     self.ButtonsWindow = DirectWindow( title='ButtonsWindow', pos = ( 0.83, 1.0 )
                                                 , virtualSize = ( 0.5, height )
                                      )

@@ -39,6 +39,7 @@ class LightNodeWrapper(VirtualNodeWrapper):
   def setAttenuation(self, *args, **kwargs):
     return self.light.setAttenuation(*args, **kwargs)
   def hasAttenuation(self, *args, **kwargs):
+    # is overridden by ambientlight, which hasnt got this parameter
     return True
   
   def getSpecularColor(self, *args, **kwargs):

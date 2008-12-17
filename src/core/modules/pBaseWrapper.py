@@ -21,7 +21,6 @@ class BaseWrapper(NodePath):
     if DEBUG:
       print "I: NodePathWrapper.loadFromEggGroup:"
     objectInstance = self(parent)
-    #objectInstance.loadFromData(eggGroup, filepath)
     return objectInstance
   loadFromEggGroup = classmethod(loadFromEggGroup)
   

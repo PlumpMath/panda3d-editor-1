@@ -9,9 +9,10 @@
 # helper functions for relative paths
 #
 import os
+import posixpath
 
 def pathsplit(p, rest=[]):
-    (h,t) = os.path.split(p)
+    (h,t) = posixpath.split(p) #.split('/')
     if len(h) < 1: return [t]+rest
     if len(t) < 1: return [h]+rest
     return pathsplit(h,[t]+rest)
@@ -28,7 +29,7 @@ def relpath(p1, p2):
     if len(l1) > 0:
         p = [ '../' * len(l1) ]
     p = p + l2
-    result = os.path.join( *p )
+    result = '/'.join( p )
     print "I: commonPath.relpath: %s | %s -> %s" % (p1, p2, result)
     return result
 

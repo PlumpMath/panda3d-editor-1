@@ -116,9 +116,11 @@ class EditorClass(DirectObject):
     eggData = EggData()
     eggData.setCoordinateSystem(1)
     # start reading the childrens of render
-    relativeTo = os.path.dirname(filepath)
-    if DEBUG:
-      print "I: EditorClass.saveEggModelsFile: relativeTo:", relativeTo, filepath
+    relativeTo = Filename(filepath).getDirname() #os.path.dirname(filepath)
+    #if DEBUG:
+    print "I: EditorClass.saveEggModelsFile: relativeTo:", relativeTo, filepath
+    relativeTo = str(Filename.fromOsSpecific(relativeTo))
+    print "I: EditorClass.saveEggModelsFile: relativeTo:", relativeTo
     saveRecursiveChildrens(render, eggData, relativeTo)
     # save the egg file
     eggData.writeEgg(Filename(filepath))
@@ -152,10 +154,12 @@ class EditorClass(DirectObject):
           try:
             # import the module responsible for handling the data
             module = __import__('core.modules.p%s' % wrapperType, globals(), locals(), [wrapperType], -1)
+            print "  - loading", wrapperType,
             # load the eggParentData using the module
             object = getattr(module, wrapperType).loadFromEggGroup(eggParentData, parent, filepath)
             # append loaded object to list
             loadedObjects.append([object, eggParentData])
+            print "... done"
           except:
             print "I: EditorClass.loadEggModelsFile: unknown or invalid entry"
             traceback.print_exc()
@@ -189,21 +193,29 @@ class EditorClass(DirectObject):
       return parent, loadedObjects
     
     if filename != None and filename != '' and filename != ' ':
+      p3filename = Filename.fromOsSpecific(filename)
+      p3filename.makeAbsolute()
       # destroy old models
       self.destroyAllModels()
       
+      print "I: EditApp.loadEggModelsFile: loading"
+      print "  - filename:", filename
+      
       eggData = EggData()
-      eggData.read(Filename(filename))
+      eggData.read(p3filename)
       
       # the absolute path of the file we load, referenced files are relative
       # to this path
-      filepath = os.path.dirname(os.path.abspath(filename))
+      
+      filepath = p3filename.getDirname()
+      #filepath = str(Filename.fromOsSpecific(filepath))
       
       # add the path to the model-path
       #print "I: EditorApp.loadEggModelsFile: adding to model-path:", filepath
       from pandac.PandaModules import getModelPath
       getModelPath().appendPath(filepath)
       # read the eggData
+      print "  - filepath:", filepath
       parent, loadedObjects = loadRecursiveChildrens(eggData, render, Mat4.identMat(), filepath, list())
       
       for objectInstance, eggData in loadedObjects:
@@ -221,6 +233,7 @@ class EditorClass(DirectObject):
       
       # refresh the scenegraphbrowser
       messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+    print "I: EditApp.loadEggModelsFile: done"
   
   def destroyModel(self):
     #print "editor.editorClass.destroyModel"

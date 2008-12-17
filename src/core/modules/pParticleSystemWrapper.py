@@ -1,4 +1,4 @@
-import traceback
+import traceback, posixpath
 
 from direct.particles.ParticleEffect import ParticleEffect
 from direct.particles.Particles import Particles
@@ -81,14 +81,14 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
             nm.setCell( x, y, om.getCell(x,y) )
     # the matrix we define must be applied to the nodes in "local space"
     nodeName = self.getName()
-    instance = EggGroup( nodeName+"-Group" )
+    instance = EggGroup( nodeName )
     instance.setGroupType(EggGroup.GTInstance)
     instance.setTransform3d( nm )
     # userdata is not written to the eggFile
     className = self.__class__.__name__
     instance.setTag( MODEL_WRAPPER_TYPE_TAG, className )
     # convert to a relative path
-    filepath = relpath( relativeTo, os.path.abspath(self.particleFilename) )
+    filepath = relpath( relativeTo, posixpath.abspath(self.particleFilename) )
     # add the reference to the egg-file
     ext = EggExternalReference( nodeName+"-EggExternalReference", filepath )
     instance.addChild(ext)
@@ -103,7 +103,7 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
     # read the reference if it is found
     if eggExternalReference is not None:
       referencedFilename = eggExternalReference.getFilename()
-      filename = os.path.join(filepath,str(referencedFilename))
+      filename = posixpath.join(filepath,str(referencedFilename))
       self.setParticleConfig(filename)
     else:
       print "I: NodePathWrapper.loadFromData: no externalReference found in"

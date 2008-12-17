@@ -1,4 +1,4 @@
-import os, imp, traceback
+import posixpath, imp, traceback
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.pModelController import modelController
@@ -16,17 +16,6 @@ class CodeNodeWrapper(VirtualNodeWrapper):
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
   
-  '''# parent, filepath
-  def loadFromEggGroup( self, eggGroup, parent, filepath ):
-    if DEBUG:
-      print "I: CodeNodeWrapper.loadFromEggGroup:"
-    eggExternalReference = eggGroup.getChildren()[0]
-    referencedFilename = eggExternalReference.getFilename()
-    filepath = os.path.join(filepath,str(referencedFilename))
-    objectInstance = self.onCreateInstance(parent, filepath)
-    return objectInstance
-  loadFromEggGroup = classmethod(loadFromEggGroup)'''
-  
   def __init__(self, parent, name='CodeNode'):
     self.objectInstance = None
     #name = filepath.split('/')[-1]
@@ -42,14 +31,14 @@ class CodeNodeWrapper(VirtualNodeWrapper):
       filename=os.path.basename(filepath)
       dirname=os.path.dirname(filepath)
       filebase, fileext = os.path.splitext(filename)
+      print "I: CodeNodeWrapper.setScript:"
+      print "  - filebase:", filebase
+      dirname = Filename(dirname).toOsSpecific()
+      print "  - dirname:", dirname
       if fileext == '.py':
-        fp, filename, description=imp.find_module(filebase, [dirname])
         try:
+          fp, filename, description=imp.find_module(filebase, [dirname])
           module = imp.load_module(filebase, fp, filename, description)
-        except:
-          print "W: CodeNodeWrapper.setScript: find_module failed"
-          traceback.print_exc()
-        try:
           objectClass = getattr(module, filebase[0].upper()+filebase[1:])
           objectInstance = objectClass(self)
           self.objectInstance = objectInstance
@@ -60,9 +49,10 @@ class CodeNodeWrapper(VirtualNodeWrapper):
   
   def destroy(self):
     VirtualNodeWrapper.destroy(self)
-    self.objectInstance.destroy()
-    del self.objectInstance
-    self.objectInstance = None
+    if self.objectInstance is not None:
+      self.objectInstance.destroy()
+      del self.objectInstance
+      self.objectInstance = None
   
   def getSaveData(self, relativeTo):
     ''' link the egg-file into the egg we save
@@ -72,7 +62,7 @@ class CodeNodeWrapper(VirtualNodeWrapper):
     className = 'CodeNodeWrapper' #self.__class__.__name__ -> yields the wrong classname
     #instance.setTag( MODEL_WRAPPER_TYPE_TAG, className )
     # convert to a relative path
-    scriptFilepath = relpath( relativeTo, os.path.abspath(self.scriptFilepath) )
+    scriptFilepath = relpath( relativeTo, posixpath.abspath(self.scriptFilepath) )
     #print "I: CodeNodeWrapper.getSaveData: scriptFilepath:", scriptFilepath, self.scriptFilepath, relativeTo
     # add the reference to the egg-file
     ext = EggExternalReference( className+"-EggExternalReference", scriptFilepath )
@@ -88,7 +78,7 @@ class CodeNodeWrapper(VirtualNodeWrapper):
     # read the reference if it is found
     if eggExternalReference is not None:
       referencedFilename = eggExternalReference.getFilename()
-      filename = os.path.join(filepath,str(referencedFilename))
+      filename = posixpath.join(filepath,str(referencedFilename))
       self.setScript(filename)
     else:
       print "I: NodePathWrapper.loadFromData: no externalReference found in"

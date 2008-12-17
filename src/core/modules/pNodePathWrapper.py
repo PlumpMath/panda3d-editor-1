@@ -1,10 +1,10 @@
-import os
+import posixpath
 
 from core.modules.pBaseWrapper import *
 from core.pModelController import modelController
 from core.pCommonPath import *
 
-DEBUG = False
+DEBUG = True
 
 class NodePathWrapper(BaseWrapper):
   def onCreateInstance(self, parent, filepath):
@@ -44,15 +44,15 @@ class NodePathWrapper(BaseWrapper):
           print "I: NodePathWrapper.setModel: adding to pandapath:"
           print "  -", pandaPath
         getModelPath().appendPath(pandaPath)
-    
+      
       # the path to the model we handle
       self.modelFilepath = modelFilepath
       # load the model
-      self.model = loader.loadModel(modelFilepath)
+      self.model = loader.loadModel(filepath)
     
     # if the model loading fails or no path given, use a dummy object
     if self.model is None:
-      print "W: NodePathWrapper.setModel: model %s not found, loading dummy" % self.model
+      print "W: NodePathWrapper.setModel: model could not be loaded, loading dummy"
       self.model = loader.loadModel(MODEL_NOT_FOUND_MODEL)
     # make the model visible
     self.model.reparentTo(self)
@@ -95,7 +95,7 @@ class NodePathWrapper(BaseWrapper):
     name = self.getName()
     instance = BaseWrapper.getSaveData(self, relativeTo)
     # convert to a relative path
-    modelFilepath = relpath(relativeTo, os.path.abspath(self.modelFilepath))
+    modelFilepath = relpath(relativeTo, posixpath.abspath(self.modelFilepath))
     if DEBUG:
       print "I: pNodePathWrapper.getSaveData: modelFilepath:", modelFilepath, self.modelFilepath, relativeTo
     # add the reference to the egg-file
@@ -112,7 +112,8 @@ class NodePathWrapper(BaseWrapper):
     # read the reference if it is found
     if eggExternalReference is not None:
       referencedFilename = eggExternalReference.getFilename()
-      filename = os.path.join(filepath,str(referencedFilename))
+      #print "I: NodePathWrapper.loadFromData:", filepath, str(referencedFilename)
+      filename = posixpath.join(filepath,str(referencedFilename))
       self.setModel(filename)
     else:
       print "I: NodePathWrapper.loadFromData: no externalReference found in"

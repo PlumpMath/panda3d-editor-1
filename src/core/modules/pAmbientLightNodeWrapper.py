@@ -13,6 +13,8 @@ class AmbientLightNodeWrapper( LightNodeWrapper ):
   
   def hasSpecularColor(self, *args, **kwargs):
     return False
+  def hasAttenuation(self, *args, **kwargs):
+    return False
   
   def getSaveData(self, relativeTo):
     instance = LightNodeWrapper.getSaveData(self, relativeTo)
