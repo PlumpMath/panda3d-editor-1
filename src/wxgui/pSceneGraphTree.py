@@ -33,7 +33,7 @@ class SceneGraphTree(wx.TreeCtrl, DirectObject):
     
     self.ignoreSelChange = False
     self.accept(EVENT_SCENEGRAPHBROWSER_REFRESH, self.reload)
-    self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, self.selectNodePath)
+    self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.selectNodePath)
   
   def onSelChange(self, item):
     """This event gets invoked when the selection gets changed on the tree view."""

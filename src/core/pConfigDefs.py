@@ -8,7 +8,8 @@ EDITOR_TOGGLE_ON_EVENT = 'pandaEditorToggleOn'
 EVENT_SCENEGRAPHBROWSER_REFRESH = 'refreshSceneGraph'
 # this event is sent when a object has been selected
 # (extraArgs contains module class object)
-EVENT_MODELCONTROLLER_SELECT_MODEL = 'modelEdit-selectModel'
+EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE = 'modelEdit-selectModel-change'
+EVENT_MODELCONTROLLER_SELECT_MODEL_AGAIN = 'modelEdit-selectModel-again'
 # this event is sent when a object has been modified (only sent rarely)
 EVENT_MODELCONTROLLER_FULL_REFRESH = 'refreshModelEdit-full'
 # this event is sent when a object has been modified (can be sent every frame)

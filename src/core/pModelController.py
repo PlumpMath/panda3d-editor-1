@@ -213,6 +213,7 @@ class ModelController( DirectObject ):
       self.__unsetMode()
       self.__deselectModel()
       self.__selectedModel = None
+      messenger.send( EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, [model] )
     else:
       if model == self.__selectedModel:
         # the current model has been clicked again
@@ -223,6 +224,7 @@ class ModelController( DirectObject ):
         newModelMode = MODEL_MODIFICATION_MODES[(curModelMode+1) % len(MODEL_MODIFICATION_MODES)]
         self.__modelMode = newModelMode
         self.__setMode()
+        messenger.send( EVENT_MODELCONTROLLER_SELECT_MODEL_AGAIN, [model] )
       else:
         # a new / different model has been clicked
         if DEBUG:
@@ -233,7 +235,7 @@ class ModelController( DirectObject ):
         self.__modelMode = MODEL_MODIFICATION_MODES[0]
         self.__selectModel()
         self.__setMode()
-    messenger.send( EVENT_MODELCONTROLLER_SELECT_MODEL, [model] )
+        messenger.send( EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, [model] )
   
   def getSelectedModel( self ):
     return self.__selectedModel

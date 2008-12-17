@@ -144,14 +144,14 @@ class EditorApp(DirectObject):
       
       self.editorObjectGuiInstance = None
       self.lastSelectedObject = None
-      self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, self.createObjectEditor)
+      self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.createObjectEditor)
       
       self.accept('f5', self.saveEggModelsFile)
       self.accept('f9', self.loadEggModelsFile)
       self.accept('f11', self.toggle)
     
     self.accept(EDITOR_DGUI_TOGGLE_BUTTON, self.toggle)
-    self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, self.modelSelected)
+    self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.modelSelected)
   
   def toggleShaderAuto(self, state=None):
     if state is None:

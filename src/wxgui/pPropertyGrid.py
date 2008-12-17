@@ -27,7 +27,7 @@ class PropertyGrid(Grid, DirectObject):
     # Catch events
     self.Bind(EVT_GRID_CELL_CHANGE, self.onCellChange)
     self.Bind(wx.EVT_SIZE, self.onSize)
-    self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, self.viewForNodePath)
+    self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.viewForNodePath)
     self.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, self.viewForSelection)
   
   def onSize(self, evt = None):
