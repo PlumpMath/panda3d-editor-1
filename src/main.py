@@ -26,9 +26,9 @@ if __name__ == "__main__":
     WindowManager.startBase(showDefaultWindow = True, allowMultipleWindows = False)
   elif USE_GUI == "wxgui":
     WindowManager.startBase(showDefaultWindow = False, allowMultipleWindows = True)
+  else:
+    WindowManager.startBase(showDefaultWindow = True, allowMultipleWindows = False)
   
-  if USE_GUI is None:
-    from direct.directbase import DirectStart
   # Third phase: load up the core of the editor.
   from core.pMain import EditorClass
   editor = EditorClass(render)
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     app = EditorApp(editor)
     app.toggle(True)
   elif USE_GUI == "wxgui":
-    # wxgui needs to be opened before the editor, as it opens the window later
+    # wxGui needs to be opened before the editor, as it opens the window later
     from wxgui.pEditorApp import EditorApp
     app = EditorApp(editor)
   
