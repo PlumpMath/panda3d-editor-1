@@ -31,11 +31,13 @@ class SceneGraphTree(wx.TreeCtrl, DirectObject):
     self.modelDict = {}
     self.reload()
     
+    self.ignoreSelChange = False
     self.accept(EVENT_SCENEGRAPHBROWSER_REFRESH, self.reload)
     self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL, self.selectNodePath)
   
   def onSelChange(self, item):
     """This event gets invoked when the selection gets changed on the tree view."""
+    if self.ignoreSelChange: return
     if not isinstance(item, wx.TreeItemId):
       item = item.GetItem()
     modelController.selectModel(self.GetItemPyData(item))
@@ -44,7 +46,9 @@ class SceneGraphTree(wx.TreeCtrl, DirectObject):
     """Selects the given NodePath in the tree."""
     if model in self.modelDict:
       treeItem = self.modelDict[model]
+      self.ignoreSelChange = True
       self.SelectItem(treeItem)
+      self.ignoreSelChange = False
   
   def reload(self):
     """Clears the tree view and reloads it based on the scene graph."""
