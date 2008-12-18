@@ -11,6 +11,7 @@ from dgui.scenegraphBrowser import SceneGraphBrowser
 from dgui.directWindow.src.directWindow import DirectWindow
 from dgui.interactiveConsole.interactiveConsole import *
 from dgui.pCameraController import cameraController
+from dgui.directSidebar import *
 
 from core.pConfigDefs import *
 from core.pModelController import modelController
@@ -110,20 +111,27 @@ class EditorApp(DirectObject):
       #console = pandaConsole( INPUT_GUI|OUTPUT_PYTHON, locals() )
       #console.toggle()
       
-      buttonDefinitions = [ ['model', self.crateFilebrowserModelWrapper, ['NodePathWrapper']]
-                          , ['particlesystem', self.crateFilebrowserModelWrapper, ['ParticleSystemWrapper']]
-                          , ['spotlight', self.createModelWrapper, ['SpotLightNodeWrapper']]
-                          , ['directionallight', self.createModelWrapper, ['DirectionalLightNodeWrapper']]
-                          , ['ambientlight', self.createModelWrapper, ['AmbientLightNodeWrapper']]
-                          , ['pointlight', self.createModelWrapper, ['PointLightNodeWrapper']]
-                          , ['codeNode', self.crateFilebrowserModelWrapper, ['CodeNodeWrapper']]
-                          , ['GeoMipTerrain', self.crateFilebrowserModelWrapper, ['GeoMipTerrainNodeWrapper']]
-                          , ['destroy model', self.editorInstance.destroyModel, []]
-                          , ['load', self.loadEggModelsFile, []]
-                          , ['save', self.saveEggModelsFile, []]
-                          , ['pix-light', self.toggleShaderAuto, []]
-                          ]
-      self.createInterface(buttonDefinitions)
+      sceneButtonDefinitions = [ 
+        ['load', self.loadEggModelsFile, []]
+      , ['save', self.saveEggModelsFile, []]
+      ]
+      self.createInterface(sceneButtonDefinitions, 'scene', align=ALIGN_LEFT|ALIGN_TOP, pos=Vec3(0.05,0,0))
+      settingsButtonDefinitions = [
+        ['pix-light', self.toggleShaderAuto, []]
+      ]
+      self.createInterface(settingsButtonDefinitions, 'settings', align=ALIGN_LEFT|ALIGN_TOP, pos=Vec3(0.45,0,0))
+      editButtonDefinitions = [
+        ['model', self.crateFilebrowserModelWrapper, ['NodePathWrapper']]
+      , ['particlesystem', self.crateFilebrowserModelWrapper, ['ParticleSystemWrapper']]
+      , ['spotlight', self.createModelWrapper, ['SpotLightNodeWrapper']]
+      , ['directionallight', self.createModelWrapper, ['DirectionalLightNodeWrapper']]
+      , ['ambientlight', self.createModelWrapper, ['AmbientLightNodeWrapper']]
+      , ['pointlight', self.createModelWrapper, ['PointLightNodeWrapper']]
+      , ['codeNode', self.crateFilebrowserModelWrapper, ['CodeNodeWrapper']]
+      , ['GeoMipTerrain', self.crateFilebrowserModelWrapper, ['GeoMipTerrainNodeWrapper']]
+      , ['destroy model', self.editorInstance.destroyModel, []]
+      ]
+      self.createInterface(editButtonDefinitions, 'edit', align=ALIGN_LEFT|ALIGN_TOP, pos=Vec3(0.85,0,0))
       
       # some help text nodes
       self.helpText = list()
@@ -133,6 +141,7 @@ class EditorApp(DirectObject):
                   , "RightMouse: press & drag to move camera pivot"
                   , "%s: Toggle Editor On/off (currently buggy)" % EDITOR_DGUI_TOGGLE_BUTTON.upper()
                   , "F5: save scene      F9: load scene" ]
+      helpTexts = []
       for i in xrange( len(helpTexts) ):
         self.helpText.append( addInstructions(1.0-0.05*(i+1), helpTexts[i]) )
       for text in self.helpText:
@@ -296,7 +305,7 @@ class EditorApp(DirectObject):
       
       self.accept( EDITOR_DGUI_TOGGLE_BUTTON, self.toggle )
   
-  def createInterface( self, buttonDefinitions ):
+  def createInterface( self, buttonDefinitions, title, align, pos ):
     buttons = list()
     for name, functionCall, extraArgs in buttonDefinitions:
       button = DirectButton(text = (name, name, name, name),
@@ -308,21 +317,21 @@ class EditorApp(DirectObject):
       buttons.append( button )
     itemHeight = 0.11
     
-    height = (itemHeight - 0.04) * len(buttonDefinitions)
-    self.ButtonsWindow = DirectWindow( title='ButtonsWindow', pos = ( 0.83, 1.0 )
-                                                , virtualSize = ( 0.5, height )
-                                     )
+    height = 0.1+(itemHeight - 0.06) * len(buttonDefinitions)
+    self.ButtonsWindow  = DirectSidebar(
+        frameSize=(0.35, height)
+      , pos=pos
+      , align=align
+      , text=title)
+    print height
+    
     myScrolledList = DirectScrolledList(
-        #frameSize = (-1, 1, -1, 0),
-        #frameColor = (1,0,0,0.5),
-        pos = (0.25, 0, -.1 ),
+        pos = Vec3(.175, 0, height-0.05 ),
         items = buttons,
         scale = 0.5,
         parent = self.ButtonsWindow,
         numItemsVisible = len(buttons),
         forceHeight = itemHeight,
-        #itemFrame_frameSize = (-0.2, 0.2, -0.37, 0.11),
-        #itemFrame_pos = (0.35, 0, 0.4),
         incButton_scale = (0, 0, 0),
         decButton_scale = (0, 0, 0),
         )
