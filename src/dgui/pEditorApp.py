@@ -51,6 +51,7 @@ class EditorApp(DirectObject):
     self.accept( EDITOR_DGUI_TOGGLE_BUTTON, self.toggle )
     self.editorInstance = editorInstance
     self.shaderAuto = False
+    self.objectEditorVisible = False
   
   def toggle( self, state=None ):
     if DEBUG:
@@ -75,9 +76,15 @@ class EditorApp(DirectObject):
         if DEBUG:
           print np.getName(),'RIGHT CLICKED, DO SOMETHING !'
       
-      self.scenegraphBrowserWindow = DirectWindow( title='window1'
+      '''self.scenegraphBrowserWindow = DirectWindow( title='szenegraph'
                                                  , pos = ( -1.33, .55)
-                                                 , virtualSize = (1, 1.5) )
+                                                 , virtualSize = (1, 1.5) )'''
+      self.scenegraphBrowserWindow = DirectSidebar(
+        frameSize=(1.07, 1.5)
+      , pos=Vec3(0,0,0.0)
+      , align=ALIGN_LEFT|ALIGN_BOTTOM
+      , orientation=VERTICAL
+      , text='szenegraph')
       # create SceneGraphBrowser and point it on aspect2d
       self.scenegraphBrowser = SceneGraphBrowser(
                  parent=self.scenegraphBrowserWindow, # where to attach SceneGraphBrowser frame
@@ -131,7 +138,7 @@ class EditorApp(DirectObject):
       , ['GeoMipTerrain', self.crateFilebrowserModelWrapper, ['GeoMipTerrainNodeWrapper']]
       , ['destroy model', self.editorInstance.destroyModel, []]
       ]
-      self.createInterface(editButtonDefinitions, 'edit', align=ALIGN_LEFT|ALIGN_TOP, pos=Vec3(0.85,0,0))
+      self.createInterface(editButtonDefinitions, 'edit', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.05,0,0))
       
       # some help text nodes
       self.helpText = list()
@@ -161,6 +168,14 @@ class EditorApp(DirectObject):
     
     self.accept(EDITOR_DGUI_TOGGLE_BUTTON, self.toggle)
     self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.modelSelected)
+  
+  def setObjectEditwindowToggled(self, state):
+    ''' saves the state of the object related window, so you dont have to
+    close/open it every time, (it stays closed if it was before)'''
+    print "objectEditwindowToggled", state
+    self.objectEditorVisible = state
+  def getObjectEditwindowToggled(self):
+    return self.objectEditorVisible
   
   def toggleShaderAuto(self, state=None):
     if state is None:
@@ -201,7 +216,7 @@ class EditorApp(DirectObject):
             objType = objType.__name__
           module = __import__("dgui.modules.p%s" % objType, globals(), locals(), [objType], -1)
           #try:
-          self.editorObjectGuiInstance = getattr(module, objType)(modelController.getSelectedModel())
+          self.editorObjectGuiInstance = getattr(module, objType)(modelController.getSelectedModel(), self)
           #except:
           #  print "E: EditorApp.modelSelected: object", objType
           #  traceback.print_exc()

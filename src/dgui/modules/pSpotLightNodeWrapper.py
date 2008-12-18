@@ -1,8 +1,8 @@
 from dgui.modules.pLightNodeWrapper import *
 
 class SpotLightNodeWrapper(LightNodeWrapper):
-  def __init__(self, object):
-    LightNodeWrapper.__init__(self, object)
+  def __init__(self, *args, **kwargs):
+    LightNodeWrapper.__init__(self, *args, **kwargs)
     #self.mutableParameters['H-Fov'] = ['float', 'getHfov', 'setHfov', None]
     #self.mutableParameters['V-Fov'] = ['float', 'getVfov', 'setVfov', None]
     #self.mutableParametersSorting.append(['H-Fov', 'V-Fov'])

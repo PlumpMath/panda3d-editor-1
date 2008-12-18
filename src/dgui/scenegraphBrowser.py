@@ -69,7 +69,7 @@ class SceneGraphBrowser(DirectObject):
       # DirectScrolledFrame to hold items
       # I set canvas' Z size smaller than the frame to avoid the auto-generated vertical slider bar
       self.childrenFrame = DirectScrolledFrame(
-                   parent=parent,pos=(0.06,0,-0.07), relief=DGG.GROOVE,
+                   parent=parent,pos=(0.06,0,1.42), relief=DGG.GROOVE,
                    state=DGG.NORMAL, # to create a mouse watcher region
                    frameSize=(0, self.frameWidth, -self.frameHeight, 0), frameColor=(0,0,0,.7),
                    canvasSize=(0, 0, -self.frameHeight*.5, 0), borderWidth=(0.01,0.01),

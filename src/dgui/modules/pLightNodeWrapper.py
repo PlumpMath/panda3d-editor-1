@@ -1,8 +1,8 @@
 from dgui.modules.pBaseWrapper import *
 
 class LightNodeWrapper(BaseWrapper):
-  def __init__(self, object):
-    BaseWrapper.__init__(self, object)
+  def __init__(self, *args, **kwargs):
+    BaseWrapper.__init__(self, *args, **kwargs)
     self.mutableParameters['Attenuation'] = ['point3', 'getAttenuation', 'setAttenuation', None]
     self.mutableParametersSorting.append('Attenuation')
     self.mutableParameters['Priority'] = ['int', 'getPriority', 'setPriority', None]

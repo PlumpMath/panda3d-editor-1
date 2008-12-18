@@ -7,9 +7,10 @@ from core.pModelIdManager import modelIdManager
 from core.pConfigDefs import *
 from dgui.directWindow.src.directWindow import DirectWindow
 from direct.showbase.DirectObject import DirectObject
+from dgui.directSidebar import *
 
 class BaseWrapper(DirectObject):
-  def __init__(self, object):
+  def __init__(self, object, editorInstance):
     print "I: BaseWrapper.__init__:", object
     self.object = object
     self.mutableParameters = {
@@ -37,6 +38,7 @@ class BaseWrapper(DirectObject):
     , 'nodeName'
     ]
     self.buttonsWindow = None
+    self.editorInstance = editorInstance
   
   def startEdit(self):
     print "I: dgui.BaseWrapper.startEdit"
@@ -57,13 +59,21 @@ class BaseWrapper(DirectObject):
   def createEditWindow(self):
     #print "I: baseWrapper.createEditWindow"
     if self.buttonsWindow is None:
+      #sideFrame = DirectSidebar(frameSize=(0.8,0.4), pos=(-.05,0,0.1), align=ALIGN_RIGHT|ALIGN_BOTTOM, opendir=LEFT_OR_UP, orientation=VERTICAL, text='right-bottom')
       ySize = len(self.mutableParametersSorting)
       #print "ySize", ySize
-      self.buttonsWindow = DirectWindow( title='editWindow-%s' % str(self.object.getName())
-                                       , pos = ( .23, -1+(ySize+1)*.11 )
-                                       , virtualSize = (1.0,ySize*.11) )
+      title='editWindow-%s' % str(self.object.getName())
+      self.buttonsWindow = DirectSidebar(
+        frameSize=(1.1,ySize*.11)
+      , align=ALIGN_RIGHT|ALIGN_BOTTOM, opendir=LEFT_OR_UP, orientation=VERTICAL
+      , text=title
+      , toggleFunc=self.editorInstance.setObjectEditwindowToggled)
       self.parameterEntries = dict()
       
+      self.buttonsWindow.toggleCollapsed(self.editorInstance.getObjectEditwindowToggled())
+      
+      dy = ySize*.11# + 0.75
+      print "ySize", ySize
       for y in xrange(ySize):
         yParamName = self.mutableParametersSorting[y]
         #paramType, getter, setter = self.mutableParameters[yParamName]
@@ -77,7 +87,7 @@ class BaseWrapper(DirectObject):
             paramLabel = DirectLabel( text = xParamName
                                     , parent = self.buttonsWindow
                                     , scale=.05
-                                    , pos = (.05+0.35*(x), 0, -0.1 - y*0.1)
+                                    , pos = (.12+0.35*(x), 0, dy-0.1 - y*0.1)
                                     , text_align = TextNode.ARight )
             if paramType == 'str' or \
                 paramType == 'float' or \
@@ -88,7 +98,7 @@ class BaseWrapper(DirectObject):
                 paramType == 'point3':
               paramEntry = DirectEntry( text = ""
                                       , scale=.05
-                                      , pos = (.10+0.35*(x), 0, -0.1 - y*0.1)
+                                      , pos = (.17+0.35*(x), 0, dy-0.1 - y*0.1)
                                       , parent = self.buttonsWindow
                                       , initialText=""
                                       , numLines = 1
@@ -101,7 +111,7 @@ class BaseWrapper(DirectObject):
                                       , text_align = TextNode.ALeft)
             elif paramType == 'bool':
               paramEntry = DirectCheckButton( scale=.05
-                                      , pos = (0.25, 0, -0.1 - y*0.1)
+                                      , pos = (0.32, 0, dy-0.1 - y*0.1)
                                       , parent = self.buttonsWindow
                                       , focus=0
                                       , width=10
@@ -118,7 +128,7 @@ class BaseWrapper(DirectObject):
           paramLabel = DirectLabel( text = yParamName
                                   , parent = self.buttonsWindow
                                   , scale=.05
-                                  , pos = (0.35, 0, -0.1 - y*0.1)
+                                  , pos = (0.42, 0, dy-0.1 - y*0.1)
                                   , text_align = TextNode.ARight )
           if paramType == 'str' or \
               paramType == 'float' or \
@@ -129,7 +139,7 @@ class BaseWrapper(DirectObject):
               paramType == 'point3':
             paramEntry = DirectEntry( text = ""
                                     , scale=.05
-                                    , pos = (0.4, 0, -0.1 - y*0.1)
+                                    , pos = (0.47, 0, dy-0.1 - y*0.1)
                                     , parent = self.buttonsWindow
                                     , initialText=""
                                     , numLines = 1
@@ -142,7 +152,7 @@ class BaseWrapper(DirectObject):
                                     , text_align = TextNode.ALeft)
           elif paramType == 'bool':
             paramEntry = DirectCheckButton( scale=.05
-                                    , pos = (0.45, 0, -0.08 - y*0.1)
+                                    , pos = (0.52, 0, dy-0.08 - y*0.1)
                                     , parent = self.buttonsWindow
 #                                    , focus=0
 #                                    , width=10
@@ -164,8 +174,11 @@ class BaseWrapper(DirectObject):
         if paramType == 'str' or paramType == 'float' or paramType == 'int':
           paramEntry.removeNode()
           paramEntry.detachNode()
-      self.buttonsWindow.removeNode()
       self.buttonsWindow.detachNode()
+      self.buttonsWindow.removeNode()
+      self.buttonsWindow.destroy()
+      del self.buttonsWindow
+
     self.buttonsWindow = None
   
   def setEntry(self, *parameters):

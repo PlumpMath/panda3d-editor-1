@@ -1,3 +1,5 @@
+import traceback
+
 from direct.gui.DirectGui import DirectFrame,DirectButton,DirectScrolledFrame,DGG,DirectLabel
 from pandac.PandaModules import *
 
@@ -21,8 +23,9 @@ class DirectSidebar(DirectFrame):
                align=ALIGN_LEFT|ALIGN_TOP,
                orientation=HORIZONTAL,
                opendir=RIGHT_OR_DOWN,
-               pos=Vec3(0,0,-0.5),
-               text=''):
+               pos=Vec3(0,0,0),
+               text='',
+               toggleFunc=None):
     if parent is None:
       parent=aspect2d
     self.dragbarSize=dragbarSize
@@ -31,6 +34,7 @@ class DirectSidebar(DirectFrame):
     self.opendir=opendir
     self.pos=pos
     self.frameSize=frameSize
+    self.toggleFunc=toggleFunc
     
     self.collapsed=False
     
@@ -54,6 +58,17 @@ class DirectSidebar(DirectFrame):
       self.label.setR(-90)
     
     self.accept('window-event', self.update)
+    self.update()
+  
+  def destroy(self):
+    print "I: DirectSidebar.__del__"
+    self.label.detachNode()
+    self.collapseButton.detachNode()
+    self.detachNode()
+    self.ignoreAll()#'window-event', self.update)
+  
+  def __del__(self):
+    self.destroy()
   
   def update(self, args=None):
     aspectRatio=base.getAspectRatio()
@@ -111,6 +126,11 @@ class DirectSidebar(DirectFrame):
       state=not self.collapsed
     print "I: DirectWindow.toggleCollapsed:", state
     self.collapsed=state
+    if self.toggleFunc:
+      try:
+        self.toggleFunc(state)
+      except:
+        traceback.print_exc()
     self.update()
 
 if __name__ == '__main__':
