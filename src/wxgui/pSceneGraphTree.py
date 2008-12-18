@@ -26,12 +26,12 @@ class SceneGraphTree(wx.TreeCtrl, DirectObject):
     #self.imgList.Add(wx.Bitmap(Filename(APP_PATH+"content/gui/pyramid.png").toOsSpecific()))
     #self.imgList.Add(wx.Bitmap(Filename(APP_PATH+"content/gui/light.png").toOsSpecific()))
     self.AssignImageList(self.imgList)
+    self.ignoreSelChange = False
     self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onSelChange)
     
     self.modelDict = {}
     self.reload()
     
-    self.ignoreSelChange = False
     self.accept(EVENT_SCENEGRAPHBROWSER_REFRESH, self.reload)
     self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.selectNodePath)
   
