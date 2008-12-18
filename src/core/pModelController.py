@@ -83,7 +83,10 @@ class ModelController( DirectObject ):
           #modificator.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
           modelIdManager.setObject( modificator, nameTag )
           # arrows are hidden otherwise
-          modificator.setBin("BT_unsorted", 40)
+          modificator.setBin('fixed', 40)
+          # make arrows show trough everything
+          modificator.setDepthTest(False)
+          modificator.setDepthWrite(False)
       
       self.__relativeModificationTo = render
       
@@ -120,23 +123,16 @@ class ModelController( DirectObject ):
   
   def mouseButtonPress( self ):
     if self.enabled:
-      pickedObj = self.getMouseOverNode()
-      if DEBUG:
-        print "I: modelController.mouseButtonPress: pickedObj", pickedObj
-      editModel = self.getMouseOverObjectModel(pickedObj)
-      editToolSelection = self.getMouseOverObjectTool(pickedObj)
-      editTool = self.getMouseOverObjectTool(pickedObj)
-      if editTool:
-        if DEBUG:
-          print "  - editTool selected", editTool
-        self.editToolSetup( editTool )
-      elif editModel:
-        if DEBUG:
-          print "  - editModel selected", editModel
-        self.selectModel( editModel )
+      pickedObjects = self.getMouseOverNodesList()
+      if len(pickedObjects) > 0:
+        editModel = self.getMouseOverObjectModel(pickedObjects[0])
+        editTool = self.getMouseOverObjectTool(pickedObjects)
+        if editTool:
+          self.editToolSetup( editTool )
+        elif editModel:
+          self.selectModel( editModel )
       else:
-        if DEBUG:
-          print "  - deselect"
+        # no object was clicked on
         self.selectModel( None )
   
   def editToolSetup( self, editTool ):
@@ -378,6 +374,20 @@ class ModelController( DirectObject ):
         return pickedObj
     return None
   
+  def getMouseOverNodesList( self ):
+    ''' get a object under the mouse
+    '''
+    pickedObjects = list()
+    if self.updatePickerRay():
+      self.editorCollTraverser.traverse(render)
+      #assume for simplicity's sake that myHandler is a CollisionHandlerQueue
+      if self.editorCollHandler.getNumEntries() > 0:
+        self.editorCollHandler.sortEntries() #this is so we get the closest object
+        for i in xrange(self.editorCollHandler.getNumEntries()):
+          pickedObj=self.editorCollHandler.getEntry(i).getIntoNodePath()
+          pickedObjects.append(pickedObj)
+    return pickedObjects
+  
   def getMouseOverObjectModel( self, pickedObj ):
     #print "editor.editorClass.getMouseOverObject"
     ''' get a object under the mouse
@@ -393,8 +403,9 @@ class ModelController( DirectObject ):
         return object
     return None
   
-  def getMouseOverObjectTool( self, pickedObj ):
-    if pickedObj:
+  def getMouseOverObjectTool( self, pickedObjects ):
+    for i in xrange(len(pickedObjects)):
+      pickedObj = pickedObjects[i]
       pickedObjTaggedParent=pickedObj.findNetTag(MODEL_MODIFICATOR_TAG)
       if not pickedObjTaggedParent.isEmpty():
         objectId = pickedObjTaggedParent.getNetTag(MODEL_MODIFICATOR_TAG)
