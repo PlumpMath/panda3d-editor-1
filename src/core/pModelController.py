@@ -9,6 +9,9 @@ from core.pModelIdManager import modelIdManager
 #from core.pCameraController import cameraController
 from core.pMouseHandler import mouseHandler
 
+# for simplicity, we crate the axiscube every time the editor is loaded
+import pCreateAxisCube
+
 DEBUG = False
 
 class ModelController( DirectObject ):
@@ -54,14 +57,16 @@ class ModelController( DirectObject ):
       # load axisCube, if that fails generate it and quit
       self.objectAxisCube = loader.loadModel( MODELCONTROLLER_AXISCUBE_MODEL )
       self.objectAxisCube.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
-      #self.objectAxisCube.reparentTo( render )
       if not self.objectAxisCube:
         if DEBUG:
-          print "E: axiscube.bam was missing, generating now"
-          print "  - please restart the application now"
-        import createAxisCube
+          print "E: axiscube.bam does not exist, createAxisCube should have done that actually..."
         sys.exit()
       self.objectAxisCube.setLightOff()
+      # arrows are hidden otherwise
+      self.objectAxisCube.setBin('fixed', 39)
+      # make arrows show trough everything
+      self.objectAxisCube.setDepthTest(False)
+      self.objectAxisCube.setDepthWrite(False)
       
       if DEBUG:
         print "I: modelControllerClass: reading", MODEL_MODIFICATION_MODEL
@@ -239,7 +244,6 @@ class ModelController( DirectObject ):
   def __selectModel( self ):
     if self.__selectedModel:
       self.__selectedModel.startEdit()
-      #self.modelModificatorsNode.detachNode()
       
       self.objectAxisCube.reparentTo( render )
       self.objectAxisCube.setScale( self.__selectedModel.getPos(render) )
@@ -247,7 +251,6 @@ class ModelController( DirectObject ):
   def __deselectModel( self ):
     if self.__selectedModel:
       self.__selectedModel.stopEdit()
-      #self.modelModificatorsNode.hide()
       self.objectAxisCube.detachNode()
   
   def __setMode( self ):
@@ -274,51 +277,26 @@ class ModelController( DirectObject ):
         if DEBUG:
           print "modelControllerClass.__setMode: unknown mode", self.__modelMode
       
-      # get the objects radius
-      try:
-        r = self.__selectedModel.model.getBounds().getRadius()
-      except:
-        r = 1
-      #print "object radius", r
+      # the object's radius is changed when something is attached
+      #self.modelModeNode.detachNode()
       
-      if False:
-        #self.modelModeNode.reparentTo( render )
-        # only keep the position / rotation on the model modificators
-        self.modelModeNode.setMat( render, Mat4().identMat() )
-        self.modelModeNode.setPos( render, self.__selectedModel.getPos(render) )
-        self.modelModeNode.setHpr( render, self.__selectedModel.getHpr(self.__relativeModificationTo) )
-        self.modelModeNode.setScale( render, r / 4. )
-        self.modelModeNode.wrtReparentTo( self.__selectedModel )
-        
-        self.modelModeNode.setCollideMask( DEFAULT_EDITOR_COLLIDEMASK )
-        self.modelModeNode.show()
-      else:
-        # the object's radius is changed when something is attached
-        self.modelModeNode.detachNode()
-        #r = self.__selectedModel.getBounds().getRadius()
-        
-        self.modelModeNode.reparentTo( render )
-        self.modelModeNode.setMat( render, Mat4().identMat() ) #self.__selectedModel.getMat(render) )
-        
-        self.modelModeNode.setPos( render, self.__selectedModel.getPos( render ) )
-        
-        if self.__selectedModel == self.__relativeModificationTo:
-          #print "self"
-          if self.__relativeModificationTo == render:
-            hpr = self.__selectedModel.getHpr()
-          else:
-            hpr = self.__selectedModel.getHpr( render )
-        elif self.__relativeModificationTo == render:
-          #print "vec3(0,0,0)"
-          hpr = Vec3(0,0,0)
-        #else:
-          #print "parent"
-          #hpr = self.__selectedModel.getHpr( render )
-        self.modelModeNode.setHpr( render, hpr )
-        self.modelModeNode.wrtReparentTo( self.__selectedModel )
-        
-        self.modelModeNode.setCollideMask( DEFAULT_EDITOR_COLLIDEMASK )
-        self.modelModeNode.show()
+      self.modelModeNode.reparentTo( render )
+      self.modelModeNode.setMat( render, Mat4().identMat() )
+      
+      self.modelModeNode.setPos( render, self.__selectedModel.getPos( render ) )
+      
+      if self.__selectedModel == self.__relativeModificationTo:
+        if self.__relativeModificationTo == render:
+          hpr = self.__selectedModel.getHpr()
+        else:
+          hpr = self.__selectedModel.getHpr( render )
+      elif self.__relativeModificationTo == render:
+        hpr = Vec3(0,0,0)
+      self.modelModeNode.setHpr( render, hpr )
+      self.modelModeNode.wrtReparentTo( self.__selectedModel )
+      
+      self.modelModeNode.setCollideMask( DEFAULT_EDITOR_COLLIDEMASK )
+      self.modelModeNode.show()
   
   def __unsetMode( self ):
     if self.modelModeNode is not None:
@@ -327,7 +305,6 @@ class ModelController( DirectObject ):
       self.modelModeNode.setCollideMask( BitMask32.allOff() )
   
   def createCollisionPicker( self ):
-    #print "editor.editorClass.createCollisionPicker"
     self.editorCollTraverser    = CollisionTraverser()
     self.editorCollHandler      = CollisionHandlerQueue()
     self.editorPickerNode       = CollisionNode('mouseRay')
@@ -354,7 +331,6 @@ class ModelController( DirectObject ):
     del self.editorCollTraverser
   
   def updatePickerRay( self ):
-    #print "editor.editorClass.updatePickerRay"
     mx,my = mouseHandler.getMousePos()
     if WindowManager.getDefaultCamera() != None:
       self.editorPickerRay.setFromLens(WindowManager.getDefaultCamera().node(), mx, my)
@@ -362,25 +338,13 @@ class ModelController( DirectObject ):
       pass # How to unset it?
     return True
   
-  def getMouseOverNode( self ):
-    ''' get a object under the mouse
-    '''
-    if self.updatePickerRay():
-      self.editorCollTraverser.traverse(render)
-      #assume for simplicity's sake that myHandler is a CollisionHandlerQueue
-      if self.editorCollHandler.getNumEntries() > 0:
-        self.editorCollHandler.sortEntries() #this is so we get the closest object
-        pickedObj=self.editorCollHandler.getEntry(0).getIntoNodePath()
-        return pickedObj
-    return None
-  
   def getMouseOverNodesList( self ):
-    ''' get a object under the mouse
+    ''' get all objects under the mouse, in the order of theyr appearance
     '''
     pickedObjects = list()
     if self.updatePickerRay():
       self.editorCollTraverser.traverse(render)
-      #assume for simplicity's sake that myHandler is a CollisionHandlerQueue
+      # assume for simplicity's sake that myHandler is a CollisionHandlerQueue
       if self.editorCollHandler.getNumEntries() > 0:
         self.editorCollHandler.sortEntries() #this is so we get the closest object
         for i in xrange(self.editorCollHandler.getNumEntries()):
@@ -389,17 +353,13 @@ class ModelController( DirectObject ):
     return pickedObjects
   
   def getMouseOverObjectModel( self, pickedObj ):
-    #print "editor.editorClass.getMouseOverObject"
     ''' get a object under the mouse
     '''
-    #pickedObj = self.getMouseOverNode()
     if pickedObj:
       pickedObjTaggedParent=pickedObj.findNetTag(EDITABLE_OBJECT_TAG)
-#      print "- found tag", pickedObjTaggedParent
       if not pickedObjTaggedParent.isEmpty():
         objectId = pickedObjTaggedParent.getNetTag(EDITABLE_OBJECT_TAG)
         object = modelIdManager.getObject( objectId )
-#        print "- found:", objectId, object
         return object
     return None
   
@@ -413,7 +373,6 @@ class ModelController( DirectObject ):
     return None
   
   def getPickerRayDirection( self, mousePos=None ): #posX, posY ):
-    #print "editor.editorClass.getPickerRayDirection"
     ''' return the direction of the ray sent trought the mouse
     '''
     # the pickerRay cannot be changed anyway once it has been set in a frame (BUG?)
