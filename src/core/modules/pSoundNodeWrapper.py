@@ -13,11 +13,26 @@ class SoundNodeWrapper(VirtualNodeWrapper):
     self.soundFilepath = None
     
     #                       name        = [ varType, 'getFuncName', 'setFuncName', 'hasFuncName' ]
-    self.mutableParameters['volume']    = [ float, 'getVolume', 'setVolume', None ]
-    self.mutableParameters['loop']      = [ bool, 'getLoop', 'setLoop', None ]
-    self.mutableParameters['loopCount'] = [ int, 'getLoopCount', 'setLoopCount', None ]
-    self.mutableParameters['playRate']  = [ float, 'getPlayRate', 'setPlayRate', None ]
-    self.mutableParameters['priority']  = [ int, 'getPriority', 'setPriority', None ]
+    self.mutableParameters['volume']    = [ float,
+      SoundNodeWrapper.getVolume,
+      SoundNodeWrapper.setVolume,
+      True ]
+    self.mutableParameters['loop']      = [ bool,
+      SoundNodeWrapper.getLoop,
+      SoundNodeWrapper.setLoop,
+      True ]
+    self.mutableParameters['loopCount'] = [ int,
+      SoundNodeWrapper.getLoopCount,
+      SoundNodeWrapper.setLoopCount,
+      True ]
+    self.mutableParameters['playRate']  = [ float,
+      SoundNodeWrapper.getPlayRate,
+      SoundNodeWrapper.setPlayRate,
+      True ]
+    self.mutableParameters['priority']  = [ int,
+      SoundNodeWrapper.getPriority,
+      SoundNodeWrapper.setPriority,
+      True ]
     
   
   def setSound(self, filepath):

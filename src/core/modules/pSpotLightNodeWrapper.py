@@ -12,10 +12,22 @@ class SpotLightNodeWrapper(LightNodeWrapper):
     self.lens = PerspectiveLens()
     self.light.setLens(self.lens)
     
-    self.mutableParameters['fov']      = [ Vec2, 'getFov', 'setFov', True]
-    self.mutableParameters['near']     = [ float, 'getNear', 'setNear', True]
-    self.mutableParameters['far']      = [ float, 'getFar', 'setFar', True]
-    self.mutableParameters['exponent'] = [ float, 'getExponent', 'setExponent', True]
+    self.mutableParameters['fov'] = [ Vec2,
+      self.getFov,
+      self.setFov,
+      True ]
+    self.mutableParameters['near'] = [ float,
+      self.getNear,
+      self.setNear,
+      True ]
+    self.mutableParameters['far'] = [ float,
+      self.getFar,
+      self.setFar,
+      True ]
+    self.mutableParameters['exponent'] = [ float,
+      self.getExponent,
+      self.setExponent,
+      True ]
   
   def getNear(self, *args, **kwargs):
     return self.lens.getNear(*args, **kwargs)

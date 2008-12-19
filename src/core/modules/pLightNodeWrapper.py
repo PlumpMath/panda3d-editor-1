@@ -17,9 +17,22 @@ class LightNodeWrapper(VirtualNodeWrapper):
     # this should be made selectable
     render.setLight(self.lightNodePath)
     
-    self.mutableParameters['attenuation'] = [ Vec3, 'getAttenuation', 'setAttenuation', 'hasAttenuation']
-    self.mutableParameters['priority']    = [ int, 'getPriority', 'setPriority', 'hasPriority']
-    self.mutableParameters['spec_color']    = [ Vec4, 'getSpecularColor', 'setSpecularColor', 'hasSpecularColor']
+    self.mutableParameters['color'] = [ Vec4,
+      self.getColor,
+      self.setColor,
+      self.hasColor ]
+    self.mutableParameters['attenuation'] = [ Vec3,
+      self.getAttenuation,
+      self.setAttenuation,
+      self.hasAttenuation ]
+    self.mutableParameters['priority'] = [ int,
+      self.getPriority,
+      self.setPriority,
+      self.hasPriority ]
+    self.mutableParameters['spec_color'] = [ Vec4,
+      self.getSpecularColor,
+      self.setSpecularColor,
+      self.hasSpecularColor ]
   
   # ovverride so the basewrapper handles of this parameter
   def getColor(self, *args, **kwargs):
@@ -43,6 +56,7 @@ class LightNodeWrapper(VirtualNodeWrapper):
   def setAttenuation(self, *args, **kwargs):
     return self.light.setAttenuation(*args, **kwargs)
   def hasAttenuation(self, *args, **kwargs):
+    print "I: LightNodeWrapper.hasAttenuation"
     # is overridden by ambientlight, which hasnt got this parameter
     return True
   

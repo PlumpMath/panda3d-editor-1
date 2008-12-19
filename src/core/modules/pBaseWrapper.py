@@ -43,10 +43,22 @@ class BaseWrapper(NodePath):
     self.editModeEnabled = False
     
     self.mutableParameters = dict()
-    self.mutableParameters['color']       = [ Vec4, 'getColor', 'setColor', 'hasColor' ]
-    self.mutableParameters['colorScale']  = [ Vec4, 'getColorScale', 'setColorScale', 'hasColorScale' ]
-    self.mutableParameters['transparency']= [ bool, 'getTransparency', 'setTransparency', 'hasTransparency' ]
-    self.mutableParameters['name']        = [ str, 'getName', 'setName', True]
+    self.mutableParameters['color'] = [ Vec4,
+      self.getColor,
+      self.setColor,
+      self.hasColor ]
+    self.mutableParameters['colorScale'] = [ Vec4,
+      self.getColorScale,
+      self.setColorScale,
+      self.hasColorScale ]
+    self.mutableParameters['transparency'] = [ bool,
+      self.getTransparency,
+      self.setTransparency,
+      self.hasTransparency ]
+    self.mutableParameters['name'] = [ str,
+      self.getName,
+      self.setName,
+      True ]
   
   def enableEditmode(self):
     ''' enables the edit methods of this object
@@ -83,21 +95,16 @@ class BaseWrapper(NodePath):
   def getParameters(self):
     # get the data
     parameters = dict()
-    for name, [varType, getFuncName, setFuncName, hasFuncName] in self.mutableParameters.items():
+    for name, [varType, getFunc, setFunc, hasFunc] in self.mutableParameters.items():
       # should we read the value
       read = False
-      if hasFuncName is not None:
-        if hasFuncName == True:
-          read = True
-        else:
-          hasFunc = getattr(self, hasFuncName)
-          if hasFunc():
-            read = True
-      else:
+      if hasFunc: # it's true or a func
         read = True
+        if hasFunc != True: # it's a func
+          read = hasFunc()
       # store the parameters
       if read:
-        getFunc = getattr(self, getFuncName)
+        #getFunc = getattr(self, getFuncName)
         if varType == Vec4 or varType == Point4:
           parameters[name] = (getFunc()[0], getFunc()[1], getFunc()[2], getFunc()[3])
         elif varType == Vec3 or varType == Point3:
@@ -111,10 +118,9 @@ class BaseWrapper(NodePath):
     return parameters
   
   def setParameters(self, parameters):
-    for name, [varType, getFuncName, setFuncName, hasFuncName] in self.mutableParameters.items():
+    for name, [varType, getFunc, setFunc, hasFunc] in self.mutableParameters.items():
       if name in parameters:
         try:
-          setFunc = getattr(self, setFuncName)
           if varType == Vec4 or varType == Point4:
             setFunc(varType(*parameters[name]))
           elif varType == Vec3 or varType == Point3:
@@ -191,11 +197,11 @@ class BaseWrapper(NodePath):
     self.setParameters(data)
   ''' --- end : load & save to files --- '''
   
-  def makeCopy(self, original):
+  def makeCopy(self, originalInstance):
     ''' create a copy of this instance
     '''
-    objectInstance = self(original.getParent(), original.getName())
-    objectInstance.setMat(original.getMat())
-    objectInstance.setParameters( original.getParameters() )
-    return objectInstance
+    newInstance = self(originalInstance.getParent(), originalInstance.getName())
+    newInstance.setMat(originalInstance.getMat())
+    newInstance.setParameters(originalInstance.getParameters())
+    return newInstance
   makeCopy = classmethod(makeCopy)

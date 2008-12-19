@@ -14,4 +14,5 @@ class AmbientLightNodeWrapper( LightNodeWrapper ):
   def hasSpecularColor(self, *args, **kwargs):
     return False
   def hasAttenuation(self, *args, **kwargs):
+    print "I: AmbientLightNodeWrapper.hasAttenuation"
     return False
