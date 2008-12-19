@@ -125,14 +125,14 @@ class EditorApp(DirectObject):
       ]
       self.settingsButtons = self.createInterface(settingsButtonDefinitions, 'settings', align=ALIGN_LEFT|ALIGN_TOP, pos=Vec3(0.45,0,0))
       createButtonDefinitions = [
-        ['model', self.crateFilebrowserModelWrapper, ['NodePathWrapper']]
-      , ['particlesystem', self.crateFilebrowserModelWrapper, ['ParticleSystemWrapper']]
+        ['model', self.createFilebrowserModelWrapper, ['NodePathWrapper']]
+      , ['particlesystem', self.createFilebrowserModelWrapper, ['ParticleSystemWrapper']]
       , ['spotlight', self.createModelWrapper, ['SpotLightNodeWrapper']]
       , ['directionallight', self.createModelWrapper, ['DirectionalLightNodeWrapper']]
       , ['ambientlight', self.createModelWrapper, ['AmbientLightNodeWrapper']]
       , ['pointlight', self.createModelWrapper, ['PointLightNodeWrapper']]
-      , ['codeNode', self.crateFilebrowserModelWrapper, ['CodeNodeWrapper']]
-      , ['GeoMipTerrain', self.crateFilebrowserModelWrapper, ['GeoMipTerrainNodeWrapper']]
+      , ['codeNode', self.createFilebrowserModelWrapper, ['CodeNodeWrapper']]
+      , ['GeoMipTerrain', self.createFilebrowserModelWrapper, ['GeoMipTerrainNodeWrapper']]
       , ['destroy model', self.editorInstance.destroyModel, []]
       ]
       self.createButtons = self.createInterface(createButtonDefinitions, 'create', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.45,0,0))
@@ -284,17 +284,18 @@ class EditorApp(DirectObject):
       if DEBUG:
         print "  - creating new editor"
   
-  def crateFilebrowserModelWrapper(self, objectType):
+  def createFilebrowserModelWrapper(self, objectType):
     # open the file browser to select a object
     FG.openFileBrowser()
-    FG.accept('selectionMade', self.onCrateFilebrowserModelWrapper, [objectType])
-  def onCrateFilebrowserModelWrapper(self, objectType, filepath):
+    FG.accept('selectionMade', self.onCreateFilebrowserModelWrapper, [objectType])
+  def onCreateFilebrowserModelWrapper(self, objectType, filepath):
     if filepath != None and filepath != '' and filepath != ' ':
       filepath = Filename.fromOsSpecific(filepath).getFullpath()
       print "I: EditorApp.onCrateFilebrowserModelWrapper:", objectType, filepath
       modelParent = modelController.getSelectedModel()
       module = __import__("core.modules.p%s" % objectType, globals(), locals(), [objectType], -1)
-      exec("objectInstance = module.%s.onCreateInstance(modelParent, filepath)" % (objectType))
+      #exec("objectInstance = module.%s.onCreateInstance(modelParent, filepath)" % (objectType))
+      objectInstance = getattr(module, objectType).onCreateInstance(modelParent, filepath)
       if objectInstance is not None:
         objectInstance.enableEditmode()
       messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
@@ -304,7 +305,8 @@ class EditorApp(DirectObject):
     # create the actual wrapper of the object
     module = __import__("core.modules.p%s" % type, globals(), locals(), [type], -1)
     modelParent = modelController.getSelectedModel()
-    exec("objectInstance = module.%s.onCreateInstance(modelParent)" % type)
+    #exec("objectInstance = module.%s.onCreateInstance(modelParent)" % type)
+    objectInstance = getattr(module, type).onCreateInstance(modelParent)
     if objectInstance is not None:
       objectInstance.enableEditmode()
     messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
