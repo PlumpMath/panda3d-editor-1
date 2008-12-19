@@ -1,4 +1,4 @@
-import imp
+import imp, os
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.pModelController import modelController
@@ -54,14 +54,14 @@ class CodeNodeWrapper(VirtualNodeWrapper):
       self.objectInstance = None
   
   def getSaveData(self, relativeTo):
-    objectInstance = BaseWrapper.getSaveData(self, relativeTo)
+    objectInstance = VirtualNodeWrapper.getSaveData(self, relativeTo)
     self.setExternalReference(self.scriptFilepath, relativeTo, objectInstance)
     return objectInstance
   
   def loadFromData(self, eggGroup, filepath):
     extRefFilename = self.getExternalReference(eggGroup, filepath)
     self.setScript(extRefFilename)
-    BaseWrapper.loadFromData(self, eggGroup, filepath)
+    VirtualNodeWrapper.loadFromData(self, eggGroup, filepath)
   
   def makeCopy(self, original):
     objectInstance = super(CodeNodeWrapper, self).makeCopy(original)
