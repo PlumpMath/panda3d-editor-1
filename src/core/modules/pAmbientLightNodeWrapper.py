@@ -15,13 +15,3 @@ class AmbientLightNodeWrapper( LightNodeWrapper ):
     return False
   def hasAttenuation(self, *args, **kwargs):
     return False
-  
-  def getSaveData(self, relativeTo):
-    instance = LightNodeWrapper.getSaveData(self, relativeTo)
-    # get the data
-    parameters = dict()
-    if len(parameters) > 0:
-      # add the data to the egg-file
-      comment = EggComment( 'AmbientLightNodeWrapper-params', str(parameters) )
-      instance.addChild(comment)
-    return instance

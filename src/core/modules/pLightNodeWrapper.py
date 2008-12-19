@@ -16,6 +16,10 @@ class LightNodeWrapper(VirtualNodeWrapper):
     # create the light
     # this should be made selectable
     render.setLight(self.lightNodePath)
+    
+    self.mutableParameters['attenuation'] = [ Vec3, 'getAttenuation', 'setAttenuation', 'hasAttenuation']
+    self.mutableParameters['priority']    = [ int, 'getPriority', 'setPriority', 'hasPriority']
+    self.mutableParameters['spec_color']    = [ Vec4, 'getSpecularColor', 'setSpecularColor', 'hasSpecularColor']
   
   # ovverride so the basewrapper handles of this parameter
   def getColor(self, *args, **kwargs):
@@ -55,33 +59,3 @@ class LightNodeWrapper(VirtualNodeWrapper):
     render.clearLight(self.lightNodePath)
     self.lightNodePath.detachNode()
     VirtualNodeWrapper.destroy(self)
-  
-  def getSaveData(self, relativeTo):
-    instance = VirtualNodeWrapper.getSaveData(self, relativeTo)
-    # get the data
-    parameters = dict()
-    if self.hasAttenuation():
-      parameters['attenuation'] = [self.getAttenuation()[0], self.getAttenuation()[1], self.getAttenuation()[2]]
-    if self.hasPriority():
-      parameters['priority'] = self.getPriority()
-    if self.hasSpecularColor():
-      parameters['spec_color'] = [self.getSpecularColor()[0], self.getSpecularColor()[1], self.getSpecularColor()[2], self.getSpecularColor()[3]]
-    if len(parameters) > 0:
-      # add the data to the egg-file
-      comment = EggComment('LightNodeWrapper-params', str(parameters))
-      instance.addChild(comment)
-    return instance
-  def loadFromData(self, eggGroup, filepath):
-    VirtualNodeWrapper.loadFromData(self, eggGroup, filepath)
-    data = dict()
-    for child in eggGroup.getChildren():
-      if type(child) == EggComment:
-        if child.getName() == 'LightNodeWrapper-params':
-          exec("data = %s" % child.getComment())
-    if data.has_key('attenuation'):
-      self.setAttenuation(Vec3(*data['attenuation']))
-    if data.has_key('priority'):
-      self.setPriority(data['priority'])
-    if data.has_key('spec_color'):
-      self.setSpecularColor(Vec4(*data['spec_color']))
-    

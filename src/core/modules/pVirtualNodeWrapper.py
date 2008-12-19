@@ -59,15 +59,3 @@ class VirtualNodeWrapper(BaseWrapper):
     if self.editModeEnabled:
       self.virtualModel.hideBounds()
     BaseWrapper.stopEdit(self)
-  
-  def getSaveData(self, relativeTo):
-    instance = BaseWrapper.getSaveData(self, relativeTo)
-    # get the data
-    parameters = dict()
-    if len(parameters) > 0:
-      # add the data to the egg-file
-      comment = EggComment( 'VirtualNodeWrapper-params', str(parameters) )
-      instance.addChild(comment)
-    return instance
-  def loadFromData(self, eggGroup, filepath):
-    BaseWrapper.loadFromData(self, eggGroup, filepath)

@@ -90,6 +90,7 @@ SPOTLIGHT_WRAPPER_DUMMYOBJECT = 'models/Spotlight.egg.pz'
 DIRECTIONALLIGHT_WRAPPER_DUMMYOBJECT = 'models/Dirlight.egg.pz'
 POINTLIGHT_WRAPPER_DUMMYOBJECT = 'models/Pointlight.egg.pz'
 AMBIENTLIGHT_WRAPPER_DUMMYOBJECT = 'models/AmbientLight.egg.pz'
+SOUNDNODE_WRAPPER_DUMMYOBJECT = 'models/sphere.egg.pz'
 
 CAMERACONTROLLER_PIVOT_MODEL = 'models/sphere.egg'
 

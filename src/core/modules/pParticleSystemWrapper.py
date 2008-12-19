@@ -1,5 +1,3 @@
-import traceback, posixpath
-
 from direct.particles.ParticleEffect import ParticleEffect
 from direct.particles.Particles import Particles
 from pandac.PandaModules import *
@@ -7,7 +5,6 @@ from pandac.PandaModules import *
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.pModelController import modelController
 from core.pConfigDefs import *
-from core.pCommonPath import *
 
 base.enableParticles()
 
@@ -72,40 +69,19 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
     # destroy this object
     VirtualNodeWrapper.destroy( self )
   
-  def getSaveData( self, relativeTo ):
-    # convert the matrix, very ugly right now
-    om = self.getMat()
-    nm = Mat4D()
-    for x in xrange(4):
-        for y in xrange(4):
-            nm.setCell( x, y, om.getCell(x,y) )
-    # the matrix we define must be applied to the nodes in "local space"
-    nodeName = self.getName()
-    instance = EggGroup( nodeName )
-    instance.setGroupType(EggGroup.GTInstance)
-    instance.setTransform3d( nm )
-    # userdata is not written to the eggFile
-    className = self.__class__.__name__
-    instance.setTag( MODEL_WRAPPER_TYPE_TAG, className )
-    # convert to a relative path
-    filepath = relpath( relativeTo, posixpath.abspath(self.particleFilename) )
-    # add the reference to the egg-file
-    ext = EggExternalReference( nodeName+"-EggExternalReference", filepath )
-    instance.addChild(ext)
-    return instance
+  def getSaveData(self, relativeTo):
+    objectInstance = VirtualNodeWrapper.getSaveData(self, relativeTo)
+    self.setExternalReference(self.particleFilename, relativeTo, objectInstance)
+    return objectInstance
   
   def loadFromData(self, eggGroup, filepath):
-    # search for a external reference
-    eggExternalReference = None
-    for child in eggGroup.getChildren():
-      if type(child) == EggExternalReference:
-        eggExternalReference = child
-    # read the reference if it is found
-    if eggExternalReference is not None:
-      referencedFilename = eggExternalReference.getFilename()
-      filename = posixpath.join(filepath,str(referencedFilename))
-      self.setParticleConfig(filename)
-    else:
-      print "I: NodePathWrapper.loadFromData: no externalReference found in"
-      print "  -",eggGroup
+    extRefFilename = self.getExternalReference(eggGroup, filepath)
+    self.setParticleConfig(extRefFilename)
     VirtualNodeWrapper.loadFromData(self, eggGroup, filepath)
+  
+  def makeCopy(self, original):
+    objectInstance = super(ParticleSystemWrapper, self).makeCopy(original)
+    objectInstance.setParticleConfig(original.particleFilename)
+    return objectInstance
+  makeCopy = classmethod(makeCopy)
+  

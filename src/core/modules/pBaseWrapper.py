@@ -1,14 +1,15 @@
-import pickle
+import pickle, traceback, posixpath
 
 from pandac.PandaModules import *
 from direct.gui.DirectGui import *
 
 from core.pModelIdManager import modelIdManager
 from core.pConfigDefs import *
+from core.pCommonPath import *
 
 DEBUG = False
 
-BASEWRAPPER_DATA_TAG = 'BaseWrapper-params'
+BASEWRAPPER_DATA_TAG = 'parameters'
 
 class BaseWrapper(NodePath):
   def onCreateInstance(self, parent, name='BaseWrapper'):
@@ -40,56 +41,12 @@ class BaseWrapper(NodePath):
       parent = render
     self.reparentTo(parent)
     self.editModeEnabled = False
-  
-  def destroy(self):
-    self.detachNode()
-    self.removeNode()
-  
-  def getSaveData(self, relativeTo):
-    # the given name of this object
-    name = self.getName()
-    # convert the matrix, very ugly right now
-    om = self.getMat()
-    nm = Mat4D()
-    for x in xrange(4):
-      for y in xrange(4):
-        nm.setCell( x, y, om.getCell(x,y) )
-    # the matrix we define must be applied to the nodes in "local space"
-    instance = EggGroup(name)
-    instance.setGroupType(EggGroup.GTInstance)
-    instance.setTransform3d( nm )
-    # define the type of this object
-    className = self.__class__.__name__
-    instance.setTag(MODEL_WRAPPER_TYPE_TAG, className)
     
-    # get all data to store in the eggfile
-    parameters = dict()
-    if self.hasColor():
-      parameters['color'] = [self.getColor()[0], self.getColor()[1], self.getColor()[2], self.getColor()[3]]
-    if self.hasColorScale():
-      parameters['colorScale'] = [self.getColorScale()[0], self.getColorScale()[1], self.getColorScale()[2],  self.getColorScale()[3]]
-    if self.hasTransparency():
-      parameters['transparency'] = self.getTransparency()
-    if len(parameters) > 0:
-      # add the data to the egg-file
-      comment = EggComment(BASEWRAPPER_DATA_TAG, str(parameters))
-      instance.addChild(comment)
-    return instance
-  
-  def loadFromData(self, eggGroup, filepath):
-    #print "I: BaseWrapper.setFromData:", eggGroup
-    data = dict()
-    for child in eggGroup.getChildren():
-      if type(child) == EggComment:
-        if child.getName() == BASEWRAPPER_DATA_TAG:
-          exec("data = %s" % child.getComment())
-    if data.has_key('color'):
-      self.setColor(VBase4(*data['color']))
-    if data.has_key('transparency'):
-      self.setTransparency(data['transparency'])
-    if data.has_key('colorScale'):
-      self.setColorScale(VBase4(*data['colorScale']))
-    self.setName(eggGroup.getName())
+    self.mutableParameters = dict()
+    self.mutableParameters['color']       = [ Vec4, 'getColor', 'setColor', 'hasColor' ]
+    self.mutableParameters['colorScale']  = [ Vec4, 'getColorScale', 'setColorScale', 'hasColorScale' ]
+    self.mutableParameters['transparency']= [ bool, 'getTransparency', 'setTransparency', 'hasTransparency' ]
+    self.mutableParameters['name']        = [ str, 'getName', 'setName', True]
   
   def enableEditmode(self):
     ''' enables the edit methods of this object
@@ -118,3 +75,127 @@ class BaseWrapper(NodePath):
     # the object is deselected from being edited
     if not self.editModeEnabled:
       print "E: code.BaseWrapper.stopEdit: object is not in editmode", self
+  
+  def destroy(self):
+    self.detachNode()
+    self.removeNode()
+  
+  def getParameters(self):
+    # get the data
+    parameters = dict()
+    for name, [varType, getFuncName, setFuncName, hasFuncName] in self.mutableParameters.items():
+      # should we read the value
+      read = False
+      if hasFuncName is not None:
+        if hasFuncName == True:
+          read = True
+        else:
+          hasFunc = getattr(self, hasFuncName)
+          if hasFunc():
+            read = True
+      else:
+        read = True
+      # store the parameters
+      if read:
+        getFunc = getattr(self, getFuncName)
+        if varType == Vec4 or varType == Point4:
+          parameters[name] = (getFunc()[0], getFunc()[1], getFunc()[2], getFunc()[3])
+        elif varType == Vec3 or varType == Point3:
+          parameters[name] = (getFunc()[0], getFunc()[1], getFunc()[2])
+        elif varType == Vec2 or varType == Point2:
+          parameters[name] = (getFunc()[0], getFunc()[1])
+        elif varType == float or varType == int or varType == str or varType == bool:
+          parameters[name] = getFunc()
+        else:
+          print "E: BaseWrapper.getParameters: unknown varType %s for %s" % (varType.__name__, name)
+    return parameters
+  
+  def setParameters(self, parameters):
+    for name, [varType, getFuncName, setFuncName, hasFuncName] in self.mutableParameters.items():
+      if name in parameters:
+        try:
+          setFunc = getattr(self, setFuncName)
+          if varType == Vec4 or varType == Point4:
+            setFunc(varType(*parameters[name]))
+          elif varType == Vec3 or varType == Point3:
+            setFunc(varType(*parameters[name]))
+          elif varType == Vec2 or varType == Point2:
+            setFunc(varType(*parameters[name]))
+          elif varType == float or varType == int or varType == str or varType == bool:
+            setFunc(varType(parameters[name]))
+          else:
+            print "E: BaseWrapper.setParameters: unknown varType %s for %s" % (varType.__name__, name)
+        except TypeError:
+          print "E: BaseWrapper.setParameters: error handling %s in data:" % name
+          print parameters
+          traceback.print_exc()
+  
+  ''' --- external reference saving / loading ---
+  these are used by if a wrapper uses a external file
+  (models, particlesystems, terrain, sounds)'''
+  def setExternalReference(self, filepath, relativeTo, objectInstance):
+    # convert to a relative path
+    extRefPath = relpath(relativeTo, posixpath.abspath(filepath))
+    # add the reference to the egg-file
+    extRef = EggExternalReference("ExtRef", extRefPath)
+    objectInstance.addChild(extRef)
+  def getExternalReference(self, eggGroup, filepath):
+    # search for a external reference
+    eggExternalReference = None
+    for child in eggGroup.getChildren():
+      if type(child) == EggExternalReference:
+        eggExternalReference = child
+    # read the reference if it is found
+    if eggExternalReference is not None:
+      referencedFilename = eggExternalReference.getFilename()
+      #print "I: NodePathWrapper.loadFromData:", filepath, str(referencedFilename)
+      filename = posixpath.join(filepath,str(referencedFilename))
+      return filename
+    print "W: BaseWrapper.getExternalReference: no externalReference found in"
+    print "  -",eggGroup
+    return None
+  ''' --- end : external reference saving / loading --- '''
+  
+  ''' --- load & save to files --- '''
+  def getSaveData(self, relativeTo):
+    # the given name of this object
+    name = self.getName()
+    # convert the matrix, very ugly right now
+    om = self.getMat()
+    nm = Mat4D()
+    for x in xrange(4):
+      for y in xrange(4):
+        nm.setCell( x, y, om.getCell(x,y) )
+    # the matrix we define must be applied to the nodes in "local space"
+    instance = EggGroup(name)
+    instance.setGroupType(EggGroup.GTInstance)
+    instance.setTransform3d( nm )
+    # define the type of this object
+    className = self.__class__.__name__
+    instance.setTag(MODEL_WRAPPER_TYPE_TAG, className)
+    
+    # get all data to store in the eggfile
+    parameters = self.getParameters()
+    if len(parameters) > 0:
+      # add the data to the egg-file
+      comment = EggComment(BASEWRAPPER_DATA_TAG, str(parameters))
+      instance.addChild(comment)
+    return instance
+  
+  def loadFromData(self, eggGroup, filepath):
+    data = dict()
+    for child in eggGroup.getChildren():
+      if type(child) == EggComment:
+        if child.getName() == BASEWRAPPER_DATA_TAG:
+          exec("data = %s" % child.getComment())
+    self.setParameters(data)
+  ''' --- end : load & save to files --- '''
+  
+  def makeCopy(self, original):
+    ''' create a copy of this instance
+    '''
+    objectInstance = self(original.getParent(), original.getName())
+    objectInstance.setMat(original.getMat())
+    objectInstance.setParameters( original.getParameters() )
+    return objectInstance
+  makeCopy = classmethod(makeCopy)

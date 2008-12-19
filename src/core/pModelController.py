@@ -62,11 +62,11 @@ class ModelController( DirectObject ):
           print "E: axiscube.bam does not exist, createAxisCube should have done that actually..."
         sys.exit()
       self.objectAxisCube.setLightOff()
-      # arrows are hidden otherwise
+      # axiscube can be hidden otherwise
       self.objectAxisCube.setBin('fixed', 39)
       # make arrows show trough everything
-      self.objectAxisCube.setDepthTest(False)
-      self.objectAxisCube.setDepthWrite(False)
+      #self.objectAxisCube.setDepthTest(False)
+      #self.objectAxisCube.setDepthWrite(False)
       
       if DEBUG:
         print "I: modelControllerClass: reading", MODEL_MODIFICATION_MODEL

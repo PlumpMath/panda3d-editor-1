@@ -1,11 +1,8 @@
-import posixpath
-
 from pandac.PandaModules import *
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.modules.pBaseWrapper import *
 from core.pModelController import modelController
-from core.pCommonPath import *
 
 DEBUG = False
 
@@ -44,29 +41,18 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
     self.terrainNode = self.terrain.generate()
   
   def getSaveData(self, relativeTo):
-    ''' link the egg-file into the egg we save
-    '''
-    name = self.getName()
-    instance = BaseWrapper.getSaveData(self, relativeTo)
-    # convert to a relative path
-    terrainImageFilepath = relpath(relativeTo, posixpath.abspath(self.terrainImageFilepath))
-    if DEBUG:
-      print "I: GeoMipTerrainNodeWrapper.getSaveData: modelFilepath:", terrainImageFilepath, self.terrainImageFilepath, relativeTo
-    # add the reference to the egg-file
-    ext = EggExternalReference(name+"-EggExternalReference", terrainImageFilepath)
-    instance.addChild(ext)
-    return instance
+    objectInstance = BaseWrapper.getSaveData(self, relativeTo)
+    self.setExternalReference(self.terrainImageFilepath, relativeTo, objectInstance)
+    return objectInstance
   
   def loadFromData(self, eggGroup, filepath):
-    # search for a external reference
-    eggExternalReference = None
-    for child in eggGroup.getChildren():
-      if type(child) == EggExternalReference:
-        eggExternalReference = child
-    # read the reference if it is found
-    if eggExternalReference is not None:
-      referencedFilename = eggExternalReference.getFilename()
-      filename = posixpath.join(filepath,str(referencedFilename))
-      self.setTerrain(filename)
+    extRefFilename = self.getExternalReference(eggGroup, filepath)
+    self.setTerrain(extRefFilename)
     BaseWrapper.loadFromData(self, eggGroup, filepath)
+  
+  def makeCopy(self, original):
+    objectInstance = super(GeoMipTerrainNodeWrapper, self).makeCopy(original)
+    objectInstance.setTerrain(original.terrainImageFilepath)
+    return objectInstance
+  makeCopy = classmethod(makeCopy)
 

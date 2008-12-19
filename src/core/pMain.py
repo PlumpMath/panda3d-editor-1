@@ -17,6 +17,7 @@ from core.pConfigDefs import *
 # this is a bugfixed / slightly changed version of DirectGrid
 from core.pGrid import DirectGrid
 from core.pMouseHandler import mouseHandler
+from core.pSoundManager import soundManager
 
 DEBUG = False
 

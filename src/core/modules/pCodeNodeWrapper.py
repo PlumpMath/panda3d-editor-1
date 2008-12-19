@@ -1,8 +1,7 @@
-import posixpath, imp, traceback
+import imp
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.pModelController import modelController
-from core.pCommonPath import *
 from core.pConfigDefs import *
 
 DEBUG = False
@@ -55,32 +54,17 @@ class CodeNodeWrapper(VirtualNodeWrapper):
       self.objectInstance = None
   
   def getSaveData(self, relativeTo):
-    ''' link the egg-file into the egg we save
-    '''
-    name = self.getName()
-    instance = VirtualNodeWrapper.getSaveData(self, relativeTo)
-    className = 'CodeNodeWrapper' #self.__class__.__name__ -> yields the wrong classname
-    #instance.setTag( MODEL_WRAPPER_TYPE_TAG, className )
-    # convert to a relative path
-    scriptFilepath = relpath( relativeTo, posixpath.abspath(self.scriptFilepath) )
-    #print "I: CodeNodeWrapper.getSaveData: scriptFilepath:", scriptFilepath, self.scriptFilepath, relativeTo
-    # add the reference to the egg-file
-    ext = EggExternalReference( className+"-EggExternalReference", scriptFilepath )
-    instance.addChild(ext)
-    return instance
+    objectInstance = BaseWrapper.getSaveData(self, relativeTo)
+    self.setExternalReference(self.scriptFilepath, relativeTo, objectInstance)
+    return objectInstance
   
   def loadFromData(self, eggGroup, filepath):
-    # search for a external reference
-    eggExternalReference = None
-    for child in eggGroup.getChildren():
-      if type(child) == EggExternalReference:
-        eggExternalReference = child
-    # read the reference if it is found
-    if eggExternalReference is not None:
-      referencedFilename = eggExternalReference.getFilename()
-      filename = posixpath.join(filepath,str(referencedFilename))
-      self.setScript(filename)
-    else:
-      print "I: NodePathWrapper.loadFromData: no externalReference found in"
-      print "  -",eggGroup
-    VirtualNodeWrapper.loadFromData(self, eggGroup, filepath)
+    extRefFilename = self.getExternalReference(eggGroup, filepath)
+    self.setScript(extRefFilename)
+    BaseWrapper.loadFromData(self, eggGroup, filepath)
+  
+  def makeCopy(self, original):
+    objectInstance = super(CodeNodeWrapper, self).makeCopy(original)
+    objectInstance.setScript(original.scriptFilepath)
+    return objectInstance
+  makeCopy = classmethod(makeCopy)

@@ -1,8 +1,5 @@
-import posixpath
-
 from core.modules.pBaseWrapper import *
 from core.pModelController import modelController
-from core.pCommonPath import *
 
 DEBUG = True
 
@@ -90,32 +87,17 @@ class NodePathWrapper(BaseWrapper):
     BaseWrapper.stopEdit(self)
   
   def getSaveData(self, relativeTo):
-    ''' link the egg-file into the egg we save
-    '''
-    name = self.getName()
-    instance = BaseWrapper.getSaveData(self, relativeTo)
-    # convert to a relative path
-    modelFilepath = relpath(relativeTo, posixpath.abspath(self.modelFilepath))
-    if DEBUG:
-      print "I: pNodePathWrapper.getSaveData: modelFilepath:", modelFilepath, self.modelFilepath, relativeTo
-    # add the reference to the egg-file
-    ext = EggExternalReference(name+"-EggExternalReference", modelFilepath)
-    instance.addChild(ext)
-    return instance
+    objectInstance = BaseWrapper.getSaveData(self, relativeTo)
+    self.setExternalReference(self.modelFilepath, relativeTo, objectInstance)
+    return objectInstance
   
   def loadFromData(self, eggGroup, filepath):
-    # search for a external reference
-    eggExternalReference = None
-    for child in eggGroup.getChildren():
-      if type(child) == EggExternalReference:
-        eggExternalReference = child
-    # read the reference if it is found
-    if eggExternalReference is not None:
-      referencedFilename = eggExternalReference.getFilename()
-      #print "I: NodePathWrapper.loadFromData:", filepath, str(referencedFilename)
-      filename = posixpath.join(filepath,str(referencedFilename))
-      self.setModel(filename)
-    else:
-      print "I: NodePathWrapper.loadFromData: no externalReference found in"
-      print "  -",eggGroup
+    extRefFilename = self.getExternalReference(eggGroup, filepath)
+    self.setModel(extRefFilename)
     BaseWrapper.loadFromData(self, eggGroup, filepath)
+  
+  def makeCopy(self, original):
+    objectInstance = super(NodePathWrapper, self).makeCopy(original)
+    objectInstance.setModel(original.modelFilepath)
+    return objectInstance
+  makeCopy = classmethod(makeCopy)
