@@ -76,15 +76,12 @@ class EditorApp(DirectObject):
         if DEBUG:
           print np.getName(),'RIGHT CLICKED, DO SOMETHING !'
       
-      '''self.scenegraphBrowserWindow = DirectWindow( title='szenegraph'
-                                                 , pos = ( -1.33, .55)
-                                                 , virtualSize = (1, 1.5) )'''
       self.scenegraphBrowserWindow = DirectSidebar(
         frameSize=(1.07, 1.5)
       , pos=Vec3(0,0,0.0)
       , align=ALIGN_LEFT|ALIGN_BOTTOM
       , orientation=VERTICAL
-      , text='szenegraph')
+      , text='scenegraph')
       # create SceneGraphBrowser and point it on aspect2d
       self.scenegraphBrowser = SceneGraphBrowser(
                  parent=self.scenegraphBrowserWindow, # where to attach SceneGraphBrowser frame
@@ -122,12 +119,12 @@ class EditorApp(DirectObject):
         ['load', self.loadEggModelsFile, []]
       , ['save', self.saveEggModelsFile, []]
       ]
-      self.createInterface(sceneButtonDefinitions, 'scene', align=ALIGN_LEFT|ALIGN_TOP, pos=Vec3(0.05,0,0))
+      self.sceneButtons = self.createInterface(sceneButtonDefinitions, 'scene', align=ALIGN_LEFT|ALIGN_TOP, pos=Vec3(0.05,0,0))
       settingsButtonDefinitions = [
         ['pix-light', self.toggleShaderAuto, []]
       ]
-      self.createInterface(settingsButtonDefinitions, 'settings', align=ALIGN_LEFT|ALIGN_TOP, pos=Vec3(0.45,0,0))
-      editButtonDefinitions = [
+      self.settingsButtons = self.createInterface(settingsButtonDefinitions, 'settings', align=ALIGN_LEFT|ALIGN_TOP, pos=Vec3(0.45,0,0))
+      createButtonDefinitions = [
         ['model', self.crateFilebrowserModelWrapper, ['NodePathWrapper']]
       , ['particlesystem', self.crateFilebrowserModelWrapper, ['ParticleSystemWrapper']]
       , ['spotlight', self.createModelWrapper, ['SpotLightNodeWrapper']]
@@ -138,7 +135,12 @@ class EditorApp(DirectObject):
       , ['GeoMipTerrain', self.crateFilebrowserModelWrapper, ['GeoMipTerrainNodeWrapper']]
       , ['destroy model', self.editorInstance.destroyModel, []]
       ]
-      self.createInterface(editButtonDefinitions, 'edit', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.05,0,0))
+      self.createButtons = self.createInterface(createButtonDefinitions, 'create', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.45,0,0))
+      editButtonDefinitions = [
+        ['duplicate', self.duplicateModelWrapper, []]
+      , ['destroy', self.editorInstance.destroyModel, []]
+      ]
+      self.editButtons = self.createInterface(editButtonDefinitions, 'edit', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.05,0,0))
       
       # some help text nodes
       self.helpText = list()
@@ -168,6 +170,16 @@ class EditorApp(DirectObject):
     
     self.accept(EDITOR_DGUI_TOGGLE_BUTTON, self.toggle)
     self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.modelSelected)
+  
+  def duplicateModelWrapper(self):
+    originalModel = modelController.getSelectedModel()
+    objectInstance = originalModel.makeCopy(originalModel)
+    print "I: dgui.EditorApp.duplicateModelWrapper:", objectInstance
+    if objectInstance is not None:
+      objectInstance.enableEditmode()
+    #objectInstance.loadFromData( originalModel.getSaveData('.') )
+    messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
+    modelController.selectModel( objectInstance )
   
   def setObjectEditwindowToggled(self, state):
     ''' saves the state of the object related window, so you dont have to
@@ -310,9 +322,17 @@ class EditorApp(DirectObject):
       if self.editorObjectGuiInstance is not None:
         self.editorObjectGuiInstance.stopEdit()
       
+      self.scenegraphBrowserWindow.destroy()
       self.scenegraphBrowserWindow.detachNode()
       
-      self.ButtonsWindow.detachNode()
+      self.sceneButtons.destroy()
+      self.sceneButtons.detachNode()
+      self.settingsButtons.destroy()
+      self.settingsButtons.detachNode()
+      self.createButtons.destroy()
+      self.createButtons.detachNode()
+      self.editButtons.destroy()
+      self.editButtons.detachNode()
       
       messenger.send( EDITOR_TOGGLE_OFF_EVENT )
       
@@ -333,7 +353,7 @@ class EditorApp(DirectObject):
     itemHeight = 0.11
     
     height = 0.1+(itemHeight - 0.06) * len(buttonDefinitions)
-    self.ButtonsWindow  = DirectSidebar(
+    buttonsWindow  = DirectSidebar(
         frameSize=(0.35, height)
       , pos=pos
       , align=align
@@ -344,10 +364,11 @@ class EditorApp(DirectObject):
         pos = Vec3(.175, 0, height-0.05 ),
         items = buttons,
         scale = 0.5,
-        parent = self.ButtonsWindow,
+        parent = buttonsWindow,
         numItemsVisible = len(buttons),
         forceHeight = itemHeight,
         incButton_scale = (0, 0, 0),
         decButton_scale = (0, 0, 0),
         )
-  
+    
+    return buttonsWindow
