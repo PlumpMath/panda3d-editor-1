@@ -29,6 +29,17 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
     #name = "GeoMipTerrain-"+filepath.split('/')[-1]
     BaseWrapper.__init__(self, parent, name)
     self.terrainNode = None
+    
+    self.mutableParameters['factor'] = [ float,
+      self.terrain.getFactor,
+      self.terrain.setFactor,
+      None,
+      None ]
+    self.mutableParameters['minlevel'] = [ int,
+      self.terrain.getMinlevel,
+      self.terrain.setMinlevel,
+      None,
+      None ]
   
   def setTerrain(self, filepath):
     if self.terrainNode is not None:

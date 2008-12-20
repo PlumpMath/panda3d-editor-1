@@ -32,7 +32,7 @@ def makeEditor(type):
   elif isinstance(type, dict):
     return GridCellChoiceEditor(type.keys())
   else:
-    return GridCellTextEditor()
+    return GridCellTextEditor() 
 
 class PropertyGrid(Grid, DirectObject):
   """The grid to edit node properties."""
@@ -98,11 +98,11 @@ class PropertyGrid(Grid, DirectObject):
      name = self.GetCellValue(evt.Row, 0)
      value = self.GetCellValue(evt.Row, 1)
      try:
-       self.object.setParameter(name, eval(value))
+       self.object.setParameter(name, value)
        #FIXME: If it changed the nodepath name, it should reload the scene graph tree.
        #if prop.setter == NodePath.setName:
        #  messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
      except Exception, ex: # Stop the change if the value is invalid.
-       print ex
        evt.Veto()
+       raise
      self.SetCellValue(evt.Row, 1, str(self.object.getParameter(name)))

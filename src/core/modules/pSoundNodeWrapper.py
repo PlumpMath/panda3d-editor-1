@@ -12,28 +12,31 @@ class SoundNodeWrapper(VirtualNodeWrapper):
     self.soundEffect = None
     self.soundFilepath = None
     
-    #                       name        = [ varType, 'getFuncName', 'setFuncName', 'hasFuncName' ]
     self.mutableParameters['volume']    = [ float,
-      SoundNodeWrapper.getVolume,
-      SoundNodeWrapper.setVolume,
-      True ]
+      self.soundEffect.getVolume,
+      self.soundEffect.setVolume,
+      None,
+      None ]
     self.mutableParameters['loop']      = [ bool,
-      SoundNodeWrapper.getLoop,
-      SoundNodeWrapper.setLoop,
-      True ]
+      self.soundEffect.getLoop,
+      self.soundEffect.setLoop,
+      None,
+      None ]
     self.mutableParameters['loopCount'] = [ int,
-      SoundNodeWrapper.getLoopCount,
-      SoundNodeWrapper.setLoopCount,
-      True ]
+      self.soundEffect.getLoopCount,
+      self.soundEffect.setLoopCount,
+      None,
+      None ]
     self.mutableParameters['playRate']  = [ float,
-      SoundNodeWrapper.getPlayRate,
-      SoundNodeWrapper.setPlayRate,
-      True ]
+      self.soundEffect.getPlayRate,
+      self.soundEffect.setPlayRate,
+      None,
+      None ]
     self.mutableParameters['priority']  = [ int,
-      SoundNodeWrapper.getPriority,
-      SoundNodeWrapper.setPriority,
-      True ]
-    
+      self.soundEffect.getPriority,
+      self.soundEffect.setPriority,
+      None,
+      None ]
   
   def setSound(self, filepath):
     self.soundFilepath = filepath
@@ -43,32 +46,6 @@ class SoundNodeWrapper(VirtualNodeWrapper):
     render.clearLight(self.lightNodePath)
     self.lightNodePath.detachNode()
     VirtualNodeWrapper.destroy(self)
-  
-  # must be handled by ourself (saving)
-  def getVolume(self, *args, **kwargs):
-    return self.soundEffect.getVolume(*args, **kwargs)
-  def setVolume(self, *args, **kwargs):
-    return self.soundEffect.setVolume(*args, **kwargs)
-  
-  def getLoop(self, *args, **kwargs):
-    return self.soundEffect.getLoop(*args, **kwargs)
-  def setLoop(self, *args, **kwargs):
-    return self.soundEffect.setLoop(*args, **kwargs)
-  
-  def getLoopCount(self, *args, **kwargs):
-    return self.soundEffect.getLoopCount(*args, **kwargs)
-  def setLoopCount(self, *args, **kwargs):
-    return self.soundEffect.setLoopCount(*args, **kwargs)
-  
-  def getPlayRate(self, *args, **kwargs):
-    return self.soundEffect.getPlayRate(*args, **kwargs)
-  def setPlayRate(self, *args, **kwargs):
-    return self.soundEffect.setPlayRate(*args, **kwargs)
-  
-  def getPriority(self, *args, **kwargs):
-    return self.soundEffect.getPriority(*args, **kwargs)
-  def setPriority(self, *args, **kwargs):
-    return self.soundEffect.setPriority(*args, **kwargs)
   
   def getSaveData(self, relativeTo):
     objectInstance = BaseWrapper.getSaveData(self, relativeTo)

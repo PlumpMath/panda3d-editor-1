@@ -12,40 +12,37 @@ class SpotLightNodeWrapper(LightNodeWrapper):
     self.lens = PerspectiveLens()
     self.light.setLens(self.lens)
     
+    self.mutableParameters['attenuation'] = [ Vec3,
+      self.light.getAttenuation,
+      self.light.setAttenuation,
+      None,
+      None ]
+    self.mutableParameters['spec_color'] = [ Vec4,
+      self.light.getSpecularColor,
+      self.light.setSpecularColor,
+      None,
+      None ]
     self.mutableParameters['fov'] = [ Vec2,
-      self.getFov,
-      self.setFov,
-      True ]
+      self.lens.getFov,
+      self.lens.setFov,
+      None,
+      None]
     self.mutableParameters['near'] = [ float,
-      self.getNear,
-      self.setNear,
-      True ]
+      self.lens.getNear,
+      self.lens.setNear,
+      None,
+      None ]
     self.mutableParameters['far'] = [ float,
-      self.getFar,
-      self.setFar,
-      True ]
+      self.lens.getFar,
+      self.lens.setFar,
+      None,
+      None ]
     self.mutableParameters['exponent'] = [ float,
-      self.getExponent,
+      self.light.getExponent,
       self.setExponent,
-      True ]
+      None,
+      None ]
   
-  def getNear(self, *args, **kwargs):
-    return self.lens.getNear(*args, **kwargs)
-  def setNear(self, *args, **kwargs):
-    return self.lens.setNear(*args, **kwargs)
-  
-  def getFar(self, *args, **kwargs):
-    return self.lens.getFar(*args, **kwargs)
-  def setFar(self, *args, **kwargs):
-    return self.lens.setFar(*args, **kwargs)
-  
-  def getFov(self, *args, **kwargs):
-    return self.lens.getFov(*args, **kwargs)
-  def setFov(self, *args, **kwargs):
-    return self.lens.setFov(*args, **kwargs)
-  
-  def getExponent(self, *args, **kwargs):
-    return self.light.getExponent(*args, **kwargs)
   def setExponent(self, value):
     # prevent a crash by limiting the value
     value = min(127.0, max(0.0, value))

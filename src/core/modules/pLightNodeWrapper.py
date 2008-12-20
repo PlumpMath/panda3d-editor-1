@@ -20,48 +20,13 @@ class LightNodeWrapper(VirtualNodeWrapper):
     self.mutableParameters['color'] = [ Vec4,
       self.light.getColor,
       self.light.setColor,
-      self.light.hasColor,
-      self.light.clearColor ]
-    self.mutableParameters['attenuation'] = [ Vec3,
-      self.getAttenuation,
-      self.setAttenuation,
-      self.hasAttenuation,
+      None,
       None ]
     self.mutableParameters['priority'] = [ int,
-      self.getPriority,
-      self.setPriority,
-      self.hasPriority,
+      self.light.getPriority,
+      self.light.setPriority,
+      None,
       None ]
-    self.mutableParameters['spec_color'] = [ Vec4,
-      self.getSpecularColor,
-      self.setSpecularColor,
-      self.hasSpecularColor,
-      None ]
-  
-  # must be handled by ourself (saving)
-  def getPriority(self, *args, **kwargs):
-    return self.light.getPriority(*args, **kwargs)
-  def setPriority(self, *args, **kwargs):
-    return self.light.setPriority(*args, **kwargs)
-  def hasPriority(self, *args, **kwargs):
-    return True
-  
-  def getAttenuation(self, *args, **kwargs):
-    return self.light.getAttenuation(*args, **kwargs)
-  def setAttenuation(self, *args, **kwargs):
-    return self.light.setAttenuation(*args, **kwargs)
-  def hasAttenuation(self, *args, **kwargs):
-    print "I: LightNodeWrapper.hasAttenuation"
-    # is overridden by ambientlight, which hasnt got this parameter
-    return True
-  
-  def getSpecularColor(self, *args, **kwargs):
-    return self.light.getSpecularColor(*args, **kwargs)
-  def setSpecularColor(self, *args, **kwargs):
-    return self.light.setSpecularColor(*args, **kwargs)
-  def hasSpecularColor(self, *args, **kwargs):
-    # is overridden by ambientlight, which hasnt got this parameter
-    return True
   
   def destroy(self):
     # destroy this object

@@ -11,6 +11,9 @@ class DirectionalLightNodeWrapper(LightNodeWrapper):
     # define the name of this object
     name = 'DirectionalLight'
     LightNodeWrapper.__init__(self, parent, name, DIRECTIONALLIGHT_WRAPPER_DUMMYOBJECT, DirectionalLight)
-  
-  def hasAttenuation(self, *args, **kwargs):
-    return False
+    
+    self.mutableParameters['spec_color'] = [ Vec4,
+      self.light.getSpecularColor,
+      self.light.setSpecularColor,
+      None,
+      None ]

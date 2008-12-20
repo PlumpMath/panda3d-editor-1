@@ -24,6 +24,15 @@ TransparencyEnum = Enum(
   MDual = TransparencyAttrib.MDual,
 )
 
+AntialiasEnum = Enum(
+  MNone = AntialiasAttrib.MNone,
+  MPoint = AntialiasAttrib.MPoint,
+  MLine = AntialiasAttrib.MLine,
+  MPolygon = AntialiasAttrib.MPolygon,
+  MMultisample = AntialiasAttrib.MMultisample,
+  MAuto = AntialiasAttrib.MAuto,
+)
+
 class BaseWrapper(NodePath):
   def onCreateInstance(self, parent, name='BaseWrapper'):
     # create instance of this class
@@ -71,10 +80,15 @@ class BaseWrapper(NodePath):
       self.setTransparency,
       self.hasTransparency,
       self.clearTransparency ]
+    self.mutableParameters['antialias'] = [ AntialiasEnum,
+      self.getAntialias,
+      self.setAntialias,
+      self.hasAntialias,
+      self.clearAntialias ]
     self.mutableParameters['name'] = [ str,
       self.getName,
       self.setName,
-      True,
+      None,
       None ]
   
   def enableEditmode(self):
@@ -114,22 +128,15 @@ class BaseWrapper(NodePath):
   def getParameter(self, name):
     varType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[name]
     #getFunc = getattr(self, getFuncName)
-    # should we read the value
-    read = False
-    if hasFunc == None:
-      read = False
-    elif hasFunc: # it's true or a func
-      read = True
-      if hasFunc != True: # it's a func
-        read = hasFunc()
     # store the parameters
-    if not read: return
+    if hasFunc != None and not hasFunc():
+      return None
     val = getFunc()
-    if varType == Vec4 or varType == Point4:
+    if varType in [Vec4, Point4, VBase4]:
       return (val[0], val[1], val[2], val[3])
-    elif varType == Vec3 or varType == Point3:
+    elif varType in [Vec3, Point3, VBase3]:
       return (val[0], val[1], val[2])
-    elif varType == Vec2 or varType == Point2:
+    elif varType in [Vec3, Point3, VBase3]:
       return (val[0], val[1])
     elif varType == float or varType == int or varType == str or varType == bool:
       return val
@@ -148,32 +155,37 @@ class BaseWrapper(NodePath):
       parameters[name] = getParameter(name)
     return parameters
   
+  def setParameter(self, name, value):
+    varType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[name]
+    try:
+      if clearFunc != None and (value == None or (isinstance(value, str) and value.lower() == "none")):
+        clearFunc()
+      elif isinstance(value, varType.__class__):
+        # It's already the correct type
+        setFunc(value)
+      elif isinstance(varType, Enum):
+        for n, v in varType.items():
+          if n == value:
+            setFunc(v)
+            return
+        print "E: BaseWrapper.setParameter: invalid value %s for enum %s" % (value, varType.__name__)
+      else:
+        if isinstance(value, str) or isinstance(value, unicode):
+          value = tuple([varType(i) for i in value.replace("(", "").replace(")", "").replace(" ", "").split(",")])
+        
+        if varType in [Vec4, Point4, VBase4, Point3, Vec3, VBase3, Point2, Vec2, VBase2]:
+          setFunc(varType(*value))
+        elif varType in [float, int, str, bool]:
+          setFunc(varType(value))
+        else:
+          print "E: BaseWrapper.setParameter: unknown varType %s for %s" % (varType.__name__, name)
+    except TypeError:
+      print "E: BaseWrapper.setParameter: error handling %s in data:" % name
+      raise
+  
   def setParameters(self, parameters):
-    for name, [varType, getFunc, setFunc, hasFunc, clearFunc] in self.mutableParameters.items():
-      if name in parameters:
-        try:
-          if clearFunc not in (None, True, False) and (parameters[name] == None or (isinstance(parameters[name], str) and parameters[name].lower() == "none")):
-            clearFunc()
-          elif varType == Vec4 or varType == Point4:
-            setFunc(varType(*parameters[name]))
-          elif varType == Vec3 or varType == Point3:
-            setFunc(varType(*parameters[name]))
-          elif varType == Vec2 or varType == Point2:
-            setFunc(varType(*parameters[name]))
-          elif varType == float or varType == int or varType == str or varType == bool:
-            setFunc(varType(parameters[name]))
-          elif isinstance(varType, Enum):
-            for n, v in varType.items():
-              if n == parameters[name]:
-                setFunc(v)
-                return
-            print "E: BaseWrapper.setParameters: invalid value %s for enum %s" % (parameters[name], varType.__name__)
-          else:
-            print "E: BaseWrapper.setParameters: unknown varType %s for %s" % (varType.__name__, name)
-        except TypeError:
-          print "E: BaseWrapper.setParameters: error handling %s in data:" % name
-          print parameters
-          traceback.print_exc()
+    for name, value in parameters.items():
+      self.setParameter(name, value)
   
   ''' --- external reference saving / loading ---
   these are used by if a wrapper uses a external file
@@ -211,11 +223,11 @@ class BaseWrapper(NodePath):
     nm = Mat4D()
     for x in xrange(4):
       for y in xrange(4):
-        nm.setCell( x, y, om.getCell(x,y) )
+        nm.setCell(x, y, om.getCell(x,y))
     # the matrix we define must be applied to the nodes in "local space"
     instance = EggGroup(name)
     instance.setGroupType(EggGroup.GTInstance)
-    instance.setTransform3d( nm )
+    instance.setTransform3d(nm)
     # define the type of this object
     className = self.__class__.__name__
     instance.setTag(MODEL_WRAPPER_TYPE_TAG, className)
