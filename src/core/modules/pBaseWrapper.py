@@ -43,7 +43,8 @@ class BaseWrapper(NodePath):
   def loadFromEggGroup(self, eggGroup, parent, filepath):
     if DEBUG:
       print "I: NodePathWrapper.loadFromEggGroup:"
-    objectInstance = self(parent)
+    name = eggGroup.getName()
+    objectInstance = self(parent, name)
     return objectInstance
   loadFromEggGroup = classmethod(loadFromEggGroup)
   
@@ -54,7 +55,6 @@ class BaseWrapper(NodePath):
     # get a uniq id for this object
     self.id = modelIdManager.getId()
     # define a name for this object
-    name = '%s-%s' % (name, self.id)
     NodePath.__init__(self, name)
     # store this object
     modelIdManager.setObject(self, self.id)
@@ -64,6 +64,11 @@ class BaseWrapper(NodePath):
     self.reparentTo(parent)
     self.editModeEnabled = False
     
+    # all values that can be changed require a entry in the mutableParameters
+    
+    # when a value exists, it means that it's allowed to read/write the value
+    # hasFunc defines if it's a vital property of the object and must be saved
+    # into the comments
     self.mutableParameters = dict()
     self.mutableParameters['color'] = [ Vec4,
       self.getColor,
@@ -85,9 +90,25 @@ class BaseWrapper(NodePath):
       self.setAntialias,
       self.hasAntialias,
       self.clearAntialias ]
+    # should not be saved into the comments, but available to the gui-editor
     self.mutableParameters['name'] = [ str,
       self.getName,
       self.setName,
+      None,
+      None ]
+    self.mutableParameters['position'] = [ Vec3,
+      self.getPos,
+      self.setPos,
+      None,
+      None ]
+    self.mutableParameters['rotation'] = [ Vec3,
+      self.getHpr,
+      self.setHpr,
+      None,
+      None ]
+    self.mutableParameters['scale'] = [ Vec3,
+      self.getScale,
+      self.setScale,
       None,
       None ]
   
