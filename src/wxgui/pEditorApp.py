@@ -7,6 +7,16 @@ from direct.wxwidgets.WxAppShell import WxAppShell as AppShell
 from core.pGrid import DirectGrid
 from core.pConfigDefs import *
 from core.pWindow import WindowManager
+from core.pModelController import modelController
+from core.modules.pAmbientLightNodeWrapper import AmbientLightNodeWrapper
+from core.modules.pBaseWrapper import BaseWrapper
+from core.modules.pCodeNodeWrapper import CodeNodeWrapper
+from core.modules.pDirectionalLightNodeWrapper import DirectionalLightNodeWrapper
+from core.modules.pGeoMipTerrainNodeWrapper import GeoMipTerrainNodeWrapper
+from core.modules.pLightNodeWrapper import LightNodeWrapper
+from core.modules.pParticleSystemWrapper import ParticleSystemWrapper
+from core.modules.pPointLightNodeWrapper import PointLightNodeWrapper
+from core.modules.pSpotLightNodeWrapper import SpotLightNodeWrapper
 import wx
 from math import tan
 from gc import collect
@@ -15,6 +25,8 @@ from gc import collect
 from pPropertyGrid import PropertyGrid
 from pSceneGraphTree import SceneGraphTree
 from pViewport import *
+
+from core.modules import *
 
 # Get the default window origin
 defWP = WindowProperties.getDefault()
@@ -28,6 +40,13 @@ ID_SINGLE_VIEWPORT = 3
 ID_4x4_GRID = 4
 ID_2_HORIZONTAL = 5
 ID_2_VERTICAL = 6
+ID_NODEPATH = 7
+ID_MODEL = 8
+ID_TERRAIN = 9
+ID_AMBIENT = 10
+ID_DIRECTIONAL = 11
+ID_POINT = 12
+ID_SPOT = 13
 
 class EditorApp(AppShell):
   appversion    = "cvs"
@@ -123,6 +142,19 @@ class EditorApp(AppShell):
     self.Bind(wx.EVT_MENU, self.onToggleGrid, self.menuView.AppendCheckItem(ID_ENABLE_GRID, "E&nable Grid"))
     self.Bind(wx.EVT_MENU, self.onCenterTrackball, self.menuView.Append(wx.ID_ANY, "&Center Model"))
     self.menuBar.Check(ID_ENABLE_GRID, True)
+    
+    # Create menu
+    self.menuCreate = wx.Menu()
+    self.menuBar.Append(self.menuCreate, "&Create")
+    self.Bind(wx.EVT_MENU, self.onCreateObject, self.menuCreate.Append(ID_MODEL, "&Model..."))
+    self.Bind(wx.EVT_MENU, self.onCreateObject, self.menuCreate.Append(ID_TERRAIN, "&Terrain..."))
+    
+    self.menuCreateLight = wx.Menu()
+    self.Bind(wx.EVT_MENU, self.onCreateObject, self.menuCreateLight.Append(ID_AMBIENT, "&Ambient"))
+    self.Bind(wx.EVT_MENU, self.onCreateObject, self.menuCreateLight.Append(ID_DIRECTIONAL, "&Directional"))
+    self.Bind(wx.EVT_MENU, self.onCreateObject, self.menuCreateLight.Append(ID_POINT, "&Point"))
+    self.Bind(wx.EVT_MENU, self.onCreateObject, self.menuCreateLight.Append(ID_SPOT, "&Spotlight"))
+    self.menuCreate.AppendSubMenu(self.menuCreateLight, "&Light")
     
     # Viewports menu
     self.menuViewports = wx.Menu()
@@ -243,6 +275,52 @@ class EditorApp(AppShell):
         self.editorInstance.saveEggModelsFile(self.filename.getFullpath())
     finally:
       dlg.Destroy()
+  
+  def onCreateObject(self, e):
+    """Invoked when the user hits one of the buttons in the "Create" menu."""
+    
+    modelParent = modelController.getSelectedModel() 
+    if modelParent == None: modelParent = render
+    objectInstance = None
+    if e.Id == ID_NODEPATH:
+      objectInstance = NodePathWrapper.onCreateInstance(modelParent)
+    elif e.Id == ID_MODEL:
+      filter = "Panda3D Egg Format (*.egg)|*.[eE][gG][gG]"
+      filter += "|Panda3D Binary Format (*.bam)|*.[bB][aA][mM]"
+      filter += "|MultiGen (*.flt)|*.[fF][lL][tT]"
+      filter += "|Lightwave (*.lwo)|*.[lL][wW][oO]"
+      filter += "|AutoCAD (*.dxf)|*.[dD][xX][fF]"
+      filter += "|VRML (*.wrl)|*.[wW][rR][lL]"
+      filter += "|DirectX (*.x)|*.[xX]"
+      filter += "|COLLADA (*.dae)|*.[dD][aA][eE]"
+      dlg = wx.FileDialog(self, "Select model", "", "", filter, wx.OPEN)
+      try:
+        if dlg.ShowModal() == wx.ID_OK:
+          objectInstance = NodePathWrapper.onCreateInstance(modelParent, Filename.fromOsSpecific(dlg.GetPath()).getFullpath())
+      finally:
+        dlg.Destroy()
+    elif e.Id == ID_TERRAIN:
+      filter = "Portable Network Graphics (*.png)|*.[pP][nN][gG]"
+      dlg = wx.FileDialog(self, "Select heightfield", "", "", filter, wx.OPEN)
+      try:
+        if dlg.ShowModal() == wx.ID_OK:
+          objectInstance = GeoMipTerrainNodeWrapper.onCreateInstance(modelParent, Filename.fromOsSpecific(dlg.GetPath()).getFullpath())
+      finally:
+        dlg.Destroy()
+    elif e.Id == ID_AMBIENT:
+      objectInstance = AmbientLightNodeWrapper.onCreateInstance(modelParent)
+    elif e.Id == ID_DIRECTIONAL:
+      objectInstance = DirectionalLightNodeWrapper.onCreateInstance(modelParent)
+    elif e.Id == ID_POINT:
+      objectInstance = PointLightNodeWrapper.onCreateInstance(modelParent)
+    elif e.Id == ID_SPOT:
+      objectInstance = SpotLightNodeWrapper.onCreateInstance(modelParent)
+    
+    if objectInstance != None:
+      objectInstance.reparentTo(modelParent)
+      objectInstance.enableEditmode() 
+      modelController.selectModel(objectInstance)
+      messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
   
   def onChangeViewports(self, e):
     """Invoked when the user changes viewport layout."""
