@@ -17,7 +17,7 @@ class SpotLightNodeWrapper(LightNodeWrapper):
       self.light.setAttenuation,
       None,
       None ]
-    self.mutableParameters['spec_color'] = [ Vec4,
+    self.mutableParameters['specularColor'] = [ Vec4,
       self.light.getSpecularColor,
       self.light.setSpecularColor,
       None,
@@ -26,7 +26,7 @@ class SpotLightNodeWrapper(LightNodeWrapper):
       self.lens.getFov,
       self.lens.setFov,
       None,
-      None]
+      None ]
     self.mutableParameters['near'] = [ float,
       self.lens.getNear,
       self.lens.setNear,

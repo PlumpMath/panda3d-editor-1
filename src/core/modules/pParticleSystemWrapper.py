@@ -17,11 +17,12 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
     # create instance of this class
     objectInstance = super(VirtualNodeWrapper, self).onCreateInstance(parent, filepath)
     objectInstance.setParticleConfig(filepath)
-    objectInstance.setTransparency(True)
+    #objectInstance.setTransparency(True)
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
   
   def __init__( self, parent=None, name=None ):
+    global PARTICLES_ENABLED
     if not PARTICLES_ENABLED:
       base.enableParticles()
       PARTICLES_ENABLED = True

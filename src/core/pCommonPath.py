@@ -30,7 +30,7 @@ def relpath(p1, p2):
         p = [ '../' * len(l1) ]
     p = p + l2
     result = '/'.join( p )
-    print "I: commonPath.relpath: %s | %s -> %s" % (p1, p2, result)
+#    print "I: commonPath.relpath: %s | %s -> %s" % (p1, p2, result)
     return result
 
 def test(p1,p2):

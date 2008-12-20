@@ -1,7 +1,11 @@
+VALIDITYCHECK_RATE = None
+
 class ModelIdManager:
   def __init__( self ):
     self.modelId = 0
     self.modelIdDict = dict()
+    if VALIDITYCHECK_RATE:
+      taskMgr.doMethodLater(VALIDITYCHECK_RATE, self.validityCheck, 'ModelIdManager-validityCheck')
   
   def getId( self ):
     # get next free modelId
@@ -14,7 +18,6 @@ class ModelIdManager:
     self.modelIdDict[ modelId ] = model_
   
   def getObjectId( self, model ):
-    #objectIds = list()
     for objId, obj in self.modelIdDict.items():
       if obj == model:
         return objId
@@ -23,7 +26,6 @@ class ModelIdManager:
   def getObject( self, modelId ):
     if self.modelIdDict.has_key( modelId ):
       obj = self.modelIdDict[modelId]
-      #print "found model with tag", modelId, ":", obj
       return obj
     return None
   
@@ -39,7 +41,17 @@ class ModelIdManager:
     for objId in objectIds:
       self.delObjectId( objId )
   
-  def getAllModels( self ):
+  def getAllModels(self):
     return self.modelIdDict.values()
+  
+  def validityCheck(self, task):
+    print "I: ModelIdManager.validityCheck: running"
+    for objId, obj in self.modelIdDict.items():
+      try:
+        obj.getName()
+      except:
+        print "E: ModelIdManager.validityCheck: failed for object", objId, obj
+        del self.modelIdDict[objId]
+    return task.again
 
 modelIdManager = ModelIdManager()

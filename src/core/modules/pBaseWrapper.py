@@ -5,7 +5,7 @@ from direct.gui.DirectGui import *
 
 from core.pModelIdManager import modelIdManager
 from core.pConfigDefs import *
-from core.pCommonPath import *
+from core.pCommonPath import relpath
 
 DEBUG = False
 
@@ -69,6 +69,9 @@ class BaseWrapper(NodePath):
     # when a value exists, it means that it's allowed to read/write the value
     # hasFunc defines if it's a vital property of the object and must be saved
     # into the comments
+    
+    # valueType, getFunction, setFunction, hasFunction, clearFunction, saveToComments
+    # hasFunction == None -> the value should be saved
     self.mutableParameters = dict()
     self.mutableParameters['color'] = [ Vec4,
       self.getColor,
@@ -135,12 +138,12 @@ class BaseWrapper(NodePath):
     # the object is selected to be edited
     # creates a directFrame to edit this object
     if not self.editModeEnabled:
-      print "E: code.BaseWrapper.startEdit: object is not in editmode", self
+      print "E: core.BaseWrapper.startEdit: object is not in editmode", self
   
   def stopEdit(self):
     # the object is deselected from being edited
     if not self.editModeEnabled:
-      print "E: code.BaseWrapper.stopEdit: object is not in editmode", self
+      print "E: core.BaseWrapper.stopEdit: object is not in editmode", self
   
   def destroy(self):
     self.detachNode()
@@ -157,52 +160,63 @@ class BaseWrapper(NodePath):
       return (val[0], val[1], val[2], val[3])
     elif varType in [Vec3, Point3, VBase3]:
       return (val[0], val[1], val[2])
-    elif varType in [Vec3, Point3, VBase3]:
+    elif varType in [Vec2, Point2, VBase2]:
       return (val[0], val[1])
-    elif varType == float or varType == int or varType == str or varType == bool:
+    elif varType in [float, int, str, bool]:
       return val
     elif isinstance(varType, Enum):
       for n, v in varType.items():
         if v == val:
           return n
-      print "E: BaseWrapper.getParameters: invalid value %s for enum %s" % (val, varType.__name__)
+      print "E: core.BaseWrapper.getParameters: invalid value %s for enum %s" % (val, varType.__name__)
     else:
-      print "E: BaseWrapper.getParameters: unknown varType %s for %s" % (varType.__name__, name)
+      print "E: core.BaseWrapper.getParameters: unknown varType %s for %s" % (varType.__name__, name)
   
   def getParameters(self):
     # get the data
     parameters = dict()
     for name in self.mutableParameters.keys():
-      parameters[name] = getParameter(name)
+      value = self.getParameter(name)
+      if value is not None:
+        parameters[name] = value
     return parameters
   
   def setParameter(self, name, value):
+    ''' name: name of the parameter
+    value: value of the parameter, if parameter is a Vec or Point, give a tuple or list
+    '''
     varType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[name]
     try:
       if clearFunc != None and (value == None or (isinstance(value, str) and value.lower() == "none")):
+        print "I: core.BaseWrapper.setParameter: clear"
         clearFunc()
-      elif isinstance(value, varType.__class__):
+      elif isinstance(value, varType):
+        print "I: core.BaseWrapper.setParameter: not converting"
         # It's already the correct type
         setFunc(value)
       elif isinstance(varType, Enum):
+        print "I: core.BaseWrapper.setParameter: enum type"
         for n, v in varType.items():
           if n == value:
             setFunc(v)
             return
-        print "E: BaseWrapper.setParameter: invalid value %s for enum %s" % (value, varType.__name__)
+        print "E: core.BaseWrapper.setParameter: invalid value %s for enum %s" % (value, varType.__name__)
       else:
+        # this cannot be in here, node names (strings) can also be set and they must not be changed
+        print "I: core.BaseWrapper.setParameter: converting", name, value
         if isinstance(value, str) or isinstance(value, unicode):
-          value = tuple([varType(i) for i in value.replace("(", "").replace(")", "").replace(" ", "").split(",")])
+          value = tuple([float(i) for i in value.replace("(", "").replace(")", "").replace(" ", "").split(",")])
         
         if varType in [Vec4, Point4, VBase4, Point3, Vec3, VBase3, Point2, Vec2, VBase2]:
           setFunc(varType(*value))
         elif varType in [float, int, str, bool]:
           setFunc(varType(value))
         else:
-          print "E: BaseWrapper.setParameter: unknown varType %s for %s" % (varType.__name__, name)
+          print "E: core.BaseWrapper.setParameter: unknown varType %s for %s" % (varType.__name__, name)
     except TypeError:
-      print "E: BaseWrapper.setParameter: error handling %s in data:" % name
+      print "E: core.BaseWrapper.setParameter: error handling %s in data:" % name
       raise
+    print "D: core.BaseWrapper.setParameter:", self.getColor()
   
   def setParameters(self, parameters):
     for name, value in parameters.items():

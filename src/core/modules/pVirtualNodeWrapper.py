@@ -2,8 +2,10 @@ import pickle
 
 from pandac.PandaModules import *
 
-from core.modules.pBaseWrapper import *
+from core.modules.pBaseWrapper import BaseWrapper
 from core.pModelController import modelController
+from core.pConfigDefs import *
+from core.pModelIdManager import modelIdManager
 
 # parent class for all nodetypes that have no real model
 # like lights, particle systems etc. (well most except the NodePath)
@@ -36,6 +38,7 @@ class VirtualNodeWrapper(BaseWrapper):
       self.setCollideMask( DEFAULT_EDITOR_COLLIDEMASK )
       # edit mode is enabled
       BaseWrapper.enableEditmode( self )
+  
   def disableEditmode( self ):
     ''' disables the edit methods of this object
      -> performance increase'''

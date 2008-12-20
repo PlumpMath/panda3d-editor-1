@@ -1,4 +1,4 @@
-import imp, os
+import imp, os, traceback
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.pModelController import modelController
@@ -49,6 +49,7 @@ class CodeNodeWrapper(VirtualNodeWrapper):
   
   def destroy(self):
     VirtualNodeWrapper.destroy(self)
+    taskMgr.step()
     if self.objectInstance is not None:
       self.objectInstance.destroy()
       del self.objectInstance

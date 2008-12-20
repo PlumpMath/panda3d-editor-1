@@ -17,7 +17,7 @@ class PointLightNodeWrapper(LightNodeWrapper):
       self.light.setAttenuation,
       None,
       None ]
-    self.mutableParameters['spec_color'] = [ Vec4,
+    self.mutableParameters['specularColor'] = [ Vec4,
       self.light.getSpecularColor,
       self.light.setSpecularColor,
       None,
