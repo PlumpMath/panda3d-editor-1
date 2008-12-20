@@ -28,16 +28,12 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
   def __init__(self, parent=None, name=None):
     #name = "GeoMipTerrain-"+filepath.split('/')[-1]
     BaseWrapper.__init__(self, parent, name)
+    self.terrain = GeoMipTerrain("mySimpleTerrain")
     self.terrainNode = None
     
-    self.mutableParameters['factor'] = [ float,
-      self.terrain.getFactor,
-      self.terrain.setFactor,
-      None,
-      None ]
     self.mutableParameters['minlevel'] = [ int,
-      self.terrain.getMinlevel,
-      self.terrain.setMinlevel,
+      self.terrain.getMinLevel,
+      self.terrain.setMinLevel,
       None,
       None ]
   
@@ -45,11 +41,11 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
     if self.terrainNode is not None:
       self.terrainNode.detachNode()
     self.terrainImageFilepath = filepath
-    self.terrain = GeoMipTerrain("mySimpleTerrain")
     self.terrain.setHeightfield(Filename(filepath))
+    self.terrainNode = self.terrain.getRoot()
     self.terrain.getRoot().reparentTo(self)
     self.terrain.getRoot().setSz(25)
-    self.terrainNode = self.terrain.generate()
+    self.terrain.generate()
   
   def getSaveData(self, relativeTo):
     objectInstance = BaseWrapper.getSaveData(self, relativeTo)

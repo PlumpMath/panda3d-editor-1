@@ -245,7 +245,7 @@ class BaseWrapper(NodePath):
     for child in eggGroup.getChildren():
       if type(child) == EggComment:
         if child.getName() == BASEWRAPPER_DATA_TAG:
-          exec("data = %s" % child.getComment())
+          data = eval(child.getComment())
     self.setParameters(data)
   ''' --- end : load & save to files --- '''
   
