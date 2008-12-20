@@ -1,3 +1,5 @@
+import traceback
+
 from direct.particles.ParticleEffect import ParticleEffect
 from direct.particles.Particles import Particles
 from pandac.PandaModules import *
@@ -15,6 +17,7 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
     # create instance of this class
     objectInstance = super(VirtualNodeWrapper, self).onCreateInstance(parent, filepath)
     objectInstance.setParticleConfig(filepath)
+    objectInstance.setTransparency(True)
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
   

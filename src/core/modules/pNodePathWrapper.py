@@ -1,7 +1,7 @@
 from core.modules.pBaseWrapper import *
 from core.pModelController import modelController
 
-DEBUG = True
+DEBUG = False
 
 class NodePathWrapper(BaseWrapper):
   def onCreateInstance(self, parent, filepath):
