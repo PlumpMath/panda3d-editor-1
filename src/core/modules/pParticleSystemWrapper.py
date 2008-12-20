@@ -8,7 +8,7 @@ from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.pModelController import modelController
 from core.pConfigDefs import *
 
-base.enableParticles()
+PARTICLES_ENABLED = False
 
 DEBUG = False
 
@@ -22,6 +22,9 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
   onCreateInstance = classmethod(onCreateInstance)
   
   def __init__( self, parent=None, name=None ):
+    if not PARTICLES_ENABLED:
+      base.enableParticles()
+      PARTICLES_ENABLED = True
     # define the name of this object
     VirtualNodeWrapper.__init__(self, parent, name, PARTICLE_WRAPPER_DUMMYOBJECT)
     
