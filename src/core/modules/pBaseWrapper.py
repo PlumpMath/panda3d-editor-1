@@ -96,23 +96,28 @@ class BaseWrapper(NodePath):
     # get the data
     parameters = dict()
     for name, [varType, getFunc, setFunc, hasFunc] in self.mutableParameters.items():
+      #getFunc = getattr(self, getFuncName)
       # should we read the value
       read = False
-      if hasFunc: # it's true or a func
+      val = None
+      if hasFunc == None:
+        parameters[name] = val
+        read = False
+      elif hasFunc: # it's true or a func
         read = True
         if hasFunc != True: # it's a func
           read = hasFunc()
       # store the parameters
-      if read:
-        #getFunc = getattr(self, getFuncName)
+      if read and val != None:
+        val = getFunc()
         if varType == Vec4 or varType == Point4:
-          parameters[name] = (getFunc()[0], getFunc()[1], getFunc()[2], getFunc()[3])
+          parameters[name] = (val[0], val[1], val[2], val[3])
         elif varType == Vec3 or varType == Point3:
-          parameters[name] = (getFunc()[0], getFunc()[1], getFunc()[2])
+          parameters[name] = (val[0], val[1], val[2])
         elif varType == Vec2 or varType == Point2:
-          parameters[name] = (getFunc()[0], getFunc()[1])
+          parameters[name] = (val[0], val[1])
         elif varType == float or varType == int or varType == str or varType == bool:
-          parameters[name] = getFunc()
+          parameters[name] = val
         else:
           print "E: BaseWrapper.getParameters: unknown varType %s for %s" % (varType.__name__, name)
     return parameters
