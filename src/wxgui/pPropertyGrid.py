@@ -1,4 +1,5 @@
 __all__ = ["PropertyGrid"]
+
 from pandac.PandaModules import NodePath
 from direct.showbase.DirectObject import DirectObject
 from wx.grid import *
@@ -8,13 +9,37 @@ import wx, re
 from core.pConfigDefs import *
 from core.pModelController import modelController
 from core.modules.pLightNodeWrapper import LightNodeWrapper
-from pProperties import EnumProperty, Enums, Properties
+
+def makeRenderer(type):
+  """Returns a new GridCellRenderer for the given property type."""
+  if type == bool: # Bool must be checked before int
+    return GridCellBoolRenderer()
+  elif type == int or type == long:
+    return GridCellNumberRenderer()
+  elif type == float:
+    return GridCellFloatRenderer()
+  else:
+    return GridCellStringRenderer()
+
+def makeEditor(type):
+  """Returns a new GridCellEditor for the given property type."""
+  if type == bool: # Bool must be checked before int
+    return GridCellBoolEditor()
+  elif type == int or type == long:
+    return GridCellNumberEditor()
+  elif type == float:
+    return GridCellFloatEditor()
+  elif isinstance(type, dict):
+    return GridCellChoiceEditor(type.keys())
+  else:
+    return GridCellTextEditor()
 
 class PropertyGrid(Grid, DirectObject):
   """The grid to edit node properties."""
   def __init__(self, *args, **kwargs):
     Grid.__init__(self, *args, **kwargs)
     self.EnableScrolling(False, False)
+    self.EnableEditing(True)
     self.CreateGrid(0, 2)
     self.SetRowLabelSize(0)
     self.SetColLabelSize(0)
@@ -46,46 +71,38 @@ class PropertyGrid(Grid, DirectObject):
     """Updates the control based on the specified NodePath."""
     self.reset()
     self.object = nodePath
-    if nodePath != None:
-      props = None
-      if isinstance(nodePath, LightNodeWrapper):
-        props = Properties.LightNodeWrapper
-      else:
-        props = Properties.NodePathWrapper
-      for propName, prop in props.items():
-        if prop != None: self.addProperty(propName, prop, prop.GetValue(nodePath))
+    if nodePath == None: return
+    for propName, prop in nodePath.mutableParameters.items():
+      if prop != None:
+        self.addProperty(propName, prop[0], nodePath.getParameter(propName))
   
   def viewForSelection(self):
     """Similar to viewForNodePath, but this uses the currently selected model."""
     return self.viewForNodePath(modelController.getSelectedModel())
   
-  def addProperty(self, propName, prop, value = None):
+  def addProperty(self, propName, propType, value = None):
     """ Adds a new property to the control. """
     assert self.AppendRows(1)
     row = self.GetNumberRows() - 1
     self.SetCellValue(row, 0, propName)
     self.SetReadOnly(row, 0, True)
-    self.SetReadOnly(row, 1, prop.IsReadOnly)
-    self.SetCellRenderer(row, 1, prop.MakeRenderer())
-    self.SetCellEditor(row, 1, prop.MakeEditor())
-    if value == None:
-      self.SetCellValue(row, 1, "None")
-    else: 
-      self.SetCellValue(row, 1, prop.ValueAsString(value))
-    self.properties.append(prop)
+    self.SetReadOnly(row, 1, False)
+    self.SetCellRenderer(row, 1, makeRenderer(propType))
+    self.SetCellEditor(row, 1, makeEditor(propType))
+    self.SetCellValue(row, 1, str(value))
   
   def onCellChange(self, evt):
      """Invoked when a cell is modified."""
      if self.object == None: return
      if evt.Col != 1: return
+     name = self.GetCellValue(evt.Row, 0)
      value = self.GetCellValue(evt.Row, 1)
      try:
-       prop = self.properties[evt.Row]
-       prop.SetValue(self.object, prop.StringToValue(value))
-       # If it changed the nodepath name, reload the scene graph tree.
-       if prop.setter == NodePath.setName:
-         messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+       self.object.setParameter(name, eval(value))
+       #FIXME: If it changed the nodepath name, it should reload the scene graph tree.
+       #if prop.setter == NodePath.setName:
+       #  messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
      except Exception, ex: # Stop the change if the value is invalid.
        print ex
        evt.Veto()
-     self.SetCellValue(evt.Row, 1, prop.ValueAsString(prop.GetValue(self.object)))
+     self.SetCellValue(evt.Row, 1, str(self.object.getParameter(name)))

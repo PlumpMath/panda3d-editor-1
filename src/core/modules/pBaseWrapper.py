@@ -11,6 +11,19 @@ DEBUG = False
 
 BASEWRAPPER_DATA_TAG = 'parameters'
 
+class Enum(dict):
+  __name__ = "Enum"
+
+TransparencyEnum = Enum(
+  MNone = TransparencyAttrib.MNone,
+  MAlpha = TransparencyAttrib.MAlpha,
+  MNotused = TransparencyAttrib.MNotused,
+  MMultisample = TransparencyAttrib.MMultisample,
+  MMultisampleMask = TransparencyAttrib.MMultisampleMask,
+  MBinary = TransparencyAttrib.MBinary,
+  MDual = TransparencyAttrib.MDual,
+)
+
 class BaseWrapper(NodePath):
   def onCreateInstance(self, parent, name='BaseWrapper'):
     # create instance of this class
@@ -46,19 +59,23 @@ class BaseWrapper(NodePath):
     self.mutableParameters['color'] = [ Vec4,
       self.getColor,
       self.setColor,
-      self.hasColor ]
+      self.hasColor,
+      self.clearColor ]
     self.mutableParameters['colorScale'] = [ Vec4,
       self.getColorScale,
       self.setColorScale,
-      self.hasColorScale ]
-    self.mutableParameters['transparency'] = [ bool,
+      self.hasColorScale,
+      self.clearColorScale ]
+    self.mutableParameters['transparency'] = [ TransparencyEnum,
       self.getTransparency,
       self.setTransparency,
-      self.hasTransparency ]
+      self.hasTransparency,
+      self.clearTransparency ]
     self.mutableParameters['name'] = [ str,
       self.getName,
       self.setName,
-      True ]
+      True,
+      None ]
   
   def enableEditmode(self):
     ''' enables the edit methods of this object
@@ -69,6 +86,7 @@ class BaseWrapper(NodePath):
       self.setTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG, '')
       self.setTag(EDITABLE_OBJECT_TAG, self.id)
       self.editModeEnabled = True
+  
   def disableEditmode(self):
     ''' disables the edit methods of this object
     -> performance increase
@@ -83,6 +101,7 @@ class BaseWrapper(NodePath):
     # creates a directFrame to edit this object
     if not self.editModeEnabled:
       print "E: code.BaseWrapper.startEdit: object is not in editmode", self
+  
   def stopEdit(self):
     # the object is deselected from being edited
     if not self.editModeEnabled:
@@ -92,41 +111,50 @@ class BaseWrapper(NodePath):
     self.detachNode()
     self.removeNode()
   
+  def getParameter(self, name):
+    varType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[name]
+    #getFunc = getattr(self, getFuncName)
+    # should we read the value
+    read = False
+    if hasFunc == None:
+      read = False
+    elif hasFunc: # it's true or a func
+      read = True
+      if hasFunc != True: # it's a func
+        read = hasFunc()
+    # store the parameters
+    if not read: return
+    val = getFunc()
+    if varType == Vec4 or varType == Point4:
+      return (val[0], val[1], val[2], val[3])
+    elif varType == Vec3 or varType == Point3:
+      return (val[0], val[1], val[2])
+    elif varType == Vec2 or varType == Point2:
+      return (val[0], val[1])
+    elif varType == float or varType == int or varType == str or varType == bool:
+      return val
+    elif isinstance(varType, Enum):
+      for n, v in varType.items():
+        if v == val:
+          return n
+      print "E: BaseWrapper.getParameters: invalid value %s for enum %s" % (val, varType.__name__)
+    else:
+      print "E: BaseWrapper.getParameters: unknown varType %s for %s" % (varType.__name__, name)
+  
   def getParameters(self):
     # get the data
     parameters = dict()
-    for name, [varType, getFunc, setFunc, hasFunc] in self.mutableParameters.items():
-      #getFunc = getattr(self, getFuncName)
-      # should we read the value
-      read = False
-      val = None
-      if hasFunc == None:
-        parameters[name] = val
-        read = False
-      elif hasFunc: # it's true or a func
-        read = True
-        if hasFunc != True: # it's a func
-          read = hasFunc()
-      # store the parameters
-      if read and val != None:
-        val = getFunc()
-        if varType == Vec4 or varType == Point4:
-          parameters[name] = (val[0], val[1], val[2], val[3])
-        elif varType == Vec3 or varType == Point3:
-          parameters[name] = (val[0], val[1], val[2])
-        elif varType == Vec2 or varType == Point2:
-          parameters[name] = (val[0], val[1])
-        elif varType == float or varType == int or varType == str or varType == bool:
-          parameters[name] = val
-        else:
-          print "E: BaseWrapper.getParameters: unknown varType %s for %s" % (varType.__name__, name)
+    for name in self.mutableParameters.keys():
+      parameters[name] = getParameter(name)
     return parameters
   
   def setParameters(self, parameters):
-    for name, [varType, getFunc, setFunc, hasFunc] in self.mutableParameters.items():
+    for name, [varType, getFunc, setFunc, hasFunc, clearFunc] in self.mutableParameters.items():
       if name in parameters:
         try:
-          if varType == Vec4 or varType == Point4:
+          if clearFunc not in (None, True, False) and (parameters[name] == None or (isinstance(parameters[name], str) and parameters[name].lower() == "none")):
+            clearFunc()
+          elif varType == Vec4 or varType == Point4:
             setFunc(varType(*parameters[name]))
           elif varType == Vec3 or varType == Point3:
             setFunc(varType(*parameters[name]))
@@ -134,6 +162,12 @@ class BaseWrapper(NodePath):
             setFunc(varType(*parameters[name]))
           elif varType == float or varType == int or varType == str or varType == bool:
             setFunc(varType(parameters[name]))
+          elif isinstance(varType, Enum):
+            for n, v in varType.items():
+              if n == parameters[name]:
+                setFunc(v)
+                return
+            print "E: BaseWrapper.setParameters: invalid value %s for enum %s" % (parameters[name], varType.__name__)
           else:
             print "E: BaseWrapper.setParameters: unknown varType %s for %s" % (varType.__name__, name)
         except TypeError:
@@ -150,6 +184,7 @@ class BaseWrapper(NodePath):
     # add the reference to the egg-file
     extRef = EggExternalReference("ExtRef", extRefPath)
     objectInstance.addChild(extRef)
+  
   def getExternalReference(self, eggGroup, filepath):
     # search for a external reference
     eggExternalReference = None

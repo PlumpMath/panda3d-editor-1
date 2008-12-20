@@ -18,30 +18,25 @@ class LightNodeWrapper(VirtualNodeWrapper):
     render.setLight(self.lightNodePath)
     
     self.mutableParameters['color'] = [ Vec4,
-      self.getColor,
-      self.setColor,
-      self.hasColor ]
+      self.light.getColor,
+      self.light.setColor,
+      self.light.hasColor,
+      self.light.clearColor ]
     self.mutableParameters['attenuation'] = [ Vec3,
       self.getAttenuation,
       self.setAttenuation,
-      self.hasAttenuation ]
+      self.hasAttenuation,
+      None ]
     self.mutableParameters['priority'] = [ int,
       self.getPriority,
       self.setPriority,
-      self.hasPriority ]
+      self.hasPriority,
+      None ]
     self.mutableParameters['spec_color'] = [ Vec4,
       self.getSpecularColor,
       self.setSpecularColor,
-      self.hasSpecularColor ]
-  
-  # ovverride so the basewrapper handles of this parameter
-  def getColor(self, *args, **kwargs):
-    return self.light.getColor(*args, **kwargs)
-  def setColor(self, *args, **kwargs):
-    return self.light.setColor(*args, **kwargs)
-  def hasColor(self, *args, **kwargs):
-    # basewrapper only includes the color of objects if hasColor returns true
-    return True
+      self.hasSpecularColor,
+      None ]
   
   # must be handled by ourself (saving)
   def getPriority(self, *args, **kwargs):
