@@ -30,10 +30,11 @@ class CodeNodeWrapper(VirtualNodeWrapper):
       filename=os.path.basename(filepath)
       dirname=os.path.dirname(filepath)
       filebase, fileext = os.path.splitext(filename)
-      print "I: CodeNodeWrapper.setScript:"
-      print "  - filebase:", filebase
       dirname = Filename(dirname).toOsSpecific()
-      print "  - dirname:", dirname
+      if DEBUG:
+        print "I: CodeNodeWrapper.setScript:"
+        print "  - filebase:", filebase
+        print "  - dirname:", dirname
       if fileext == '.py':
         try:
           fp, filename, description=imp.find_module(filebase, [dirname])
