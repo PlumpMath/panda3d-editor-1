@@ -133,7 +133,6 @@ class EditorApp(DirectObject):
       , ['pointlight', self.createModelWrapper, ['PointLightNodeWrapper']]
       , ['codeNode', self.createFilebrowserModelWrapper, ['CodeNodeWrapper']]
       , ['GeoMipTerrain', self.createFilebrowserModelWrapper, ['GeoMipTerrainNodeWrapper']]
-      , ['destroy model', self.editorInstance.destroyModel, []]
       ]
       self.createButtons = self.createInterface(createButtonDefinitions, 'create', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.45,0,0))
       editButtonDefinitions = [
@@ -360,7 +359,6 @@ class EditorApp(DirectObject):
       , pos=pos
       , align=align
       , text=title)
-    print height
     
     myScrolledList = DirectScrolledList(
         pos = Vec3(.175, 0, height-0.05 ),

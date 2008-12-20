@@ -9,34 +9,50 @@ from dgui.directWindow.src.directWindow import DirectWindow
 from direct.showbase.DirectObject import DirectObject
 from dgui.directSidebar import *
 
+def strListToFloat(l):
+  print "I: strListToFloat",l
+  o = list()
+  for i in l:
+    o.append(float(i))
+  return o
+
+def str2type(string, valueType):
+  value = None
+  try:
+    if valueType in [str, int, float]:
+      value = valueType(string)
+    elif valueType in [Vec4, Point4, Vec3, Point3, Vec2, Point2, tuple, list]:
+      strippedString = string.lstrip('(').rstrip(')')
+      splitStrValues = strippedString.split(',')
+      splitValues = strListToFloat(splitStrValues)
+      if valueType in [tuple, list]:
+        value = valueType(splitValues)
+      else:
+        value = valueType(*splitValues)
+    else:
+      print "E: str2type: unknown type", valueType, string
+  except:
+    print "E: str2type: conversion error", valueType, string
+    traceback.print_exc()
+  return value
+
+
+
 class BaseWrapper(DirectObject):
   def __init__(self, object, editorInstance):
     print "I: BaseWrapper.__init__:", object
     self.object = object
-    self.mutableParameters = {
-        'pX': ['float', 'getX', 'setX', None]
-      , 'pY': ['float', 'getY', 'setY', None]
-      , 'pZ': ['float', 'getZ', 'setZ', None]
-      , 'H': ['float', 'getH', 'setH', None]
-      , 'P': ['float', 'getP', 'setP', None]
-      , 'R': ['float', 'getR', 'setR', None]
-      , 'sX': ['float', 'getSx', 'setSx', None]
-      , 'sY': ['float', 'getSy', 'setSy', None]
-      , 'sZ': ['float', 'getSz', 'setSz', None]
-      , 'color': ['vec4', 'getColor', 'setColor', 'hasColor']
-      , 'colorScale': ['vec4', 'getColorScale', 'setColorScale', 'hasColorScale']
-      , 'transparency': ['bool', 'getTransparency', 'setTransparency', 'hasTransparency' ]
-      , 'nodeName': ['str', 'getName', 'setName', None ]
-    }
+    self.mutableParameters = self.object.mutableParameters
     self.mutableParametersSorting = [
-      [ 'pX', 'pY', 'pZ' ]
-    , [ 'H', 'P', 'R' ]
-    , [ 'sX', 'sY', 'sZ' ]
-    , 'color'
-    , 'colorScale'
-    , 'transparency'
-    , 'nodeName'
+      'name',
+      'position',
+      'rotation',
+      'scale',
+      'color',
+      'colorScale',
+      'transparency',
     ]
+    
     self.buttonsWindow = None
     self.editorInstance = editorInstance
   
@@ -60,7 +76,7 @@ class BaseWrapper(DirectObject):
     #print "I: baseWrapper.createEditWindow"
     if self.buttonsWindow is None:
       #sideFrame = DirectSidebar(frameSize=(0.8,0.4), pos=(-.05,0,0.1), align=ALIGN_RIGHT|ALIGN_BOTTOM, opendir=LEFT_OR_UP, orientation=VERTICAL, text='right-bottom')
-      ySize = len(self.mutableParametersSorting)
+      ySize = len(self.mutableParameters)
       #print "ySize", ySize
       title='editWindow-%s' % str(self.object.getName())
       self.buttonsWindow = DirectSidebar(
@@ -72,71 +88,22 @@ class BaseWrapper(DirectObject):
       
       self.buttonsWindow.toggleCollapsed(self.editorInstance.getObjectEditwindowToggled())
       
-      dy = ySize*.11# + 0.75
+      dy = ySize*.11
       print "ySize", ySize
-      for y in xrange(ySize):
-        yParamName = self.mutableParametersSorting[y]
-        #paramType, getter, setter = self.mutableParameters[yParamName]
-        if type(self.mutableParametersSorting[y]) == list:
-          # it's a horizontal list of parameters
-          xSize = len(self.mutableParametersSorting[y])
-          
-          for x in xrange(xSize):
-            xParamName = self.mutableParametersSorting[y][x]
-            paramType, getter, setter, enabled = self.mutableParameters[xParamName]
-            paramLabel = DirectLabel( text = xParamName
-                                    , parent = self.buttonsWindow
-                                    , scale=.05
-                                    , pos = (.12+0.35*(x), 0, dy-0.1 - y*0.1)
-                                    , text_align = TextNode.ARight )
-            if paramType == 'str' or \
-                paramType == 'float' or \
-                paramType == 'int' or \
-                paramType == 'vec4' or \
-                paramType == 'vec2' or \
-                paramType == 'vec3' or \
-                paramType == 'point3':
-              paramEntry = DirectEntry( text = ""
-                                      , scale=.05
-                                      , pos = (.17+0.35*(x), 0, dy-0.1 - y*0.1)
-                                      , parent = self.buttonsWindow
-                                      , initialText=""
-                                      , numLines = 1
-                                      , focus=0
-                                      , width=4
-                                      , focusOutCommand=self.setEntry
-                                      , focusOutExtraArgs=[xParamName]
-                                      , command=self.setEntry
-                                      , extraArgs=[xParamName]
-                                      , text_align = TextNode.ALeft)
-            elif paramType == 'bool':
-              paramEntry = DirectCheckButton( scale=.05
-                                      , pos = (0.32, 0, dy-0.1 - y*0.1)
-                                      , parent = self.buttonsWindow
-                                      , focus=0
-                                      , width=10
-                                      , commandFunc=self.setEntry
-                                      , extraArgs=[yParamName])
-            else:
-              print "W: BaseWrapper.createEditWindow: unknown entry type"
-              print "  -", xParamName
-              print "  -", paramType, getter, setter, enabled
-              paramEntry = None
-            self.parameterEntries[xParamName] = paramEntry
-        else:
-          paramType, getter, setter, enabled = self.mutableParameters[yParamName]
-          paramLabel = DirectLabel( text = yParamName
+      for paramName in self.mutableParameters.keys():
+        if paramName in self.mutableParametersSorting:
+          y = self.mutableParametersSorting.index(paramName)
+          print "creating entry", paramName
+          paramLabel = DirectLabel( text = paramName
                                   , parent = self.buttonsWindow
                                   , scale=.05
                                   , pos = (0.42, 0, dy-0.1 - y*0.1)
                                   , text_align = TextNode.ARight )
-          if paramType == 'str' or \
-              paramType == 'float' or \
-              paramType == 'int' or \
-              paramType == 'vec4' or \
-              paramType == 'vec2' or \
-              paramType == 'vec3' or \
-              paramType == 'point3':
+          # only if the parameter is in mutableparameters allow to change it
+          # for example ambientlight does not have specularColor (but it is defined in the sorting)
+          
+          paramType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[paramName]
+          if paramType  in [str, float, int, Vec4, Vec3, Vec2, Point4, Point3, Point2]:
             paramEntry = DirectEntry( text = ""
                                     , scale=.05
                                     , pos = (0.47, 0, dy-0.1 - y*0.1)
@@ -145,179 +112,109 @@ class BaseWrapper(DirectObject):
                                     , numLines = 1
                                     , focus=0
                                     , width=10
-                                    , focusOutCommand=self.setEntry
-                                    , focusOutExtraArgs=[yParamName]
-                                    , command=self.setEntry
-                                    , extraArgs=[yParamName]
+                                    , focusOutCommand=self.setEntryFocusOut
+                                    , focusOutExtraArgs=[paramName]
+                                    , command=self.setEntryCommand
+                                    , extraArgs=[paramName]
                                     , text_align = TextNode.ALeft)
-          elif paramType == 'bool':
+          elif paramType == bool:
             paramEntry = DirectCheckButton( scale=.05
                                     , pos = (0.52, 0, dy-0.08 - y*0.1)
                                     , parent = self.buttonsWindow
-#                                    , focus=0
-#                                    , width=10
-                                    , command=self.setEntry
-                                    , extraArgs=[yParamName])
+                                    , command=self.setEntryCommand
+                                    , extraArgs=[paramName])
           else:
-            print "W: BaseWrapper.createEditWindow: unknown entry type"
-            print "  -", yParamName
-            print "  -", paramType, getter, setter, enabled
+            print "W: BaseWrapper.createEditWindow: unknown entry type", type(paramType)
+            print "  -", paramName
+            print "  -", paramType, getFunc, setFunc, hasFunc
             paramEntry = None
-          self.parameterEntries[yParamName] = paramEntry
+        else:
+          print "W: BaseWrapper.createEditWindow: no mutableparameter for entry"
+          print "  -", paramName
+          print "  -", self.mutableParametersSorting
+        self.parameterEntries[paramName] = paramEntry
       self.updateAllEntires()
   
   def destroyEditWindow(self):
     print "I: baseWrapper.destroyEditWindow"
     if self.buttonsWindow:
       for paramName, paramEntry in self.parameterEntries.items():
-        paramType, getter, setter, enabled = self.mutableParameters[paramName]
-        if paramType == 'str' or paramType == 'float' or paramType == 'int':
-          paramEntry.removeNode()
-          paramEntry.detachNode()
+        if paramName in self.mutableParameters:
+          paramType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[paramName]
+          if paramType == 'str' or paramType == 'float' or paramType == 'int':
+            if paramEntry:
+              paramEntry.removeNode()
+              paramEntry.detachNode()
       self.buttonsWindow.detachNode()
       self.buttonsWindow.removeNode()
       self.buttonsWindow.destroy()
       del self.buttonsWindow
-
+    
     self.buttonsWindow = None
   
-  def setEntry(self, *parameters):
+  def setEntry(self, paramName, paramValue):
+    print "I: baseWrapper.setEntry", paramName, paramValue
     if self.buttonsWindow:
-      if len(parameters) == 2:
-        paramValue, paramName=parameters
-      elif len(parameters) == 1:
-        paramName = parameters[0]
-        paramValue = self.parameterEntries[paramName].get()
-      else:
-        return
       if self.parameterEntries.has_key(paramName):
-        paramEntry = self.parameterEntries[paramName]
-        paramType, getter, setter, enabled = self.mutableParameters[paramName]
-        if paramType == 'float':
-          try:
-            floatVal = float(paramValue)
-          except ValueError:
-            floatVal = 0.0
-          execCmd = 'self.object.%s( %.3f )' % (setter, floatVal)
-          try:
-            exec( execCmd )
-          except:
-            print "W: dgui.BaseWrapper.setEntry: command failed"
-            print "  -", execCmd
-            traceback.print_exc()
-        elif paramType == 'str':
-          execCmd = 'self.object.%s( str("%s") )' % (setter, paramValue)
-          try:
-            exec( execCmd )
-          except:
-            print "W: dgui.BaseWrapper.setEntry: command failed"
-            print "  -", execCmd
-        elif paramType == 'int':
-          execCmd = 'self.object.%s( %i )' % (setter, int(paramValue))
-          try:
-            exec( execCmd )
-          except:
-            print "W: dgui.BaseWrapper.setEntry: command failed"
-            print "  -", execCmd
-            traceback.print_exc()
-        elif paramType == 'vec2':
-          execCmd = 'self.object.%s( Vec2(*%s) )' % (setter, str(paramValue))
-          try:
-            exec( execCmd )
-          except:
-            print "W: dgui.BaseWrapper.setEntry: command failed"
-            print "  -", execCmd
-            traceback.print_exc()
-        elif paramType == 'point3':
-          execCmd = 'self.object.%s( Point3(*%s) )' % (setter, str(paramValue))
-          try:
-            exec( execCmd )
-          except:
-            print "W: dgui.BaseWrapper.setEntry: command failed"
-            print "  -", execCmd
-            traceback.print_exc()
-        elif paramType == 'vec3':
-          execCmd = 'self.object.%s( Vec3(*%s) )' % (setter, str(paramValue))
-          try:
-            exec( execCmd )
-          except:
-            print "W: dgui.BaseWrapper.setEntry: command failed"
-            print "  -", execCmd
-            traceback.print_exc()
-        elif paramType == 'vec4':
-          execCmd = 'self.object.%s( Vec4(*%s) )' % (setter, str(paramValue))
-          try:
-            exec( execCmd )
-          except:
-            print "W: dgui.BaseWrapper.setEntry: command failed"
-            print "  -", execCmd
-            traceback.print_exc()
-        elif paramType == 'bool':
-          execCmd = 'self.object.%s( %i )' % (setter, paramValue)
-          try:
-            exec( execCmd )
-          except:
-            print "W: dgui.BaseWrapper.setEntry: command failed"
-            print "  -", execCmd
-            traceback.print_exc()
-        else:
-          print "W: BaseWrapper.setEntry: unknown type", paramType
-        self.updateAllEntires()
+        paramType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[paramName]
+        #self.object.setParameters( {paramName: paramValue} )
+        if paramType in [Vec4, Vec3, Vec2, Point4, Point3, Point2]:
+          paramValue = str2type(paramValue, tuple)
+          self.object.setParameters( {paramName: paramValue} )
+        elif paramType in [str, float, int]:
+          paramValue = paramType(paramValue)
+          self.object.setParameters( {paramName: paramValue} )
+        elif paramType == bool:
+          self.object.setParameters( {paramName: paramValue} )
       else:
         print "E: BaseWrapper.setEntry: unknown key", paramName
         print "  -", self.parameterEntries
+      self.updateAllEntires()
+  
+  def setEntryFocusOut(self, paramName):
+    print "setEntryFocusOut", paramName
+    #paramValue = self.parameterEntries[paramName].get()
+    #self.setEntry(paramName, paramValue)
+  
+  def setEntryCommand(self, paramValue, paramName):
+    print "setEntryCommand", paramName, paramValue
+    self.setEntry(paramName, paramValue)
   
   def updateAllEntires(self):
+    #print "updateAllEntires"
     if self.buttonsWindow:
-      for paramName, [paramType, getter, setter, enabled] in self.mutableParameters.items():
-        try:
-          if paramType == 'float':
-            execCmd = 'currentValue = self.object.%s()' % getter
-            exec( execCmd )
-            currentValue = '%.3f' % currentValue
-            self.parameterEntries[paramName].enterText(str(currentValue))
-          elif paramType == 'str' or paramType == 'int':
-            execCmd = 'currentValue = self.object.%s()' % getter
-            exec( execCmd )
-            self.parameterEntries[paramName].enterText(str(currentValue))
-          elif paramType == 'vec2':
-            execCmd = 'v = self.object.%s()' % getter
-            exec(execCmd)
-            currentValue = "(%.2f, %.2f)" % (v.getX(), v.getY())
-            self.parameterEntries[paramName].enterText(str(currentValue))
-          elif paramType == 'point3' or paramType == 'vec3':
-            execCmd = 'v = self.object.%s()' % getter
-            exec(execCmd)
-            currentValue = "(%.2f, %.2f, %.2f)" % (v.getX(), v.getY(), v.getZ())
-            self.parameterEntries[paramName].enterText(str(currentValue))
-          elif paramType == 'vec4':
-            execCmd = 'v = self.object.%s()' % getter
-            exec(execCmd)
-            currentValue = "(%.2f, %.2f, %.2f, %.2f)" % (v.getX(), v.getY(), v.getZ(), v.getW())
-            self.parameterEntries[paramName].enterText(str(currentValue))
-          elif paramType == 'bool':
-            execCmd = 'v = self.object.%s()' % getter
-            exec(execCmd)
-            self.parameterEntries[paramName]["indicatorValue"] = v
+      for paramName, [paramType, getFunc, setFunc, hasFunc, clearFunc] in self.mutableParameters.items():
+        #print "  - update", paramName
+        objectParameters = self.object.getParameters()
+        if paramName in objectParameters:
+          currentValue = objectParameters[paramName]
+          if paramType == bool:
+            self.parameterEntries[paramName]["indicatorValue"] = currentValue
             self.parameterEntries[paramName].setIndicatorValue()
           else:
-            print "W: BaseWrapper.updateAllEntires: unknown type", paramType
-            #currentValue = ''
-            #self.parameterEntries[paramName].enterText(str(currentValue))
-        except:
-          print "E: dgui.BaseWrapper.updateAllEntires: error in reading value"
-          print "  -", paramName, paramType, getter, setter, enabled
-          try:
-            print "  -", currentValue
-          except:
-            pass
-          traceback.print_exc()
-        #if paramName is not None:
-        #  if self.parameterEntries[paramName] is not None:
-        #    self.parameterEntries[paramName].enterText(str(currentValue))
-      
+            #if paramName == 'color':
+            #  print "COLOR: ", currentValue, paramName, [paramType, getFunc, setFunc, hasFunc, clearFunc]
+            if paramType in [str]:
+              valueString = currentValue
+            elif paramType in [Vec4, Point4, VBase4, Vec3, Point3, VBase3, Vec2, Point2, VBase2, tuple, list]:
+              valueString = "("
+              for val in currentValue:
+                valueString += "%.3G, " % val
+              valueString = valueString[:-2] + ")"
+            elif type(currentValue) == float:
+              valueString = "%.3G" % currentValue
+            else:
+              "I: dgui.BaseWrapper.updateAllEntires: undefined value for", paramName, currentValue
+              valueString = str(currentValue)
+            #if paramName == 'color':
+            #  print paramType, currentValue, valueString
+            if self.parameterEntries[paramName]:
+              self.parameterEntries[paramName].enterText(valueString)
+        else:
+          print "I: dgui.BaseWrapper.updateAllEntires: undefined value for", paramName
       # when the name changed, update the scenegraph
-      if paramName == 'nodeName':
+      if paramName == 'name':
         messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+
 
 
