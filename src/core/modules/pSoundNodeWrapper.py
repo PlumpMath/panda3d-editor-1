@@ -50,6 +50,16 @@ class SoundNodeWrapper(VirtualNodeWrapper):
       self.setPriority,
       None,
       None ]
+    self.mutableParameters['minDistance']  = [ float,
+      self.getSoundMinDistance,
+      self.setSoundMinDistance,
+      None,
+      None ]
+    self.mutableParameters['maxDistance']  = [ float,
+      self.getSoundMaxDistance,
+      self.setSoundMaxDistance,
+      None,
+      None ]
   
   def getVolume(self, *args, **kwargs):
     self.soundEffect.getVolume(*args, **kwargs)
@@ -78,6 +88,16 @@ class SoundNodeWrapper(VirtualNodeWrapper):
   
   def play(self, *args, **kwargs):
     self.soundEffect.play()
+  
+  def getSoundMinDistance(self, *args, **kwargs):
+    soundManager.get3dManager().getSoundMinDistance(self.soundEffect, *args, **kwargs)
+  def setSoundMinDistance(self, *args, **kwargs):
+    soundManager.get3dManager().setSoundMinDistance(self.soundEffect, *args, **kwargs)
+  
+  def getSoundMaxDistance(self, *args, **kwargs):
+    soundManager.get3dManager().getSoundMaxDistance(self.soundEffect, *args, **kwargs)
+  def setSoundMaxDistance(self, *args, **kwargs):
+    soundManager.get3dManager().setSoundMaxDistance(self.soundEffect, *args, **kwargs)
   
   def setSound(self, soundFilepath):
     # if there is already a model defined, remove it
@@ -114,10 +134,17 @@ class SoundNodeWrapper(VirtualNodeWrapper):
     
     self.soundEffect.setLoop(True)
     self.soundEffect.play()
+    soundManager.get3dManager().setSoundVelocityAuto( self.soundEffect )
   
   def destroy(self):
     # destroy this object
     print "WARNING: SoundNodeWrapper.destroy not implemented !!!!"
+    print dir(self.soundEffect)
+    print dir(soundManager.get3dManager())
+    soundManager.get3dManager().detachSound(self.soundEffect)
+    self.soundEffect.stop()
+    del self.soundEffect
+    self.soundEffect = None
     VirtualNodeWrapper.destroy(self)
   
   def getSaveData(self, relativeTo):
