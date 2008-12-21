@@ -188,6 +188,12 @@ class BaseWrapper(NodePath):
         # It's already the correct type
         setFunc(value)
       elif isinstance(varType, Enum):
+        '''if n in varType.keys():
+          v = varType[n]
+          setFunc(v)
+        else:
+          print "W: core.BaseWrapper.setParameter: invalid value %s for enum %s" % (value, varType.__name__)
+        '''
         for n, v in varType.items():
           if n == value:
             setFunc(v)
@@ -199,7 +205,6 @@ class BaseWrapper(NodePath):
             value = tuple([float(i) for i in value.replace("(", "").replace(")", "").replace(" ", "").split(",")])
           except:
             print "E: core.BaseWrapper.setParameter: error converting string" % name, value
-        
         if varType in [Vec4, Point4, VBase4, Point3, Vec3, VBase3, Point2, Vec2, VBase2]:
           setFunc(varType(*value))
         elif varType in [float, int, str, bool]:
@@ -262,6 +267,10 @@ class BaseWrapper(NodePath):
     # get all data to store in the eggfile
     parameters = self.getParameters()
     if len(parameters) > 0:
+      del parameters['name']
+      del parameters['position']
+      del parameters['scale']
+      del parameters['rotation']
       # add the data to the egg-file
       comment = EggComment(BASEWRAPPER_DATA_TAG, str(parameters))
       instance.addChild(comment)

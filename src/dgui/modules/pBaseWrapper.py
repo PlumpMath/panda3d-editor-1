@@ -1,13 +1,15 @@
+import traceback
+
 from pandac.PandaModules import *
 from direct.gui.DirectGui import *
 from direct.gui.DirectCheckBox import DirectCheckBox
-import traceback
+from direct.showbase.DirectObject import DirectObject
 
+from dgui.directWindow.src.directWindow import DirectWindow
+from dgui.directSidebar import *
 from core.pModelIdManager import modelIdManager
 from core.pConfigDefs import *
-from dgui.directWindow.src.directWindow import DirectWindow
-from direct.showbase.DirectObject import DirectObject
-from dgui.directSidebar import *
+from core.modules.pBaseWrapper import Enum, TransparencyEnum, AntialiasEnum
 
 def strListToFloat(l):
   o = list()
@@ -98,30 +100,51 @@ class BaseWrapper(DirectObject):
           
           paramType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[paramName]
           if paramType  in [str, float, int, Vec4, Vec3, Vec2, Point4, Point3, Point2]:
-            paramEntry = DirectEntry( text = ""
-                                    , scale=.05
-                                    , pos = (0.47, 0, dy-0.1 - y*0.1)
-                                    , parent = self.buttonsWindow
-                                    , initialText=""
-                                    , numLines = 1
-                                    , focus=0
-                                    , width=12
-                                    , focusOutCommand=self.setEntryFocusOut
-                                    , focusOutExtraArgs=[paramName]
-                                    , command=self.setEntryCommand
-                                    , extraArgs=[paramName]
-                                    , text_align = TextNode.ALeft)
+            paramEntry = DirectEntry(
+                #text = "",
+                scale=.05,
+                pos = (0.47, 0, dy-0.1 - y*0.1),
+                parent = self.buttonsWindow,
+                command=self.setEntryCommand,
+                extraArgs=[paramName],
+                initialText="",
+                numLines = 1,
+                focus=0,
+                width=12,
+                focusOutCommand=self.setEntryFocusOut,
+                focusOutExtraArgs=[paramName],
+                text_align = TextNode.ALeft,)
           elif paramType == bool:
-            paramEntry = DirectCheckButton( scale=.05
-                                    , pos = (0.52, 0, dy-0.08 - y*0.1)
-                                    , parent = self.buttonsWindow
-                                    , command=self.setEntryCommand
-                                    , extraArgs=[paramName])
+            paramEntry = DirectCheckButton(
+                scale=.05,
+                pos = (0.52, 0, dy-0.08 - y*0.1),
+                parent = self.buttonsWindow,
+                command=self.setEntryCommand,
+                extraArgs=[paramName],)
+          elif paramType.__name__ == "Enum":
+#            print "W: dgui.BaseWrapper.createEditWindow: Enum entry type"
+#            print paramType
+#            print dir(paramType)
+            items = paramType.keys()
+#            for k,v in paramType.items():
+#              if 
+            initialitem = 0
+            paramEntry = DirectOptionMenu(
+                pos = (0.52, 0, dy-0.08 - y*0.1),
+                scale=.05,
+                parent = self.buttonsWindow,
+                command=self.setEntryCommand,
+                extraArgs=[paramName],
+                items=items,
+                initialitem=initialitem,
+                highlightColor=(0.65,0.65,0.65,1),)
           else:
             print "W: dgui.BaseWrapper.createEditWindow: unknown entry type"
             print "  -", self.object.__class__.__name__
+            print "  -", paramType.__name__
             print "  -", paramType, paramName
             #print "  -", getFunc, setFunc, hasFunc, clearFunc
+            print Enum
             paramEntry = None
         else:
           print "W: dgui.BaseWrapper.createEditWindow: no mutableparameter for entry"
@@ -155,6 +178,8 @@ class BaseWrapper(DirectObject):
         try:
           if paramType in [str, float, int]:
             paramValue = paramType(paramValue)
+          elif paramType.__name__ == "Enum":
+            pass # doesnt need conversion
           elif paramType in [Vec4, Vec3, Vec2, Point4, Point3, Point2]:
             paramValue = str2type(paramValue, tuple)
           elif paramType == bool:
@@ -180,28 +205,39 @@ class BaseWrapper(DirectObject):
       for paramName, [paramType, getFunc, setFunc, hasFunc, clearFunc] in self.mutableParameters.items():
         objectParameters = self.object.getParameters()
         if paramName in objectParameters:
-          currentValue = objectParameters[paramName]
-          if paramType == bool:
-            self.parameterEntries[paramName]["indicatorValue"] = currentValue
-            self.parameterEntries[paramName].setIndicatorValue()
+          if self.parameterEntries[paramName]:
+            currentValue = objectParameters[paramName]
+            if paramType == bool:
+              self.parameterEntries[paramName]["indicatorValue"] = currentValue
+              self.parameterEntries[paramName].setIndicatorValue()
+            elif paramType.__name__ == "Enum":
+              if self.parameterEntries[paramName].get() != currentValue:
+                for n, v in paramType.items():
+                  if n == currentValue:
+                    # get the index of the currently saved value
+                    i = self.parameterEntries[paramName].index(n)
+                    self.parameterEntries[paramName].set(i)
+              else:
+                #print "updateAllEntries: enum: value already selected"
+                pass
+            else:
+              if paramType in [str]:
+                valueString = currentValue
+                self.parameterEntries[paramName].enterText(valueString)
+              elif paramType in [Vec4, Point4, VBase4, Vec3, Point3, VBase3, Vec2, Point2, VBase2, tuple, list]:
+                valueString = ""
+                for val in currentValue:
+                  valueString += "%.3G, " % val
+                valueString = valueString[:-2]
+                self.parameterEntries[paramName].enterText(valueString)
+              elif paramType in [float, int]:
+                valueString = "%.3G" % currentValue
+                self.parameterEntries[paramName].enterText(valueString)
+              else:
+                #print "I: dgui.BaseWrapper.updateAllEntires: undefined value for", paramName, currentValue, paramType
+                pass
           else:
-            if paramType in [str]:
-              valueString = currentValue
-            elif paramType in [Vec4, Point4, VBase4, Vec3, Point3, VBase3, Vec2, Point2, VBase2, tuple, list]:
-              valueString = "" #"("
-              for val in currentValue:
-                valueString += "%.3G, " % val
-              valueString = valueString[:-2]# + ")"
-            elif paramType in [float, int]:
-              valueString = "%.3G" % currentValue
-            else:
-              print "W: dgui.BaseWrapper.updateAllEntires: undefined value for", paramName, currentValue, paramType
-              valueString = 'None' #str(currentValue)
-            
-            if self.parameterEntries[paramName]:
-              self.parameterEntries[paramName].enterText(valueString)
-            else:
-              print "W: dgui.BaseWrapper.updateAllEntires: no parameterEntry for", paramName, self.object.__class__.__name__
+            print "W: dgui.BaseWrapper.updateAllEntires: no parameterEntry for", paramName, self.object.__class__.__name__
         else:
           print "W: dgui.BaseWrapper.updateAllEntires: undefined value for", paramName
       # when the name changed, update the scenegraph

@@ -99,7 +99,7 @@ class EditorClass(DirectObject):
     # walk the render tree and save the egg-links
     
     def saveRecursiveChildrens(parent, eggParentData, relativeTo):
-      for child in parent.getChildrenAsList():
+      for child in parent.getChildren():
         # save the childs data
         modelData = None
         if child.hasTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG):

@@ -1,4 +1,4 @@
-from dgui.modules.pLightNodeWrapper import *
+from dgui.modules.pLightNodeWrapper import LightNodeWrapper
 
 class SpotLightNodeWrapper(LightNodeWrapper):
   def __init__(self, *args, **kwargs):

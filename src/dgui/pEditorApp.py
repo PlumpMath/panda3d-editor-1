@@ -212,11 +212,11 @@ class EditorApp(DirectObject):
           else:
             objType = objType.__name__
           module = __import__("dgui.modules.p%s" % objType, globals(), locals(), [objType], -1)
-          #try:
-          self.editorObjectGuiInstance = getattr(module, objType)(modelController.getSelectedModel(), self)
-          #except:
-          #  print "E: EditorApp.modelSelected: object", objType
-          #  traceback.print_exc()
+          try:
+            self.editorObjectGuiInstance = getattr(module, objType)(modelController.getSelectedModel(), self)
+          except TypeError:
+            print "E: dgui.EditorApp.modelSelected: object", objType, modelController.getSelectedModel()
+            traceback.print_exc()
           self.editorObjectGuiInstance.startEdit()
         else:
           self.editorObjectGuiInstance = None

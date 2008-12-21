@@ -1,4 +1,4 @@
-from dgui.modules.pBaseWrapper import *
+from dgui.modules.pBaseWrapper import BaseWrapper
 
 class GeoMipTerrainNodeWrapper(BaseWrapper):
   def __init__(self, *args, **kwargs):

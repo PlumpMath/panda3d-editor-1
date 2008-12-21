@@ -1,6 +1,6 @@
 import traceback
 
-from dgui.modules.pBaseWrapper import *
+from dgui.modules.pBaseWrapper import BaseWrapper
 
 PARTICLESYSTEMWRAPPER_SHOW_PARTICLEPANEL = True
 

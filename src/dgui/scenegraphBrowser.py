@@ -471,7 +471,7 @@ class SceneGraphBrowser(DirectObject):
          self.childrenList[-1].HtreeLines=self.childrenList[-1].holder.attachNewNode('HtreeLines')
          self.childrenList[-1].VtreeLines=self.childrenList[-1].holder.attachNewNode('VtreeLines')
          self.childrenList[-1].VtreeLines.setX(-.5*self.itemIndent)
-      for c in np.getChildrenAsList():
+      for c in np.getChildren():
           tagExist=False
           #for t in self.exclusionTag:
           #  tagExist|=c.hasTag(t)
