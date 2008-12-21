@@ -208,14 +208,15 @@ class BaseWrapper(NodePath):
           value = tuple([float(i) for i in value.replace("(", "").replace(")", "").replace(" ", "").split(",")])
         
         if varType in [Vec4, Point4, VBase4, Point3, Vec3, VBase3, Point2, Vec2, VBase2]:
-          setFunc(varType(*value))
+            setFunc(varType(*value))
         elif varType in [float, int, str, bool]:
-          setFunc(varType(value))
+            setFunc(varType(value))
         else:
           print "E: core.BaseWrapper.setParameter: unknown varType %s for %s" % (varType.__name__, name)
     except TypeError:
-      print "E: core.BaseWrapper.setParameter: error handling %s in data:" % name
-      raise
+      # this must be catched as it's a user input
+      print "E: core.BaseWrapper.setParameter: error handling %s in data:" % name, value
+      traceback.print_exc()
     print "D: core.BaseWrapper.setParameter:", self.getColor()
   
   def setParameters(self, parameters):
