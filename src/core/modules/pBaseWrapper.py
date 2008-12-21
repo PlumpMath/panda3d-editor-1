@@ -190,7 +190,7 @@ class BaseWrapper(NodePath):
       if clearFunc != None and (value == None or (isinstance(value, str) and value.lower() == "none")):
         print "I: core.BaseWrapper.setParameter: clear"
         clearFunc()
-      elif isinstance(value, varType):
+      elif isinstance(varType, type) and isinstance(value, varType):
         print "I: core.BaseWrapper.setParameter: not converting"
         # It's already the correct type
         setFunc(value)
@@ -217,7 +217,6 @@ class BaseWrapper(NodePath):
       # this must be catched as it's a user input
       print "E: core.BaseWrapper.setParameter: error handling %s in data:" % name, value
       traceback.print_exc()
-    print "D: core.BaseWrapper.setParameter:", self.getColor()
   
   def setParameters(self, parameters):
     for name, value in parameters.items():

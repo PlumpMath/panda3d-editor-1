@@ -17,7 +17,7 @@ class TestObjectExtension(DirectObject):
         if model.getName() == 'teapot.egg.pz':
           print "  - found teapot", model
       except:
-        print "ERRRRRORRRR: this is a bug in the code, delete seems not have run on all objects"
+        print "E: this is a bug in the code, delete seems not have run on all objects"
     
     self.accept('arrow_up', self.up)
     print "  - done"
@@ -30,12 +30,12 @@ class TestObjectExtension(DirectObject):
   
   def updateTask(self, task):
     #print "I: TestObjectExtension.update", self
-    if not task.isRemoved():
+    if not (hasattr(task, "isRemoved") and task.isRemoved()):
       try:
         self.object.setR( task.time * 20 )
         return task.cont
       except:
-        print "ERRRRRORRRR: this is a bug in the code, delete seems not have run on all objects"
+        print "E: this is a bug in the code, delete seems not have run on all objects"
   
   def up(self):
     self.object.setX(self.object, 0.5)
