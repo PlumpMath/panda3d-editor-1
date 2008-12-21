@@ -1,4 +1,6 @@
 from dgui.modules.pBaseWrapper import *
 
 class GeoMipTerrainNodeWrapper(BaseWrapper):
-  pass
+  def __init__(self, *args, **kwargs):
+    BaseWrapper.__init__(self, *args, **kwargs)
+    self.mutableParametersSorting.append('minlevel')

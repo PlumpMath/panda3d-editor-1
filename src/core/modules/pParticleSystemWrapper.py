@@ -45,9 +45,6 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
       if pandaPath is None:
         pandaPath = '/'.join(filepath.split('/')[:-1])
         from pandac.PandaModules import getModelPath
-        if DEBUG:
-          print "I: ParticleSystemWrapper.setParticleConfig: adding to pandapath:"
-          print "  -", pandaPath
         getModelPath().appendPath( pandaPath )
     
     self.particleFilename = filepath

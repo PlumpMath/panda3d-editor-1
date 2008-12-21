@@ -41,17 +41,12 @@ class BaseWrapper(NodePath):
   onCreateInstance = classmethod(onCreateInstance)
   
   def loadFromEggGroup(self, eggGroup, parent, filepath):
-    if DEBUG:
-      print "I: NodePathWrapper.loadFromEggGroup:"
     name = eggGroup.getName()
     objectInstance = self(parent, name)
     return objectInstance
   loadFromEggGroup = classmethod(loadFromEggGroup)
   
   def __init__(self, parent, name):
-    if DEBUG:
-      print "I: BaseWrapper.__init__:", parent, name
-    
     # get a uniq id for this object
     self.id = modelIdManager.getId()
     # define a name for this object
@@ -188,29 +183,27 @@ class BaseWrapper(NodePath):
     varType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[name]
     try:
       if clearFunc != None and (value == None or (isinstance(value, str) and value.lower() == "none")):
-        print "I: core.BaseWrapper.setParameter: clear"
         clearFunc()
       elif isinstance(varType, type) and isinstance(value, varType):
-        print "I: core.BaseWrapper.setParameter: not converting"
         # It's already the correct type
         setFunc(value)
       elif isinstance(varType, Enum):
-        print "I: core.BaseWrapper.setParameter: enum type"
         for n, v in varType.items():
           if n == value:
             setFunc(v)
             return
-        print "E: core.BaseWrapper.setParameter: invalid value %s for enum %s" % (value, varType.__name__)
+        print "W: core.BaseWrapper.setParameter: invalid value %s for enum %s" % (value, varType.__name__)
       else:
-        # this cannot be in here, node names (strings) can also be set and they must not be changed
-        print "I: core.BaseWrapper.setParameter: converting", name, value
         if isinstance(value, str) or isinstance(value, unicode):
-          value = tuple([float(i) for i in value.replace("(", "").replace(")", "").replace(" ", "").split(",")])
+          try:
+            value = tuple([float(i) for i in value.replace("(", "").replace(")", "").replace(" ", "").split(",")])
+          except:
+            print "E: core.BaseWrapper.setParameter: error converting string" % name, value
         
         if varType in [Vec4, Point4, VBase4, Point3, Vec3, VBase3, Point2, Vec2, VBase2]:
-            setFunc(varType(*value))
+          setFunc(varType(*value))
         elif varType in [float, int, str, bool]:
-            setFunc(varType(value))
+          setFunc(varType(value))
         else:
           print "E: core.BaseWrapper.setParameter: unknown varType %s for %s" % (varType.__name__, name)
     except TypeError:
@@ -241,7 +234,6 @@ class BaseWrapper(NodePath):
     # read the reference if it is found
     if eggExternalReference is not None:
       referencedFilename = eggExternalReference.getFilename()
-      #print "I: NodePathWrapper.loadFromData:", filepath, str(referencedFilename)
       filename = posixpath.join(filepath,str(referencedFilename))
       return filename
     print "W: BaseWrapper.getExternalReference: no externalReference found in"

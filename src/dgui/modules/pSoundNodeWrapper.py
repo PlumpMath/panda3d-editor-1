@@ -8,3 +8,5 @@ class SoundNodeWrapper(BaseWrapper):
     self.mutableParametersSorting.append('volume')
     self.mutableParametersSorting.append('playRate')
     self.mutableParametersSorting.append('priority')
+    self.mutableParametersSorting.append('minDistance')
+    self.mutableParametersSorting.append('maxDistance')

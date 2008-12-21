@@ -44,7 +44,6 @@ class EditorClass(DirectObject):
     if not self.enabled:
       self.sceneHelperModels = NodePath('editor-helper-models')
       self.sceneHelperModels.reparentTo(render)
-      self.sceneHelperModels.setTag(EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '')
       self.sceneHelperModels.setLightOff()
       
       # the axis model at 0/0/0
@@ -117,11 +116,8 @@ class EditorClass(DirectObject):
     eggData = EggData()
     eggData.setCoordinateSystem(1)
     # start reading the childrens of render
-    relativeTo = Filename(filepath).getDirname() #os.path.dirname(filepath)
-    #if DEBUG:
-    print "I: EditorClass.saveEggModelsFile: relativeTo:", relativeTo, filepath
+    relativeTo = Filename(filepath).getDirname()
     relativeTo = str(Filename.fromOsSpecific(relativeTo))
-    print "I: EditorClass.saveEggModelsFile: relativeTo:", relativeTo
     saveRecursiveChildrens(render, eggData, relativeTo)
     # save the egg file
     eggData.writeEgg(Filename(filepath))
@@ -155,18 +151,16 @@ class EditorClass(DirectObject):
           try:
             # import the module responsible for handling the data
             module = __import__('core.modules.p%s' % wrapperType, globals(), locals(), [wrapperType], -1)
-            print "  - loading", wrapperType,
             # load the eggParentData using the module
             object = getattr(module, wrapperType).loadFromEggGroup(eggParentData, parent, filepath)
             # append loaded object to list
             loadedObjects.append([object, eggParentData])
-            print "... done"
           except:
-            print "I: EditorClass.loadEggModelsFile: unknown or invalid entry"
+            print "W: EditorClass.loadEggModelsFile: unknown or invalid entry"
             traceback.print_exc()
-            print "I: --- start of invalid data ---"
+            print "W: --- start of invalid data ---"
             print eggParentData
-            print "I: --- end of invalid data ---"
+            print "W: --- end of invalid data ---"
             object = parent.attachNewNode('%s-failed' % wrapperType)
           if object is not None:
             # apply the transformation on the object
@@ -180,8 +174,6 @@ class EditorClass(DirectObject):
             print "E: core.EditorClass.loadEggModelsFile: no object returned (most likely error in module)"
             print "  -", wrapperType
         else:
-          if DEBUG:
-            print "eggParentData.getTag: has no tag"
           # search for childrens
           for childData in eggParentData.getChildren():
             # search the children
@@ -199,9 +191,6 @@ class EditorClass(DirectObject):
       # destroy old models
       self.destroyAllModels()
       
-      print "I: EditApp.loadEggModelsFile: loading"
-      print "  - filename:", filename
-      
       eggData = EggData()
       eggData.read(p3filename)
       
@@ -212,11 +201,9 @@ class EditorClass(DirectObject):
       #filepath = str(Filename.fromOsSpecific(filepath))
       
       # add the path to the model-path
-      #print "I: EditorApp.loadEggModelsFile: adding to model-path:", filepath
       from pandac.PandaModules import getModelPath
       getModelPath().appendPath(filepath)
       # read the eggData
-      print "  - filepath:", filepath
       parent, loadedObjects = loadRecursiveChildrens(eggData, render, Mat4.identMat(), filepath, list())
       
       for objectInstance, eggData in loadedObjects:
@@ -234,10 +221,8 @@ class EditorClass(DirectObject):
       
       # refresh the scenegraphbrowser
       messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
-    print "I: EditApp.loadEggModelsFile: done"
   
   def destroyModel(self):
-    #print "editor.editorClass.destroyModel"
     selectedObject = modelController.getSelectedModel()
     modelController.selectModel(None)
     if selectedObject is not None:
@@ -248,12 +233,9 @@ class EditorClass(DirectObject):
     messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
   
   def destroyAllModels(self):
-    if DEBUG:
-      print "editor.editorClass.destroyAllModels"
     # delete all loaded models
     modelController.selectModel(None) 
     for model in modelIdManager.getAllModels():
       if model.hasTag(EDITABLE_OBJECT_TAG):
         model.destroy()
         del model
-    print modelIdManager.getAllModels()

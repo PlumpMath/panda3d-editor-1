@@ -31,25 +31,24 @@ class CodeNodeWrapper(VirtualNodeWrapper):
       dirname=os.path.dirname(filepath)
       filebase, fileext = os.path.splitext(filename)
       dirname = Filename(dirname).toOsSpecific()
-      if DEBUG:
-        print "I: CodeNodeWrapper.setScript:"
-        print "  - filebase:", filebase
-        print "  - dirname:", dirname
       if fileext == '.py':
         try:
           fp, filename, description=imp.find_module(filebase, [dirname])
           module = imp.load_module(filebase, fp, filename, description)
-          objectClass = getattr(module, filebase[0].upper()+filebase[1:])
-          objectInstance = objectClass(self)
-          self.objectInstance = objectInstance
+          try:
+            objectClass = getattr(module, filebase[0].upper()+filebase[1:])
+            objectInstance = objectClass(self)
+            self.objectInstance = objectInstance
+          except:
+            print "W: CodeNodeWrapper.setScript: creating code instance failed"
+            traceback.print_exc()
         except:
-          print "W: CodeNodeWrapper.setScript: error creating code instance"
+          print "W: CodeNodeWrapper.setScript: finding module failed"
           traceback.print_exc()
       self.scriptFilepath = filepath
   
   def destroy(self):
     VirtualNodeWrapper.destroy(self)
-    taskMgr.step()
     if self.objectInstance is not None:
       self.objectInstance.destroy()
       del self.objectInstance

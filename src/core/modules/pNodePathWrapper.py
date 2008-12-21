@@ -37,9 +37,6 @@ class NodePathWrapper(BaseWrapper):
       if pandaPath is None:
         pandaPath = '/'.join(filepath.split('/')[:-1])
         from pandac.PandaModules import getModelPath
-        if DEBUG:
-          print "I: NodePathWrapper.setModel: adding to pandapath:"
-          print "  -", pandaPath
         getModelPath().appendPath(pandaPath)
       
       # the path to the model we handle

@@ -36,7 +36,6 @@ class MouseHandlerClass:
   def mouseHandlerTask(self, task):
     # dont return the real mouse movement offset in the first frame
     if not task.frame:
-      print "skip", task.frame
       self.mousePosX, self.mousePosY = 0,0
       self.setMouseCentered()
       self.lastTaskTime = globalClock.getFrameTime()

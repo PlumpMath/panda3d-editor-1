@@ -115,9 +115,6 @@ class SoundNodeWrapper(VirtualNodeWrapper):
       if pandaPath is None:
         pandaPath = '/'.join(filepath.split('/')[:-1])
         from pandac.PandaModules import getModelPath
-        if DEBUG:
-          print "I: NodePathWrapper.setModel: adding to pandapath:"
-          print "  -", pandaPath
         getModelPath().appendPath(pandaPath)
       
       # the path to the model we handle
@@ -138,9 +135,6 @@ class SoundNodeWrapper(VirtualNodeWrapper):
   
   def destroy(self):
     # destroy this object
-    print "WARNING: SoundNodeWrapper.destroy not implemented !!!!"
-    print dir(self.soundEffect)
-    print dir(soundManager.get3dManager())
     soundManager.get3dManager().detachSound(self.soundEffect)
     self.soundEffect.stop()
     del self.soundEffect

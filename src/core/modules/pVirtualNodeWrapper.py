@@ -30,7 +30,6 @@ class VirtualNodeWrapper(BaseWrapper):
       # load a dummy model
       self.virtualModel = loader.loadModel( self.virtualModelpath )
       # set the model invisible in the scenegraphbrowser
-      self.virtualModel.setTag(EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG,'')
       self.virtualModel.setLightOff()
       # make the model visible
       self.virtualModel.reparentTo( self )

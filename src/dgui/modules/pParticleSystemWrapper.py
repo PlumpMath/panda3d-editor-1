@@ -1,3 +1,5 @@
+import traceback
+
 from dgui.modules.pBaseWrapper import *
 
 PARTICLESYSTEMWRAPPER_SHOW_PARTICLEPANEL = True
@@ -10,7 +12,7 @@ if PARTICLESYSTEMWRAPPER_SHOW_PARTICLEPANEL:
     base.startTk()
     from direct.tkpanels.ParticlePanel import ParticlePanel
   except:
-    print "W: ParticleSystemWrapper: tkInter is not installed, editing particlesystems impossible"
+    print "W: dgui.ParticleSystemWrapper: tkInter is not installed, editing particlesystems impossible"
 
 class ParticleSystemWrapper( BaseWrapper ):
   def startEdit(self):
@@ -26,4 +28,5 @@ class ParticleSystemWrapper( BaseWrapper ):
       try:
         self.particlePanel.destroy()
       except:
-        print "W: ParticleSystemWrapper.stopEdit:"
+        print "W: dgui.ParticleSystemWrapper.stopEdit: particelPanel destroy failed"
+        traceback.print_exc()

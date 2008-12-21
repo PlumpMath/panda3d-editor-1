@@ -23,8 +23,3 @@ class NodePathWrapper:
     # returns a directFrame containing the buttons to edit the parameters of
     # this object
     pass
-
-if __name__ == '__main__':
-  print "testing notdePathWrapper"
-  a = NodePathWrapper.onCreate( 'test2' )
-  print a.name

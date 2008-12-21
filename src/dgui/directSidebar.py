@@ -61,7 +61,6 @@ class DirectSidebar(DirectFrame):
     self.update()
   
   def destroy(self):
-    print "I: DirectSidebar.__del__"
     self.label.detachNode()
     self.collapseButton.detachNode()
     self.detachNode()
@@ -124,7 +123,6 @@ class DirectSidebar(DirectFrame):
   def toggleCollapsed(self,state=None):
     if state is None:
       state=not self.collapsed
-    print "I: DirectWindow.toggleCollapsed:", state
     self.collapsed=state
     if self.toggleFunc:
       try:

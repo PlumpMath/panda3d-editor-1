@@ -10,7 +10,6 @@ from direct.showbase.DirectObject import DirectObject
 from dgui.directSidebar import *
 
 def strListToFloat(l):
-  print "I: strListToFloat",l
   o = list()
   for i in l:
     o.append(float(i))
@@ -40,7 +39,6 @@ def str2type(string, valueType):
 
 class BaseWrapper(DirectObject):
   def __init__(self, object, editorInstance):
-    print "I: BaseWrapper.__init__:", object
     self.object = object
     self.mutableParameters = self.object.mutableParameters
     self.mutableParametersSorting = [
@@ -51,21 +49,21 @@ class BaseWrapper(DirectObject):
       'color',
       'colorScale',
       'transparency',
+      'antialias',
     ]
     
     self.buttonsWindow = None
     self.editorInstance = editorInstance
   
   def startEdit(self):
-    print "I: dgui.BaseWrapper.startEdit"
     # the object is selected to be edited
     # creates a directFrame to edit this object
     self.createEditWindow()
     # it's getting slow with this
     #self.accept(EVENT_MODELCONTROLLER_FAST_REFRESH, self.updateAllEntires)
     self.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, self.updateAllEntires)
+  
   def stopEdit(self):
-    print "I: dgui.BaseWrapper.stopEdit"
     # the object is deselected from being edited
     self.destroyEditWindow()
     self.ignore(EVENT_MODELCONTROLLER_FULL_REFRESH)
@@ -73,11 +71,8 @@ class BaseWrapper(DirectObject):
     self.ignoreAll()
   
   def createEditWindow(self):
-    #print "I: baseWrapper.createEditWindow"
     if self.buttonsWindow is None:
-      #sideFrame = DirectSidebar(frameSize=(0.8,0.4), pos=(-.05,0,0.1), align=ALIGN_RIGHT|ALIGN_BOTTOM, opendir=LEFT_OR_UP, orientation=VERTICAL, text='right-bottom')
       ySize = len(self.mutableParameters)
-      #print "ySize", ySize
       title='editWindow-%s' % str(self.object.getName())
       self.buttonsWindow = DirectSidebar(
         frameSize=(1.1,ySize*.11)
@@ -89,11 +84,10 @@ class BaseWrapper(DirectObject):
       self.buttonsWindow.toggleCollapsed(self.editorInstance.getObjectEditwindowToggled())
       
       dy = ySize*.11
-      print "ySize", ySize
       for paramName in self.mutableParameters.keys():
         if paramName in self.mutableParametersSorting:
           y = self.mutableParametersSorting.index(paramName)
-          print "creating entry", paramName
+          #print "creating entry", paramName
           paramLabel = DirectLabel( text = paramName
                                   , parent = self.buttonsWindow
                                   , scale=.05
@@ -111,7 +105,7 @@ class BaseWrapper(DirectObject):
                                     , initialText=""
                                     , numLines = 1
                                     , focus=0
-                                    , width=10
+                                    , width=12
                                     , focusOutCommand=self.setEntryFocusOut
                                     , focusOutExtraArgs=[paramName]
                                     , command=self.setEntryCommand
@@ -124,19 +118,20 @@ class BaseWrapper(DirectObject):
                                     , command=self.setEntryCommand
                                     , extraArgs=[paramName])
           else:
-            print "W: BaseWrapper.createEditWindow: unknown entry type", type(paramType)
-            print "  -", paramName
-            print "  -", paramType, getFunc, setFunc, hasFunc
+            print "W: dgui.BaseWrapper.createEditWindow: unknown entry type"
+            print "  -", self.object.__class__.__name__
+            print "  -", paramType, paramName
+            #print "  -", getFunc, setFunc, hasFunc, clearFunc
             paramEntry = None
         else:
-          print "W: BaseWrapper.createEditWindow: no mutableparameter for entry"
-          print "  -", paramName
-          print "  -", self.mutableParametersSorting
+          print "W: dgui.BaseWrapper.createEditWindow: no mutableparameter for entry"
+          print "  -", self.object.__class__.__name__
+          print "  -", paramType, paramName
+          print "  - in", self.mutableParametersSorting
         self.parameterEntries[paramName] = paramEntry
       self.updateAllEntires()
   
   def destroyEditWindow(self):
-    print "I: baseWrapper.destroyEditWindow"
     if self.buttonsWindow:
       for paramName, paramEntry in self.parameterEntries.items():
         if paramName in self.mutableParameters:
@@ -153,38 +148,36 @@ class BaseWrapper(DirectObject):
     self.buttonsWindow = None
   
   def setEntry(self, paramName, paramValue):
-    print "I: baseWrapper.setEntry", paramName, paramValue
     if self.buttonsWindow:
       if self.parameterEntries.has_key(paramName):
         paramType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[paramName]
         #self.object.setParameters( {paramName: paramValue} )
-        if paramType in [Vec4, Vec3, Vec2, Point4, Point3, Point2]:
-          paramValue = str2type(paramValue, tuple)
-          self.object.setParameters( {paramName: paramValue} )
-        elif paramType in [str, float, int]:
-          paramValue = paramType(paramValue)
-          self.object.setParameters( {paramName: paramValue} )
-        elif paramType == bool:
-          self.object.setParameters( {paramName: paramValue} )
+        try:
+          if paramType in [str, float, int]:
+            paramValue = paramType(paramValue)
+          elif paramType in [Vec4, Vec3, Vec2, Point4, Point3, Point2]:
+            paramValue = str2type(paramValue, tuple)
+          elif paramType == bool:
+            pass
+        except ValueError:
+          print "E: dgui.BaseWrapper.setEntry: error"
+          traceback.print_exc()
+        self.object.setParameters( {paramName: paramValue} )
       else:
-        print "E: BaseWrapper.setEntry: unknown key", paramName
+        print "E: dgui.BaseWrapper.setEntry: unknown key", paramName
         print "  -", self.parameterEntries
       self.updateAllEntires()
   
   def setEntryFocusOut(self, paramName):
-    print "setEntryFocusOut", paramName
-    #paramValue = self.parameterEntries[paramName].get()
-    #self.setEntry(paramName, paramValue)
+    paramValue = self.parameterEntries[paramName].get()
+    self.setEntry(paramName, paramValue)
   
   def setEntryCommand(self, paramValue, paramName):
-    print "setEntryCommand", paramName, paramValue
     self.setEntry(paramName, paramValue)
   
   def updateAllEntires(self):
-    #print "updateAllEntires"
     if self.buttonsWindow:
       for paramName, [paramType, getFunc, setFunc, hasFunc, clearFunc] in self.mutableParameters.items():
-        #print "  - update", paramName
         objectParameters = self.object.getParameters()
         if paramName in objectParameters:
           currentValue = objectParameters[paramName]
@@ -192,26 +185,25 @@ class BaseWrapper(DirectObject):
             self.parameterEntries[paramName]["indicatorValue"] = currentValue
             self.parameterEntries[paramName].setIndicatorValue()
           else:
-            #if paramName == 'color':
-            #  print "COLOR: ", currentValue, paramName, [paramType, getFunc, setFunc, hasFunc, clearFunc]
             if paramType in [str]:
               valueString = currentValue
             elif paramType in [Vec4, Point4, VBase4, Vec3, Point3, VBase3, Vec2, Point2, VBase2, tuple, list]:
-              valueString = "("
+              valueString = "" #"("
               for val in currentValue:
                 valueString += "%.3G, " % val
-              valueString = valueString[:-2] + ")"
-            elif type(currentValue) == float:
+              valueString = valueString[:-2]# + ")"
+            elif paramType in [float, int]:
               valueString = "%.3G" % currentValue
             else:
-              "I: dgui.BaseWrapper.updateAllEntires: undefined value for", paramName, currentValue
-              valueString = str(currentValue)
-            #if paramName == 'color':
-            #  print paramType, currentValue, valueString
+              print "W: dgui.BaseWrapper.updateAllEntires: undefined value for", paramName, currentValue, paramType
+              valueString = 'None' #str(currentValue)
+            
             if self.parameterEntries[paramName]:
               self.parameterEntries[paramName].enterText(valueString)
+            else:
+              print "W: dgui.BaseWrapper.updateAllEntires: no parameterEntry for", paramName, self.object.__class__.__name__
         else:
-          print "I: dgui.BaseWrapper.updateAllEntires: undefined value for", paramName
+          print "W: dgui.BaseWrapper.updateAllEntires: undefined value for", paramName
       # when the name changed, update the scenegraph
       if paramName == 'name':
         messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)

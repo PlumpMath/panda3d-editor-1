@@ -22,14 +22,12 @@ class CameraController( DirectObject, FSM ):
     FSM.__init__(self,'mouseControllerClass')
     
     self.cameraPosPivot = render.attachNewNode( 'cameraPivot' )
-    self.cameraPosPivot.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
     self.cameraRotPivot = self.cameraPosPivot.attachNewNode( 'cameraPivot' )
     self.cameraRotPivot.setHpr( STARTUP_CAMERA_HPR )
     # show a point at the cameraPosPivot
     self.posPivotModel = loader.loadModel( CAMERACONTROLLER_PIVOT_MODEL )
     self.posPivotModel.reparentTo( self.cameraPosPivot )
     self.posPivotModel.setScale( 0.1 )
-    self.posPivotModel.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
     
     self.request( 'Disabled' )
   
@@ -52,7 +50,6 @@ class CameraController( DirectObject, FSM ):
   
   # --- Default start ---
   def enterDefault( self ):
-    #print "enterDefault"
     #self.accept( 'mouse1', self.request, ['MouseButton1Pressed'] )
     self.accept( 'mouse2', self.request, ['MouseButton2Pressed'] )
     self.accept( 'mouse3', self.request, ['MouseButton3Pressed'] )
@@ -60,10 +57,8 @@ class CameraController( DirectObject, FSM ):
     self.accept( 'wheel_up', self.zoomIn )
     self.accept( 'page_down', self.zoomOut )
     self.accept( 'page_up', self.zoomIn )
-    #messenger.toggleVerbose()
   
   def exitDefault( self ):
-    #print "exitDefault"
     self.ignoreAll()
   # --- Default end ---
   
@@ -73,57 +68,16 @@ class CameraController( DirectObject, FSM ):
     cam.setY( min( -MIN_CAMERA_DISTANCE
             , max( -MAX_CAMERA_DISTANCE
             , cam.getY() -1 * MOUSE_ZOOM_SPEED ) ) )
-    #print "zoomOut", cam.getY()
   
   def zoomIn( self ):
     cam = WindowManager.getDefaultCamera()
     cam.setY( min( -MIN_CAMERA_DISTANCE
             , max( -MAX_CAMERA_DISTANCE
             , cam.getY() + 1 * MOUSE_ZOOM_SPEED ) ) )
-    #print "zoomIn", cam.getY()
   
   def getCreatePos( self ):
     return self.cameraPosPivot.getPos( render )
-  
-  #def move_pivot_relative( self, moveX, moveY ):
-  #  multiplier = 1
   # --- helper function end ---
-  
-  # --- MouseButton1Pressed start ---
-  def enterMouseButton1Pressed( self ):
-    #print "enterMouseButton1Pressed"
-    self.ignoreAll()
-    
-    # add the task and the abort funtion
-    self.taskMouseButton1PressedRunning = True
-    taskMgr.add( self.taskMouseButton1Pressed, 'taskMouseButton1Pressed' )
-    self.accept( 'mouse1-up', self.request, ['Default'] )
-    # center the mouse to prevent a huge jump in the beginng
-    #*()
-    #mouseHandler.toggleMouseFixed()
-    mouseHandler.toggleMouseFixed( True )
-  
-  def taskMouseButton1Pressed( self, task ):
-    # this is needed because the task might be called once more after the exit
-    # function has been called
-    # also skip first frame
-    mx,my = mouseHandler.getMousePos()
-    if self.taskMouseButton1PressedRunning and task.frame:
-      #print mx,my
-      pass
-      #WindowManager.getDefaultCamera().setPos( WindowManager.getDefaultCamera(), -Vec3(mx,0,my) * MOUSE_MOVEMENT_SPEED )
-      print self.cameraPosPivot.getPos(render)
-      #self.cameraPosPivot.setPos( self.cameraPosPivot, Vec3(mx,my,0) * MOUSE_MOVEMENT_SPEED )
-      #self.move_pivot_relative( mx*MOUSE_MOVEMENT_SPEED, my*MOUSE_MOVEMENT_SPEED )
-    return task.cont
-  
-  def exitMouseButton1Pressed( self ):
-    #print "exitMouseButton1Pressed"
-    taskMgr.remove( 'taskMouseButton1Pressed' )
-    self.taskMouseButton1PressedRunning = False
-    mouseHandler.toggleMouseFixed( False )
-  # --- MouseButton1Pressed end ---
-  
   
   # --- MouseButton1Pressed start ---
   def enterMouseButton2Pressed( self ):
@@ -143,17 +97,13 @@ class CameraController( DirectObject, FSM ):
     # also skip first frame
     mx,my = mouseHandler.getMousePos()
     if self.taskMouseButton2PressedRunning and task.frame:
-      #print "step", task.time, globalClock.getDt()
-      #time.sleep( 0.001 )
       curHpr = self.cameraRotPivot.getHpr()
       newHpr = curHpr + Vec3(mx,-my,0) * MOUSE_ROTATION_SPEED #* globalClock.getDt()
       newHpr.setY( min( 90, max( -90, newHpr.getY() ) ) )
       self.cameraRotPivot.setHpr( newHpr )
-      #print "camera hpr", self.cameraRotPivot.getHpr( render )
     return task.cont
   
   def exitMouseButton2Pressed( self ):
-    #print "exitMouseButton2Pressed"
     taskMgr.remove( 'taskMouseButton2Pressed' )
     self.taskMouseButton2PressedRunning = False
     mouseHandler.toggleMouseFixed( False )
@@ -162,7 +112,6 @@ class CameraController( DirectObject, FSM ):
   
   # --- MouseButton1Pressed start ---
   def enterMouseButton3Pressed( self ):
-    #print "enterMouseButton1Pressed"
     self.ignoreAll()
     
     # add the task and the abort funtion
@@ -189,7 +138,6 @@ class CameraController( DirectObject, FSM ):
     return task.cont
   
   def exitMouseButton3Pressed( self ):
-    #print "exitMouseButton3Pressed"
     taskMgr.remove( 'taskMouseButton3Pressed' )
     self.taskMouseButton1PressedRunning = False
     mouseHandler.toggleMouseFixed( False )

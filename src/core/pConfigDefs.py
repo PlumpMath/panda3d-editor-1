@@ -74,7 +74,6 @@ EDITABLE_OBJECT_TAG = 'editorObject'
 # tag assigned to the arrows for moving/rotating/scaling a object
 MODEL_MODIFICATOR_TAG = 'modelController'
 # to suppress the model from showing up in the scenegraphBrowser
-EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG = 'editorExcludedObject'
 ENABLE_SCENEGRAPHBROWSER_MODEL_TAG = 'editorEnabledObject'
 
 # model shown when the real model is not found

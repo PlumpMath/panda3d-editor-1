@@ -56,10 +56,8 @@ class ModelController( DirectObject ):
       
       # load axisCube, if that fails generate it and quit
       self.objectAxisCube = loader.loadModel( MODELCONTROLLER_AXISCUBE_MODEL )
-      self.objectAxisCube.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
       if not self.objectAxisCube:
-        if DEBUG:
-          print "E: axiscube.bam does not exist, createAxisCube should have done that actually..."
+        print "E: axiscube.bam does not exist, createAxisCube should have done that actually..."
         sys.exit()
       self.objectAxisCube.setLightOff()
       # axiscube can be hidden otherwise
@@ -68,24 +66,18 @@ class ModelController( DirectObject ):
       #self.objectAxisCube.setDepthTest(False)
       #self.objectAxisCube.setDepthWrite(False)
       
-      if DEBUG:
-        print "I: modelControllerClass: reading", MODEL_MODIFICATION_MODEL
       # arrows for movement and rotation
       modificatorsNode = loader.loadModel( MODEL_MODIFICATION_MODEL )
       self.modelModeNodes = list()
       for i in xrange(len(MODEL_MODIFICATION_MODES_FUNCTIONS)):
         parent = NodePath('modelModificationNode-%i' % i) # render.attachNewNode( 'modelModificationNode-%i' % i )
-        parent.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
         parent.setLightOff()
         self.modelModeNodes.append( parent )
         for nameTag in MODEL_MODIFICATION_MODES_FUNCTIONS[i]:
           searchTag = '**/%s' % nameTag
           modificator = modificatorsNode.find( searchTag )
-          if DEBUG:
-            print "  - searching", searchTag, "found", modificator
           modificator.reparentTo( parent )
           modificator.setTag( MODEL_MODIFICATOR_TAG, nameTag )
-          #modificator.setTag( EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG, '' )
           modelIdManager.setObject( modificator, nameTag )
           # arrows are hidden otherwise
           modificator.setBin('fixed', 40)
@@ -145,11 +137,6 @@ class ModelController( DirectObject ):
     transX, transY, rotX, rotY, scaleX, scaleY = MODEL_MODIFICATION_FUNCTIONS[editTool]
     task = Task(self.editToolTask)
     
-    if DEBUG:
-      print "I: modelController.editToolSetup:"
-      print "   - selected:", self.__selectedModel
-      print "   - relative:", self.__relativeModificationTo
-    
     if self.__relativeModificationTo == self.__selectedModel:
       self.__modificationNode = self.__selectedModel
     else:
@@ -198,19 +185,13 @@ class ModelController( DirectObject ):
     messenger.send( EVENT_MODELCONTROLLER_FULL_REFRESH )
   
   def selectNodePath( self, nodePath ):
-    if DEBUG:
-      print "I: modelController.selectNodePath: nodePath", nodePath
     modelId = modelIdManager.getObjectId( nodePath )
     object = modelIdManager.getObject( modelId )
     self.selectModel( object )
   
   def selectModel( self, model=None ):
-    if DEBUG:
-      print "I: modelController.selectModel", model
     if model is None:
       # no object has been selected
-      if DEBUG:
-        print "  - deselect model"
       self.__unsetMode()
       self.__deselectModel()
       self.__selectedModel = None
@@ -218,8 +199,6 @@ class ModelController( DirectObject ):
     else:
       if model == self.__selectedModel:
         # the current model has been clicked again
-        if DEBUG:
-          print "  - clicked same object again", self.__modelMode
         self.__unsetMode()
         curModelMode = MODEL_MODIFICATION_MODES.index( self.__modelMode )
         newModelMode = MODEL_MODIFICATION_MODES[(curModelMode+1) % len(MODEL_MODIFICATION_MODES)]
@@ -228,8 +207,6 @@ class ModelController( DirectObject ):
         messenger.send( EVENT_MODELCONTROLLER_SELECT_MODEL_AGAIN, [model] )
       else:
         # a new / different model has been clicked
-        if DEBUG:
-          print "  - clicked new / different object"
         self.__unsetMode()
         self.__deselectModel()
         self.__selectedModel = model
@@ -274,11 +251,7 @@ class ModelController( DirectObject ):
         self.modelModeNode = self.modelModeNodes[2]
         self.__relativeModificationTo = render
       else:
-        if DEBUG:
-          print "modelControllerClass.__setMode: unknown mode", self.__modelMode
-      
-      # the object's radius is changed when something is attached
-      #self.modelModeNode.detachNode()
+        print "E: ModelController.__setMode: unknown mode", self.__modelMode
       
       self.modelModeNode.reparentTo( render )
       self.modelModeNode.setMat( render, Mat4().identMat() )
@@ -344,7 +317,6 @@ class ModelController( DirectObject ):
     pickedObjects = list()
     if self.updatePickerRay():
       self.editorCollTraverser.traverse(render)
-      # assume for simplicity's sake that myHandler is a CollisionHandlerQueue
       if self.editorCollHandler.getNumEntries() > 0:
         self.editorCollHandler.sortEntries() #this is so we get the closest object
         for i in xrange(self.editorCollHandler.getNumEntries()):
@@ -385,29 +357,4 @@ class ModelController( DirectObject ):
       return mouseRayDirection
   # --- old version stuff - end ---
 
-
 modelController = ModelController()
-
-
-
-
-if __name__ == '__main__':
-  print "testing2"
-  class dummy:
-    def __init__( self, name ):
-      self.name = name
-    def __repr__( self ):
-      return self.name
-    def highlight( self, state ):
-      print "highlight", self.name, state
-  obj1 = dummy('a')
-  obj2 = dummy('b')
-  obj3 = dummy('c')
-  modelController.selectModel( obj1 )
-  modelController.selectModel( obj1 )
-  modelController.selectModel( obj1 )
-  modelController.selectModel( obj2 )
-  modelController.selectModel( None )
-  modelController.selectModel( obj3 )
-  modelController.selectModel( obj3 )
-  modelController.selectModel( None )

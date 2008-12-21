@@ -450,7 +450,6 @@ class SceneGraphBrowser(DirectObject):
       else:
          self.accept(self.inOutBTprefix+self.modifier+'-wheel_up',self.__scrollChildrenCanvas, [-.07])
          self.accept(self.inOutBTprefix+self.modifier+'-wheel_down',self.__scrollChildrenCanvas, [.07])
-      #print 'enteringFrame'
 
   def __exitingFrame(self,m=None):
       if not hasattr(self,'inOutBTprefix'):
@@ -463,7 +462,6 @@ class SceneGraphBrowser(DirectObject):
       else:
          self.ignore(self.inOutBTprefix+self.modifier+'-wheel_up')
          self.ignore(self.inOutBTprefix+self.modifier+'-wheel_down')
-      #print 'exitingFrame'
 
   def __listchildren(self,np,level,editable=True):
       status=0
@@ -677,9 +675,6 @@ class SceneGraphBrowser(DirectObject):
       self.rootTitle['text']='CHILDREN  of  '+self.root.getName().upper()
       if collapseAll:
          self.collapseAllTree()
-#       print '===== %s =====' %root.getName().upper()
-#       print 'SGreadTime : %s sec{s}\nbtnGenTime : %s sec{s}\nratio = 1:%f' %(self.SGreadTime,self.btnGenTime,self.btnGenTime/self.SGreadTime)
-#       print '====================='
 
   def refresh(self):
       """

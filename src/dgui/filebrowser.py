@@ -253,12 +253,3 @@ class Processor:
       textmsg = 'Here is the file you selected: ' + filename
       message=OnscreenText(text=textmsg, pos=(0,0), scale=0.07)
 
-'''print __name__
-
-if __name__ == '__main__':
-  # end class Processor
-  
-  DoIt = Processor()
-  
-  #run the tutorial
-  run()'''

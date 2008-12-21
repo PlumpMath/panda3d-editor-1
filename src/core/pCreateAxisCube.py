@@ -1,6 +1,6 @@
 from pandac.PandaModules import *
 
-print "generating axisCube.bam start"
+print "generating axisCube.bam ...",
 
 # object highlighting
 modelHelperLines = LineSegs()
@@ -23,4 +23,4 @@ modelHelperLinesNode = modelHelperLines.create()
 modelHelperLinesNodePath = NodePath(modelHelperLinesNode)
 modelHelperLinesNodePath.writeBamFile( 'axisCube.bam' )
 
-print "generating axisCube.bam finished"
+print "done"

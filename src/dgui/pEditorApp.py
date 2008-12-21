@@ -5,11 +5,9 @@ from direct.gui.DirectButton import DirectButton
 from direct.gui.DirectScrolledList import DirectScrolledList
 from pandac.PandaModules import *
 
-from dgui.interactiveConsole.interactiveConsole import pandaConsole, INPUT_GUI, OUTPUT_PYTHON
 from dgui.filebrowser import FG
 from dgui.scenegraphBrowser import SceneGraphBrowser
 from dgui.directWindow.src.directWindow import DirectWindow
-from dgui.interactiveConsole.interactiveConsole import *
 from dgui.pCameraController import cameraController
 from dgui.directSidebar import *
 
@@ -54,8 +52,6 @@ class EditorApp(DirectObject):
     self.objectEditorVisible = False
   
   def toggle( self, state=None ):
-    if DEBUG:
-      print "I: EditorApp.toggle", state
     if state is None:
       state = not self.enabled
     
@@ -68,8 +64,6 @@ class EditorApp(DirectObject):
   def enable( self ):
     if not self.enabled:
       def nodeSelected(np): # don't forget to receive the selected node (np)
-        if DEBUG:
-          print "nodeSelected", np
         modelController.selectNodePath( np )
       
       def nodeRightClicked(np): # don't forget to receive the selected node (np)
@@ -95,7 +89,6 @@ class EditorApp(DirectObject):
                  selectTag=[ENABLE_SCENEGRAPHBROWSER_MODEL_TAG, EDITABLE_OBJECT_TAG],   # only nodes which have the tag(s) are selectable. You could use multiple tags.
                  #noSelectTag=['noSelect','dontSelectMe'], # only nodes which DO NOT have the tag(s) are selectable. You could use multiple tags.
                  # nodes which have exclusionTag wouldn't be displayed at all
-                 exclusionTag=[EXCLUDE_SCENEGRAPHBROWSER_MODEL_TAG],
                  frameSize=(1,1.4),
                  font=None, titleScale=.05, itemScale=.035, itemTextScale=1.2, itemTextZ=0,
                  rolloverColor=(1,.8,.2,1),
@@ -111,10 +104,6 @@ class EditorApp(DirectObject):
       self.scenegraphBrowser.accept(EVENT_SCENEGRAPHBROWSER_REFRESH,self.scenegraphBrowser.refresh)
       self.accept( 'r', messenger.send, [EVENT_SCENEGRAPHBROWSER_REFRESH] )
       
-      # enable console
-      #console = pandaConsole( INPUT_GUI|OUTPUT_PYTHON, locals() )
-      #console.toggle()
-      
       sceneButtonDefinitions = [ 
         ['load', self.loadEggModelsFile, []]
       , ['save', self.saveEggModelsFile, []]
@@ -124,18 +113,21 @@ class EditorApp(DirectObject):
         ['pix-light', self.toggleShaderAuto, []]
       ]
       self.settingsButtons = self.createInterface(settingsButtonDefinitions, 'settings', align=ALIGN_LEFT|ALIGN_TOP, pos=Vec3(0.45,0,0))
-      createButtonDefinitions = [
+      nodeButtonDefinitions = [
         ['model', self.createFilebrowserModelWrapper, ['NodePathWrapper']]
       , ['particlesystem', self.createFilebrowserModelWrapper, ['ParticleSystemWrapper']]
       , ['codeNode', self.createFilebrowserModelWrapper, ['CodeNodeWrapper']]
       , ['GeoMipTerrain', self.createFilebrowserModelWrapper, ['GeoMipTerrainNodeWrapper']]
       , ['sound', self.createFilebrowserModelWrapper, ['SoundNodeWrapper']]
-      , ['spotlight', self.createModelWrapper, ['SpotLightNodeWrapper']]
+      ]
+      self.nodeButtons = self.createInterface(nodeButtonDefinitions, 'nodes', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.85,0,0))
+      lightButtonDefinitions = [
+        ['spotlight', self.createModelWrapper, ['SpotLightNodeWrapper']]
       , ['directionallight', self.createModelWrapper, ['DirectionalLightNodeWrapper']]
       , ['ambientlight', self.createModelWrapper, ['AmbientLightNodeWrapper']]
       , ['pointlight', self.createModelWrapper, ['PointLightNodeWrapper']]
       ]
-      self.createButtons = self.createInterface(createButtonDefinitions, 'create', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.45,0,0))
+      self.lightButtons = self.createInterface(lightButtonDefinitions, 'lights', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.45,0,0))
       editButtonDefinitions = [
         ['duplicate', self.duplicateModelWrapper, []]
       , ['destroy', self.editorInstance.destroyModel, []]
@@ -174,7 +166,6 @@ class EditorApp(DirectObject):
   def duplicateModelWrapper(self):
     originalModel = modelController.getSelectedModel()
     objectInstance = originalModel.makeCopy(originalModel)
-    print "I: dgui.EditorApp.duplicateModelWrapper:", objectInstance
     if objectInstance is not None:
       objectInstance.enableEditmode()
     #objectInstance.loadFromData( originalModel.getSaveData('.') )
@@ -184,7 +175,6 @@ class EditorApp(DirectObject):
   def setObjectEditwindowToggled(self, state):
     ''' saves the state of the object related window, so you dont have to
     close/open it every time, (it stays closed if it was before)'''
-    print "objectEditwindowToggled", state
     self.objectEditorVisible = state
   def getObjectEditwindowToggled(self):
     return self.objectEditorVisible
@@ -199,15 +189,10 @@ class EditorApp(DirectObject):
       render.setShaderOff()
   
   def modelSelected(self, model):
-    try:
-      print "I: EditorApp.modelSelected", model
-      print "  -", modelController.getSelectedModel()
-      print "  -", modelController.getSelectedModel().__class__.__name__
+    #try:
       if self.lastSelectedObject != modelController.getSelectedModel():
-        print "  - new object selected"
         # selected model has been changed
         if self.editorObjectGuiInstance is not None:
-          print "  - destryoing old selected gui"
           # destroy gui instance of old object
           self.editorObjectGuiInstance.stopEdit()
         
@@ -236,53 +221,36 @@ class EditorApp(DirectObject):
         else:
           self.editorObjectGuiInstance = None
       else:
-        print "  - same object selected"
         # the same object is selected again
         pass
-    except:
-      print "E: EditorApp.modelSelected: object", model
-      traceback.print_exc()
+    #except:
+    #  print "E: EditorApp.modelSelected: object", model
+    #  traceback.print_exc()
   
   def saveEggModelsFile(self):
-    if DEBUG:
-      print "I: EditorApp.saveEggModelsFile:"
     FG.openFileBrowser()
     FG.accept('selectionMade', self.saveEggModelsFileCallback)
   def saveEggModelsFileCallback(self, filepath):
-    if DEBUG:
-      print "I: EditorApp.saveEggModelsFileCallback:", filename
     if filepath != None and filepath != '' and filepath != ' ':
       filepath = Filename.fromOsSpecific(filepath).getFullpath()
       self.editorInstance.saveEggModelsFile(filepath)
   
   def loadEggModelsFile(self):
-    if DEBUG:
-      print "I: EditorApp.loadEggModelsFile:"
     FG.openFileBrowser()
     FG.accept('selectionMade', self.loadEggModelsFileCallback)
   def loadEggModelsFileCallback(self, filepath):
-    if DEBUG:
-      print "I: EditorApp.loadEggModelsFileCallback:", filename
     if filepath != None and filepath != '' and filepath != ' ':
       filepath = Filename.fromOsSpecific(filepath).getFullpath()
       self.editorInstance.loadEggModelsFile(filepath)
   
   def createObjectEditor(self, object):
-    if DEBUG:
-      print "I: EditorApp.createObjectEditor:", object.__class__.__name__
     if object == self.editorObject:
       # same object is selected again
-      if DEBUG:
-        print "  - same object"
+      pass
     else:
-      if DEBUG:
-        print "  - other object"
       if self.editorObject is not None:
         # destroy the current editorObject
-        if DEBUG:
-          print "  - is destroying old editor"
-      if DEBUG:
-        print "  - creating new editor"
+        pass
   
   def createFilebrowserModelWrapper(self, objectType):
     # open the file browser to select a object
@@ -291,7 +259,6 @@ class EditorApp(DirectObject):
   def onCreateFilebrowserModelWrapper(self, objectType, filepath):
     if filepath != None and filepath != '' and filepath != ' ':
       filepath = Filename.fromOsSpecific(filepath).getFullpath()
-      print "I: EditorApp.onCrateFilebrowserModelWrapper:", objectType, filepath
       modelParent = modelController.getSelectedModel()
       module = __import__("core.modules.p%s" % objectType, globals(), locals(), [objectType], -1)
       #exec("objectInstance = module.%s.onCreateInstance(modelParent, filepath)" % (objectType))
@@ -331,8 +298,10 @@ class EditorApp(DirectObject):
       self.sceneButtons.detachNode()
       self.settingsButtons.destroy()
       self.settingsButtons.detachNode()
-      self.createButtons.destroy()
-      self.createButtons.detachNode()
+      self.nodeButtons.destroy()
+      self.nodeButtons.detachNode()
+      self.lightButtons.destroy()
+      self.lightButtons.detachNode()
       self.editButtons.destroy()
       self.editButtons.detachNode()
       
@@ -354,7 +323,7 @@ class EditorApp(DirectObject):
       buttons.append( button )
     itemHeight = 0.11
     
-    height = 0.1+(itemHeight - 0.06) * len(buttonDefinitions)
+    height = 0.03+(itemHeight - 0.055) * len(buttonDefinitions)
     buttonsWindow  = DirectSidebar(
         frameSize=(0.35, height)
       , pos=pos
