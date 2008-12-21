@@ -79,6 +79,7 @@ ENABLE_SCENEGRAPHBROWSER_MODEL_TAG = 'editorEnabledObject'
 
 # model shown when the real model is not found
 MODEL_NOT_FOUND_MODEL = 'models/modelnotfound.egg'
+SOUND_NOT_FOUND_SOUND = 'soundnotfound.mp3'
 
 # tag set to the object which defines the type of wrapper used to edit
 MODEL_WRAPPER_TYPE_TAG = 'modelWrapperTypeTag'
