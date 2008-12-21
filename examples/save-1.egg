@@ -1,6 +1,6 @@
 <CoordinateSystem> { Z-Up }
 
-<Instance> PointLight-1-Group {
+<Instance> PointLight {
   <Transform> {
     <Matrix4> {
       1 0 0 0
@@ -13,10 +13,10 @@
     PointLightNodeWrapper
   }
   <Comment> parameters {
-    "{'color': [5.0, 0.0, 0.0, 1.0], 'priority': 0, 'spec_color': [1.0, 1.0, 1.0, 1.0], 'attenuation': [0.89999997615814209, 0.0099999997764825821, 0.0]}"
+    "{'color': (5.0, 0.0, 0.0, 1.0), 'priority': 0, 'specularColor': (1.0, 1.0, 1.0, 1.0), 'attenuation': (0.89999997615814209, 0.0099999997764825821, 0.0)}"
   }
 }
-<Instance> teapot.egg.pz-6-Group {
+<Instance> teapot {
   <Transform> {
     <Matrix4> {
       1 0 0 0
@@ -29,12 +29,12 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{'color': [1.0, 1.0, 0.0, 1.0], 'transparency': 0}"
+    "{'color': (1.0, 1.0, 0.0, 1.0), 'transparency': 0}"
   }
-  <File> teapot.egg.pz-6-Group-EggExternalReference {
+  <File> ExtRef {
     "models/teapot.egg.pz"
   }
-  <Instance> teapot.egg.pz-7-Group {
+  <Instance> teapot-c1 {
     <Transform> {
       <Matrix4> {
         0.888851 0.458197 0 0
@@ -47,13 +47,13 @@
       NodePathWrapper
     }
     <Comment> parameters {
-      "{'color': [1.0, 1.0, 4.0, 1.0], 'transparency': 1, 'colorScale': [1.0, 1.0, 2.0, 1.0]}"
+      "{'color': (1.0, 1.0, 4.0, 1.0), 'transparency': 1, 'colorScale': (1.0, 1.0, 2.0, 1.0)}"
     }
-    <File> teapot.egg.pz-7-Group-EggExternalReference {
+    <File> ExtRef {
       "models/teapot.egg.pz"
     }
   }
-  <Instance> teapot.egg.pz-8-Group {
+  <Instance> teapot-c2 {
     <Transform> {
       <Matrix4> {
         1 0 0 0
@@ -65,16 +65,16 @@
     <Tag> modelWrapperTypeTag {
       NodePathWrapper
     }
-    <File> teapot.egg.pz-8-Group-EggExternalReference {
+    <File> ExtRef {
       "models/teapot.egg.pz"
     }
   }
 }
-<Instance> testObjectExtension.py-9-Group {
+<Instance> testObjectExtension.py-9-Group-5-5-20 {
   <Transform> {
     <Matrix4> {
-      0.395963 0.918266 0 0
-      -0.918266 0.395963 0 0
+      -0.690889 0.722961 0 0
+      -0.722961 -0.690889 0 0
       0 0 1 0
       -0.0126715 4.4883 37.5834 1
     }
@@ -82,10 +82,10 @@
   <Tag> modelWrapperTypeTag {
     CodeNodeWrapper
   }
-  <File> CodeNodeWrapper-EggExternalReference {
+  <File> ExtRef {
     testObjectExtension.py
   }
-  <Instance> teapot.egg.pz-10-Group {
+  <Instance> teapot.egg.pz {
     <Transform> {
       <Matrix4> {
         1 0 0 0
@@ -98,12 +98,12 @@
       NodePathWrapper
     }
     <Comment> parameters {
-      "{'color': [1.0, 1.0, 1.0, 1.0], 'transparency': 0, 'colorScale': [1.0, 0.0, 1.0, 1.0]}"
+      "{'color': (1.0, 1.0, 1.0, 1.0), 'transparency': 0, 'colorScale': (1.0, 0.0, 1.0, 1.0)}"
     }
-    <File> teapot.egg.pz-10-Group-EggExternalReference {
+    <File> ExtRef {
       "models/teapot.egg.pz"
     }
-    <Instance> teapot.egg.pz-11-Group {
+    <Instance> teapot {
       <Transform> {
         <Matrix4> {
           1 0 0 0
@@ -116,12 +116,12 @@
         NodePathWrapper
       }
       <Comment> parameters {
-        "{'color': [1.0, 2.0, 1.0, 1.0], 'colorScale': [1.0, 1.0, 3.0000002384185791, 1.0]}"
+        "{'color': (1.0, 2.0, 1.0, 1.0), 'colorScale': (1.0, 1.0, 3.0000002384185791, 1.0)}"
       }
-      <File> teapot.egg.pz-11-Group-EggExternalReference {
+      <File> ExtRef {
         "models/teapot.egg.pz"
       }
-      <Instance> DirectionalLight-12-Group {
+      <Instance> DirectionalLight {
         <Transform> {
           <Matrix4> {
             1 0 0 0
@@ -134,17 +134,17 @@
           DirectionalLightNodeWrapper
         }
         <Comment> parameters {
-          "{'color': [1.0, 1.0, 1.0, 1.0], 'priority': 0, 'spec_color': [1.0, 1.0, 1.0, 1.0]}"
+          "{'color': (1.0, 1.0, 1.0, 1.0), 'priority': 0, 'specularColor': (1.0, 1.0, 1.0, 1.0)}"
         }
       }
     }
   }
 }
-<Instance> testObjectExtension.py-13-Group {
+<Instance> testObjectExtension.py-13-Group-9-9-24 {
   <Transform> {
     <Matrix4> {
-      0.395963 0.918266 0 0
-      -0.918266 0.395963 0 0
+      -0.690889 0.722961 0 0
+      -0.722961 -0.690889 0 0
       0 0 1 0
       -3.58816 18.2976 37.2916 1
     }
@@ -152,10 +152,10 @@
   <Tag> modelWrapperTypeTag {
     CodeNodeWrapper
   }
-  <File> CodeNodeWrapper-EggExternalReference {
+  <File> ExtRef {
     testObjectExtension.py
   }
-  <Instance> smokering.ptf-14-Group-Group-Group-Group {
+  <Instance> smokering {
     <Transform> {
       <Matrix4> {
         1 0 0 0
@@ -167,10 +167,10 @@
     <Tag> modelWrapperTypeTag {
       ParticleSystemWrapper
     }
-    <File> smokering.ptf-14-Group-Group-Group-Group-EggExternalReference {
-      particlesystems/smokering.ptf
+    <File> ExtRef {
+      "particlesystems/smokering.ptf"
     }
-    <Instance> SpotLight-15-Group {
+    <Instance> SpotLight-15 {
       <Transform> {
         <Matrix4> {
           0.169709 0.00393666 -0.985486 0
@@ -183,12 +183,12 @@
         SpotLightNodeWrapper
       }
       <Comment> parameters {
-        "{'priority': 0, 'spec_color': [1.0, 1.0, 1.0, 1.0], 'attenuation': [0.20000000298023224, 0.0, 0.0], 'color': [0.20000000298023224, 0.20000000298023224, 1.0, 0.5], 'far': 1000.0, 'fov': [30.0, 30.0], 'near': 1.0, 'exponent': 50.0}"
+        "{'fov': (30.0, 30.0), 'attenuation': (0.20000000298023224, 0.0, 0.0), 'exponent': 50.0, 'color': (0.20000000298023224, 0.20000000298023224, 1.0, 0.5), 'priority': 0, 'far': 1000.0, 'near': 1.0, 'specularColor': (1.0, 1.0, 1.0, 1.0)}"
       }
     }
   }
 }
-<Instance> GeoMipTerrain-terrain.png-16-Group {
+<Instance> Terrain-2 {
   <Transform> {
     <Matrix4> {
       5 0 0 0
@@ -201,12 +201,12 @@
     GeoMipTerrainNodeWrapper
   }
   <Comment> parameters {
-    "{'color': [0.20000000298023224, 0.80000001192092896, 0.20000000298023224, 1.0]}"
+    "{'color': (0.20000000298023224, 0.80000001192092896, 0.20000000298023224, 1.0)}"
   }
-  <File> GeoMipTerrain-terrain.png-16-Group-EggExternalReference {
+  <File> ExtRef {
     terrain.png
   }
-  <Instance> terrain.png-14 {
+  <Instance> terrain.png {
     <Transform> {
       <Matrix4> {
         0.1 0 0 0
@@ -219,14 +219,14 @@
       GeoMipTerrainNodeWrapper
     }
     <Comment> parameters {
-      "{'color': [1.0, 1.0, 1.0, 1.0], 'colorScale': [1.0, 1.0, 1.0, 1.0]}"
+      "{'color': (1.0, 1.0, 1.0, 1.0), 'colorScale': (1.0, 1.0, 1.0, 1.0)}"
     }
-    <File> terrain.png-14-EggExternalReference {
+    <File> ExtRef {
       terrain.png
     }
   }
 }
-<Instance> DirectionalLight-17-Group {
+<Instance> DirectionalLight {
   <Transform> {
     <Matrix4> {
       1 0 0 0
@@ -239,10 +239,10 @@
     DirectionalLightNodeWrapper
   }
   <Comment> parameters {
-    "{'color': [1.0, 1.0, 1.0, 1.0], 'priority': 0, 'spec_color': [1.0, 1.0, 1.0, 1.0]}"
+    "{'color': (1.0, 1.0, 1.0, 1.0), 'priority': 0, 'specularColor': (1.0, 1.0, 1.0, 1.0)}"
   }
 }
-<Instance> teapot.egg.pz-15 {
+<Instance> teapot.egg.pz {
   <Transform> {
     <Matrix4> {
       1 0 0 0
@@ -254,7 +254,7 @@
   <Tag> modelWrapperTypeTag {
     NodePathWrapper
   }
-  <File> teapot.egg.pz-15-EggExternalReference {
+  <File> ExtRef {
     "models/teapot.egg.pz"
   }
 }
