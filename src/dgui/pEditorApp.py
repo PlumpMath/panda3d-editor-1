@@ -127,12 +127,13 @@ class EditorApp(DirectObject):
       createButtonDefinitions = [
         ['model', self.createFilebrowserModelWrapper, ['NodePathWrapper']]
       , ['particlesystem', self.createFilebrowserModelWrapper, ['ParticleSystemWrapper']]
+      , ['codeNode', self.createFilebrowserModelWrapper, ['CodeNodeWrapper']]
+      , ['GeoMipTerrain', self.createFilebrowserModelWrapper, ['GeoMipTerrainNodeWrapper']]
+      , ['sound', self.createFilebrowserModelWrapper, ['SoundNodeWrapper']]
       , ['spotlight', self.createModelWrapper, ['SpotLightNodeWrapper']]
       , ['directionallight', self.createModelWrapper, ['DirectionalLightNodeWrapper']]
       , ['ambientlight', self.createModelWrapper, ['AmbientLightNodeWrapper']]
       , ['pointlight', self.createModelWrapper, ['PointLightNodeWrapper']]
-      , ['codeNode', self.createFilebrowserModelWrapper, ['CodeNodeWrapper']]
-      , ['GeoMipTerrain', self.createFilebrowserModelWrapper, ['GeoMipTerrainNodeWrapper']]
       ]
       self.createButtons = self.createInterface(createButtonDefinitions, 'create', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.45,0,0))
       editButtonDefinitions = [
