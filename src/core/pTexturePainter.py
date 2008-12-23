@@ -27,29 +27,21 @@ def getTextureAndStage(nodePath):
   texStages = rec(nodePath, nodePath.getNetState(), [])
   return texStages
 
-from PIL import Image
-
 def createPickingImage( size ):
-  mode = 'RGB'
   # create the image
-  image = Image.new(mode, size)
+  image = PNMImage(*size)
   for x in xrange(size[0]):
     for y in xrange(size[1]):
       r = x % 256
       g = y % 256
       b = (x // 256) + (y//256) * 16
-      
-      #tx = r + ((b%16)*256)
-      #ty = g + ((b//16)*256)
-      #print x,y,": ",tx,ty
-      image.putpixel((x,y),(r,g,b))
+      image.setXelVal(x,y,r,g,b)
   
   # reverse way is:
   #    tx = r + ((b%16)*256)
   #    ty = g + ((b//16)*256)
   imageFilename = 'data/textures/index-%i-%i.png' % (size[0], size[1])
-  image.save(imageFilename, 'PNG')
-  print "created image %s" % imageFilename
+  image.write(imageFilename)
 
 TEXTURESIZE = [512, 256]
 WINDOWSIZE = [800, 600]
