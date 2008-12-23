@@ -27,73 +27,72 @@ class EditorClass(DirectObject, FSM):
     FSM.__init__(self,'EditorClass')
     self.parentNodePath = render
     
-    self.enabled = False
-    # enable the editor
-    self.toggle( False ) # must be called with eighter False or True
-  
-  def enterDisabled(self):
-    pass
-  def exitDisabled(self):
-    pass
-  
-  def enterEditmode(self):
-    if not self.enabled:
-      self.sceneHelperModels = NodePath('editor-helper-models')
-      self.sceneHelperModels.reparentTo(render)
-      self.sceneHelperModels.setLightOff()
-      
-      # the axis model at 0/0/0
-      axis = loader.loadModel( 'zup-axis.egg' )
-      axis.reparentTo( self.sceneHelperModels )
-      
-      # a grid model
-      gridNp = DirectGrid(parent=self.sceneHelperModels)
-      
-      for model in modelIdManager.getAllModels():
-        try:
-          model.enableEditmode()
-        except:
-          pass # some objects are not part of the scene (like arrows to move etc.)
-      
-      modelController.toggle(True)
-      
-      self.accept(EDITOR_TOGGLE_OFF_EVENT, self.toggle, [False])
-      
-      # refresh the scenegraphbrowser
-      messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
-      
-      self.enabled = True
-  def exitEditmode(self):
-    if self.enabled:
-      # drop what we have selected
-      modelController.selectModel( None )
-      # ignoreAll events
-      self.ignoreAll()
-      
-      for model in modelIdManager.getAllModels():
-        if model.hasTag(EDITABLE_OBJECT_TAG):
-          model.disableEditmode()
-      
-      modelController.toggle(False)
-      
-      self.enabled = False
+    self.accept( 'DisabledEditMode', self.request, ['DisabledEditMode'] )
+    self.accept( 'WorldEditMode', self.request, ['WorldEditMode'] )
+    self.accept( 'ObjectEditMode', self.request, ['ObjectEditMode'] )
     
-    self.accept( EDITOR_TOGGLE_ON_EVENT, self.toggle, [True] )
+    self.request('DisabledEditMode')
   
-  def enterPaintmode(self):
-    # me wants to include
-    # http://panda3d.org/phpbb2/viewtopic.php?t=2325&highlight=
+  def enterDisabledEditMode(self):
     pass
-  def exitPaintmode(self):
+  def exitDisabledEditMode(self):
+    pass
+  
+  def enterWorldEditMode(self):
+    self.sceneHelperModels = NodePath('editor-helper-models')
+    self.sceneHelperModels.reparentTo(render)
+    self.sceneHelperModels.setLightOff()
+    
+    # the axis model at 0/0/0
+    axis = loader.loadModel( 'zup-axis.egg' )
+    axis.reparentTo( self.sceneHelperModels )
+    
+    # a grid model
+    gridNp = DirectGrid(parent=self.sceneHelperModels)
+    
+    for model in modelIdManager.getAllModels():
+      try:
+        model.enableEditmode()
+      except:
+        pass # some objects are not part of the scene (like arrows to move etc.)
+    
+    modelController.toggle(True)
+    
+    # refresh the scenegraphbrowser
+    messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+  def exitWorldEditMode(self):
+    # drop what we have selected
+    modelController.selectModel( None )
+    
+    for model in modelIdManager.getAllModels():
+      if model.hasTag(EDITABLE_OBJECT_TAG):
+        model.disableEditmode()
+    
+    modelController.toggle(False)
+  
+  def enterObjectEditMode(self):
+    pass
+  def exitObjectEditMode(self):
     pass
   
   def toggle(self, state=None):
     if state is None:
-      state = not self.enabled
-    if state:
-      self.request('Editmode')
+      # switch to next mode
+      if self.state == 'DisabledEditMode':
+        state = 'WorldEditMode'
+      elif self.state == 'WorldEditMode':
+        state = 'ObjectEditMode'
+      elif self.state == 'ObjectEditMode':
+        state = 'DisabledEditMode'
+      else:
+        state = 'DisabledEditMode'
+        print "W: EditorClass.toggle: unknown previous mode", self.state, "setting to", state
+    
+    if state in ['DisabledEditMode', 'WorldEditMode', 'ObjectEditMode']:
+      self.request(state)
     else:
-      self.request('Disabled')
+      self.request('DisabledEditMode')
+      print "W: EditorClass.toggle: unknown requested mode", state, ", setting to", self.state
   
   def getData(self):
     modelData = ''
@@ -218,7 +217,7 @@ class EditorClass(DirectObject, FSM):
       for objectInstance, eggData in loadedObjects:
         objectInstance.loadFromData( eggData, filepath )
       
-      if self.enabled:
+      if self.getCurrentOrNextState() == 'WorldEditMode':
         # enable the editing on the objects when editing is enabled
         for model in modelIdManager.getAllModels():
           try:

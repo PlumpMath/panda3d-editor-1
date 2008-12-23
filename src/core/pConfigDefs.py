@@ -2,8 +2,12 @@ from pandac.PandaModules import *
 
 # --- you may edit these ---
 
-EDITOR_TOGGLE_OFF_EVENT = 'pandaEditorToggleOff'
-EDITOR_TOGGLE_ON_EVENT = 'pandaEditorToggleOn'
+#EDITOR_TOGGLE_OFF_EVENT = 'pandaEditorToggleOff'
+#EDITOR_TOGGLE_ON_EVENT = 'pandaEditorToggleOn'
+
+EDITOR_MODE_DISABLED = 'pandaEditorDisabledMode'
+EDITOR_MODE_WORLD_EDIT = 'pandaEditorWorldEditMode'
+EDITOR_MODE_OBJECT_EDIT = 'pandaEditorObjectEditMode'
 
 EVENT_SCENEGRAPHBROWSER_REFRESH = 'refreshSceneGraph'
 # this event is sent when a object has been selected

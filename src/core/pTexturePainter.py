@@ -49,6 +49,7 @@ class TexturePainter(DirectObject):
     self.paintModel = None
     self.origModel = None
     self.accept('window-event', self.windowEvent)
+    self.enabled = False
   
   def enableEditor(self):
     # setup an offscreen buffer for the colour index
@@ -62,7 +63,8 @@ class TexturePainter(DirectObject):
     
     self.backgroundResize()
     
-    self.accept( "mouse1", self.paint )
+    self.accept( "mouse1", self.startPaint )
+    self.accept( "mouse1-up", self.stopPaint )
     self.accept("v", base.bufferViewer.toggleEnable)
     self.accept("V", base.bufferViewer.toggleEnable)
     base.bufferViewer.setPosition("llcorner")
@@ -84,8 +86,11 @@ class TexturePainter(DirectObject):
           self.backgroundResize(win)
       else:
         # but the win is given
-        if self.buffer.getXSize()!=win.getXSize() or self.buffer.getXSize()!=win.getYSize():
-          self.backgroundResize(win)
+        if self.buffer and win:
+          if self.buffer.getXSize()!=win.getXSize() or self.buffer.getXSize()!=win.getYSize():
+            self.backgroundResize(win)
+        else:
+          print "W: TexturePainter.windowEvent: buffer or win unavailable", self.buffer, win
   
   def backgroundResize(self, win=None):
     ''' when the window is resized, we need to recreate the background renderer
@@ -158,9 +163,18 @@ class TexturePainter(DirectObject):
   
   def stopEdit(self):
     if self.enabled:
-      self.paintModel.detachNode()
-      self.paintModel = None
-      self.origModel = None
+      if self.paintModel:
+        self.paintModel.detachNode()
+        self.paintModel = None
+        self.origModel = None
+  
+  def startPaint(self):
+    taskMgr.add(self.paintTask, 'paintTask')
+  def paintTask(self, task):
+    self.paint()
+    return task.cont
+  def stopPaint(self):
+    taskMgr.remove('paintTask')
   
   def paint(self):
     if self.enabled and self.paintModel:
@@ -224,4 +238,3 @@ class TexturePainter(DirectObject):
 '''
 
 texturePainter = TexturePainter()
-texturePainter.enableEditor()
