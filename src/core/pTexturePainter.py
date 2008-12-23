@@ -139,30 +139,31 @@ class TexturePainter(DirectObject):
       self.workTex.store( self.workLayer )
       
       self.paintModel = model.copyTo(self.backgroundRender) #loader.loadModel('models/smiley.egg')
-      #tester.reparentTo(self.backgroundRender)
-      self.paintModel.setMat(render, model.getMat(render))
-      textureSize = (texture.getXSize(), texture.getYSize())
-      createPickingImage( textureSize )
-      self.paintModel.setTexture(loader.loadTexture("textures/index-%i-%i.png" % (textureSize[0], textureSize[1])),1)
-      base.graphicsEngine.renderFrame()
-      
-      
-      self.pickTex.store(self.pickLayer)
-      
-      self.origModel = model
-      self.textureSize = textureSize
+      if self.paintModel:
+        #tester.reparentTo(self.backgroundRender)
+        self.paintModel.setMat(render, model.getMat(render))
+        textureSize = (texture.getXSize(), texture.getYSize())
+        createPickingImage( textureSize )
+        self.paintModel.setTexture(loader.loadTexture("textures/index-%i-%i.png" % (textureSize[0], textureSize[1])),1)
+        base.graphicsEngine.renderFrame()
+        
+        self.pickTex.store(self.pickLayer)
+        
+        self.origModel = model
+        self.textureSize = textureSize
+      else:
+        print "W: TexturePainter.startEdit: error copying model", model, texture
     else:
       print "W: TexturePainter.startEdit: paint mode not enabled!"
   
-  def stopEdit(self, model):
+  def stopEdit(self):
     if self.enabled:
-      model.detachNode()
-      
+      self.paintModel.detachNode()
       self.paintModel = None
       self.origModel = None
   
   def paint(self):
-    if self.enabled:
+    if self.enabled and self.paintModel:
       # update the camera according to the active camera
       self.backcam.reparentTo(self.backgroundRender)
       self.backcam.setMat(render, WindowManager.activeWindow.camera.getMat(render))
