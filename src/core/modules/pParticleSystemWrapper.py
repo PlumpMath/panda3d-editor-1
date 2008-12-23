@@ -54,8 +54,9 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
     except:
       print "W: particleSystemWrapper.setParticleConfig: Error loading file"
       print "  -", filepath
-      print "  - Creating dummy particle Effect"
       traceback.print_exc()
+      
+      print "  - Creating dummy particle Effect"
       # create new one if loading failed (particlepanel requires at least one particle)
       particles = Particles()
       particles.setBirthRate(0.02)
