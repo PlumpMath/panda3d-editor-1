@@ -186,7 +186,7 @@ class EditorClass(DirectObject, FSM):
           # search for childrens
           for childData in eggParentData.getChildren():
             # search the children
-            parent, loadedObjects = loadRecursiveChildrens(childData, parent, transform, filepath)
+            parent, loadedObjects = loadRecursiveChildrens(childData, parent, transform, filepath, loadedObjects)
       else:
         if DEBUG:
           print "W: EditorApp.loadEggModelsFile.loadRecursiveChildrens:"
