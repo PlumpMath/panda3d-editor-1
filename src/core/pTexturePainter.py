@@ -3,6 +3,7 @@ from pandac.PandaModules import TextureAttrib, Texture, PNMImage, \
 GraphicsOutput, NodePath, Filename, TextureStage, VBase3D
 
 from core.pWindow import WindowManager
+from core.pMouseHandler import mouseHandler
 
 def getTextureAndStage(nodePath):
   def getStages(gnode, state, texStages): #, textures):
@@ -43,28 +44,23 @@ def createPickingImage( size ):
   imageFilename = 'data/textures/index-%i-%i.png' % (size[0], size[1])
   image.write(imageFilename)
 
-TEXTURESIZE = [512, 256]
-WINDOWSIZE = [800, 600]
-PAINTCOLOR = [255,0,0]
-
 class TexturePainter(DirectObject):
   def __init__(self):
     self.paintModel = None
     self.origModel = None
+    self.accept('window-event', self.windowEvent)
   
   def enableEditor(self):
     # setup an offscreen buffer for the colour index
-    self.pickTex = Texture()
     self.pickLayer = PNMImage()
+    self.pickTex = Texture()
     
-    self.buffer = base.win.makeTextureBuffer("pickBuffer", *WINDOWSIZE)
-    self.buffer.addRenderTexture(self.pickTex, GraphicsOutput.RTMCopyRam)
+    self.backgroundRender = NodePath("backgroundRender")
+    self.backgroundRender.setLightOff()
+    self.buffer = None
+    self.backcam = None
     
-    self.backcam = base.makeCamera(self.buffer, sort=-10)
-    self.backcam.node().copyLens(WindowManager.activeWindow.camera.node().getLens())
-    self.background = NodePath("background")
-    self.backcam.reparentTo(self.background)
-    self.background.setLightOff()
+    self.backgroundResize()
     
     self.accept( "mouse1", self.paint )
     self.accept("v", base.bufferViewer.toggleEnable)
@@ -76,6 +72,44 @@ class TexturePainter(DirectObject):
     self.setPaintSize( 7 )
     
     self.enabled = True
+  
+  def windowEvent(self, win):
+    # the window has been changed
+    if self.enabled:
+      if WindowManager.activeWindow:
+        # on window resize there seems to be never a active window
+        # get window size
+        win = WindowManager.activeWindow.win
+        if self.buffer.getXSize()!=win.getXSize() or self.buffer.getXSize()!=win.getYSize():
+          self.backgroundResize(win)
+      else:
+        # but the win is given
+        if self.buffer.getXSize()!=win.getXSize() or self.buffer.getXSize()!=win.getYSize():
+          self.backgroundResize(win)
+  
+  def backgroundResize(self, win=None):
+    ''' when the window is resized, we need to recreate the background renderer
+    '''
+    # window has been resized
+    if win is None:
+      if WindowManager.activeWindow:
+        win = WindowManager.activeWindow.win
+    
+    if win:
+      if self.buffer:
+        # destroy the buffer
+        base.graphicsEngine.removeWindow(self.buffer)
+        self.buffer = None
+        # remove the camera
+        self.backcam.removeNode()
+      
+      # create the buffer with the new window size
+      self.buffer = base.win.makeTextureBuffer("pickBuffer", win.getXSize(), win.getYSize())
+      self.buffer.addRenderTexture(self.pickTex, GraphicsOutput.RTMCopyRam)
+      # create the camera again
+      self.backcam = base.makeCamera(self.buffer, sort=-10)
+    else:
+      print "I: TexturePainter.backgroundResize: no win defined"
   
   def disableEditor(self):
     self.ignoreAll()
@@ -104,16 +138,19 @@ class TexturePainter(DirectObject):
       self.workLayer = PNMImage()
       self.workTex.store( self.workLayer )
       
-      self.paintModel = model.copyTo(self.background) #loader.loadModel('models/smiley.egg')
-      #tester.reparentTo(self.background)
+      self.paintModel = model.copyTo(self.backgroundRender) #loader.loadModel('models/smiley.egg')
+      #tester.reparentTo(self.backgroundRender)
       self.paintModel.setMat(render, model.getMat(render))
       textureSize = (texture.getXSize(), texture.getYSize())
       createPickingImage( textureSize )
       self.paintModel.setTexture(loader.loadTexture("textures/index-%i-%i.png" % (textureSize[0], textureSize[1])),1)
       base.graphicsEngine.renderFrame()
+      
+      
       self.pickTex.store(self.pickLayer)
       
       self.origModel = model
+      self.textureSize = textureSize
     else:
       print "W: TexturePainter.startEdit: paint mode not enabled!"
   
@@ -126,10 +163,13 @@ class TexturePainter(DirectObject):
   
   def paint(self):
     if self.enabled:
+      # update the camera according to the active camera
+      self.backcam.reparentTo(self.backgroundRender)
+      self.backcam.setMat(render, WindowManager.activeWindow.camera.getMat(render))
+      self.backcam.node().copyLens(WindowManager.activeWindow.camera.node().getLens())
+      # update the mat of the model we currently paint on
       self.paintModel.setMat(render, self.origModel.getMat(render))
       
-      # copy cameraposition from user-camera
-      self.backcam.setMat(render, WindowManager.activeWindow.camera.getMat(render))
       # render the backbuffer
       base.graphicsEngine.renderFrame()
       # save the rendering as texture
@@ -138,9 +178,14 @@ class TexturePainter(DirectObject):
       if not base.mouseWatcherNode.hasMouse():
           return
       
-      mpos = base.mouseWatcherNode.getMouse()
-      mx = int(((mpos.getX()+1)/2)*WINDOWSIZE[0])
-      my = WINDOWSIZE[1] - int(((mpos.getY()+1)/2)*WINDOWSIZE[1])
+      # get window size
+      win = WindowManager.activeWindow.win
+      self.windowSize = win.getXSize(), win.getYSize()
+      
+      # convert mouse coordinates to image coordinates
+      mx, my = mouseHandler.getMousePos()
+      mx = int(((mx+1)/2)*self.windowSize[0])
+      my = self.windowSize[1] - int(((my+1)/2)*self.windowSize[1])
       
       # get the color below the mousepick from the rendered frame
       r = self.pickLayer.getRedVal(mx,my)
@@ -150,13 +195,13 @@ class TexturePainter(DirectObject):
       x = r + ((b%16)*256)
       y = g + ((b//16)*256)
       
-      # make a square on the worklayer
+      # render a spot into the texture
       for i in xrange(-self.paintSize, self.paintSize+1):
         ny = i + y
-        if 0 <= ny < TEXTURESIZE:
+        if 0 <= ny < self.textureSize[1]:
           for j in xrange(-self.paintSize, self.paintSize+1):
             nx = j + x
-            if 0 <= nx < TEXTURESIZE:
+            if 0 <= nx < self.textureSize[0]:
               c = self.workLayer.getXel(nx,ny)
               density = min(1.0,max(0.0, ((i**2+j**2)*1.414 / float(self.paintSize**2*2))))
               p = c*density + (self.paintColor * (1-density))
