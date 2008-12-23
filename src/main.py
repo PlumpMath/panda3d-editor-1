@@ -41,14 +41,10 @@ if __name__ == "__main__":
   if USE_GUI == "dgui":
     from dgui.pEditorApp import EditorApp
     app = EditorApp(editor)
-    app.toggle(True)
+    app.toggle('WorldEditMode')
   elif USE_GUI == "wxgui":
     # wxGui needs to be opened before the editor, as it opens the window later
     from wxgui.pEditorApp import EditorApp
     app = EditorApp(editor)
-  
-  # Now, get it running :)
-  if USE_GUI == "dgui":
-    editor.toggle(True)
   
   run()
