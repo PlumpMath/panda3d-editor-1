@@ -29,7 +29,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{'color': (1.0, 1.0, 0.0, 1.0), 'transparency': 0}"
+    "{'color': (1.0, 1.0, 0.0, 1.0)}"
   }
   <File> ExtRef {
     "models/teapot.egg.pz"
@@ -47,7 +47,7 @@
       NodePathWrapper
     }
     <Comment> parameters {
-      "{'color': (1.0, 1.0, 4.0, 1.0), 'transparency': 1, 'colorScale': (1.0, 1.0, 2.0, 1.0)}"
+      "{'colorScale': (1.0, 1.0, 2.0, 1.0), 'color': (1.0, 1.0, 4.0, 1.0)}"
     }
     <File> ExtRef {
       "models/teapot.egg.pz"
@@ -65,6 +65,9 @@
     <Tag> modelWrapperTypeTag {
       NodePathWrapper
     }
+    <Comment> parameters {
+      "{}"
+    }
     <File> ExtRef {
       "models/teapot.egg.pz"
     }
@@ -73,14 +76,17 @@
 <Instance> testObjectExtension.py-9-Group-5-5-20 {
   <Transform> {
     <Matrix4> {
-      -0.690889 0.722961 0 0
+      0.657595 -0.688122 -0.306688 0
       -0.722961 -0.690889 0 0
-      0 0 1 0
+      -0.211887 0.221723 -0.95181 0
       -0.0126715 4.4883 37.5834 1
     }
   }
   <Tag> modelWrapperTypeTag {
     CodeNodeWrapper
+  }
+  <Comment> parameters {
+    "{}"
   }
   <File> ExtRef {
     testObjectExtension.py
@@ -98,7 +104,7 @@
       NodePathWrapper
     }
     <Comment> parameters {
-      "{'color': (1.0, 1.0, 1.0, 1.0), 'transparency': 0, 'colorScale': (1.0, 0.0, 1.0, 1.0)}"
+      "{'colorScale': (1.0, 0.0, 1.0, 1.0), 'color': (1.0, 1.0, 1.0, 1.0)}"
     }
     <File> ExtRef {
       "models/teapot.egg.pz"
@@ -116,7 +122,7 @@
         NodePathWrapper
       }
       <Comment> parameters {
-        "{'color': (1.0, 2.0, 1.0, 1.0), 'colorScale': (1.0, 1.0, 3.0000002384185791, 1.0)}"
+        "{'colorScale': (1.0, 1.0, 3.0000002384185791, 1.0), 'color': (1.0, 2.0, 1.0, 1.0)}"
       }
       <File> ExtRef {
         "models/teapot.egg.pz"
@@ -143,14 +149,17 @@
 <Instance> testObjectExtension.py-13-Group-9-9-24 {
   <Transform> {
     <Matrix4> {
-      -0.690889 0.722961 0 0
+      0.657595 -0.688122 -0.306688 0
       -0.722961 -0.690889 0 0
-      0 0 1 0
+      -0.211887 0.221723 -0.95181 0
       -3.58816 18.2976 37.2916 1
     }
   }
   <Tag> modelWrapperTypeTag {
     CodeNodeWrapper
+  }
+  <Comment> parameters {
+    "{}"
   }
   <File> ExtRef {
     testObjectExtension.py
@@ -166,6 +175,9 @@
     }
     <Tag> modelWrapperTypeTag {
       ParticleSystemWrapper
+    }
+    <Comment> parameters {
+      "{}"
     }
     <File> ExtRef {
       "particlesystems/smokering.ptf"
@@ -183,7 +195,7 @@
         SpotLightNodeWrapper
       }
       <Comment> parameters {
-        "{'fov': (30.0, 30.0), 'attenuation': (0.20000000298023224, 0.0, 0.0), 'exponent': 50.0, 'color': (0.20000000298023224, 0.20000000298023224, 1.0, 0.5), 'priority': 0, 'far': 1000.0, 'near': 1.0, 'specularColor': (1.0, 1.0, 1.0, 1.0)}"
+        "{'fov': (30.0, 30.0), 'color': (0.20000000298023224, 0.20000000298023224, 1.0, 0.5), 'priority': 0, 'specularColor': (1.0, 1.0, 1.0, 1.0), 'near': 1.0, 'attenuation': (0.20000000298023224, 0.0, 0.0), 'far': 1000.0, 'exponent': 50.0}"
       }
     }
   }
@@ -201,7 +213,7 @@
     GeoMipTerrainNodeWrapper
   }
   <Comment> parameters {
-    "{'color': (0.20000000298023224, 0.80000001192092896, 0.20000000298023224, 1.0)}"
+    "{'color': (0.20000000298023224, 0.80000001192092896, 0.20000000298023224, 1.0), 'minlevel': 0}"
   }
   <File> ExtRef {
     terrain.png
@@ -219,7 +231,7 @@
       GeoMipTerrainNodeWrapper
     }
     <Comment> parameters {
-      "{'color': (1.0, 1.0, 1.0, 1.0), 'colorScale': (1.0, 1.0, 1.0, 1.0)}"
+      "{'colorScale': (1.0, 1.0, 1.0, 1.0), 'color': (1.0, 1.0, 1.0, 1.0), 'minlevel': 0}"
     }
     <File> ExtRef {
       terrain.png
@@ -254,7 +266,29 @@
   <Tag> modelWrapperTypeTag {
     NodePathWrapper
   }
+  <Comment> parameters {
+    "{}"
+  }
   <File> ExtRef {
     "models/teapot.egg.pz"
+  }
+}
+<Instance> smiley.egg.pz {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      7.79167 -19.8958 17.3333 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/smiley.egg.pz"
   }
 }
