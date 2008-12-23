@@ -50,7 +50,6 @@ def createPickingImage( size ):
   imageFilename = 'data/textures/index-%i-%i.png' % (size[0], size[1])
   image.save(imageFilename, 'PNG')
   print "created image %s" % imageFilename
-#createPickingImage( [512,256] )
 
 TEXTURESIZE = [512, 256]
 WINDOWSIZE = [800, 600]
@@ -58,7 +57,8 @@ PAINTCOLOR = [255,0,0]
 
 class TexturePainter(DirectObject):
   def __init__(self):
-    pass
+    self.paintModel = None
+    self.origModel = None
   
   def enableEditor(self):
     # setup an offscreen buffer for the colour index
@@ -82,9 +82,16 @@ class TexturePainter(DirectObject):
     
     self.setPaintColor( VBase3D(1,0,0) )
     self.setPaintSize( 7 )
+    
+    self.enabled = True
   
   def disableEditor(self):
-    pass
+    self.ignoreAll()
+    
+    self.enabled = False
+    
+    if self.paintModel != None:
+      self.stopEdit(self.paintModel)
   
   def setPaintColor(self, paintColor):
     self.paintColor = paintColor
@@ -93,66 +100,80 @@ class TexturePainter(DirectObject):
     self.paintSize = int(paintSize)
   
   def startEdit(self, model, texture):
-    # load the working texture (this must load the real texure of the object)
-    self.workTex = texture #loader.loadTexture('models/maps/smiley.rgb')
-    
-    # copy the image from the texture to the working layer
-    self.workLayer = PNMImage()
-    self.workTex.store( self.workLayer )
-    
-    self.paintModel = model.copyTo(self.background) #loader.loadModel('models/smiley.egg')
-    #tester.reparentTo(self.background)
-    self.paintModel.setMat(render, model.getMat(render))
-    print dir(texture)
-    textureSize = (texture.getXSize(), texture.getYSize())
-    createPickingImage( textureSize )
-    self.paintModel.setTexture(loader.loadTexture("textures/index-%i-%i.png" % (textureSize[0], textureSize[1])),1)
-    base.graphicsEngine.renderFrame()
-    self.pickTex.store(self.pickLayer)
+    if self.enabled:
+      
+      if self.paintModel != None:
+        self.stopEdit(self.paintModel)
+      
+      # load the working texture (this must load the real texure of the object)
+      self.workTex = texture #loader.loadTexture('models/maps/smiley.rgb')
+      
+      # copy the image from the texture to the working layer
+      self.workLayer = PNMImage()
+      self.workTex.store( self.workLayer )
+      
+      self.paintModel = model.copyTo(self.background) #loader.loadModel('models/smiley.egg')
+      #tester.reparentTo(self.background)
+      self.paintModel.setMat(render, model.getMat(render))
+      textureSize = (texture.getXSize(), texture.getYSize())
+      createPickingImage( textureSize )
+      self.paintModel.setTexture(loader.loadTexture("textures/index-%i-%i.png" % (textureSize[0], textureSize[1])),1)
+      base.graphicsEngine.renderFrame()
+      self.pickTex.store(self.pickLayer)
+      
+      self.origModel = model
+    else:
+      print "W: TexturePainter.startEdit: paint mode not enabled!"
   
   def stopEdit(self, model):
-    model.detachNode()
+    if self.enabled:
+      model.detachNode()
+      
+      self.paintModel = None
+      self.origModel = None
   
   def paint(self):
-    # copy cameraposition from user-camera
-    self.backcam.setMat(render, WindowManager.activeWindow.camera.getMat(render))
-    # render the backbuffer
-    base.graphicsEngine.renderFrame()
-    # save the rendering as texture
-    self.pickTex.store(self.pickLayer)
-    
-    if not base.mouseWatcherNode.hasMouse():
-        return
-    
-    mpos = base.mouseWatcherNode.getMouse()
-    mx = int(((mpos.getX()+1)/2)*WINDOWSIZE[0])
-    my = WINDOWSIZE[1] - int(((mpos.getY()+1)/2)*WINDOWSIZE[1])
-    
-    # get the color below the mousepick from the rendered frame
-    r = self.pickLayer.getRedVal(mx,my)
-    g = self.pickLayer.getGreenVal(mx,my)
-    b = self.pickLayer.getBlueVal(mx,my)
-    # calculate uv-texture position from the color
-    x = r + ((b%16)*256)
-    y = g + ((b//16)*256)
-    
-    # make a square on the worklayer
-    for i in xrange(-self.paintSize, self.paintSize+1):
-      ny = i + y
-      if 0 <= ny < TEXTURESIZE:
-        for j in xrange(-self.paintSize, self.paintSize+1):
-          nx = j + x
-          if 0 <= nx < TEXTURESIZE:
-            c = self.workLayer.getXel(nx,ny)
-            density = min(1.0,max(0.0, ((i**2+j**2)*1.414 / float(self.paintSize**2*2))))
-            p = c*density + (self.paintColor * (1-density))
-            #p /= max(p[0],p[1],p[2])
-            print density, c, p
-            #p = [c.getX(), c.getY(), c.getZ()]
-            self.workLayer.setXel(nx,ny,p[0],p[1],p[2])
-    
-    # display the modified texture
-    self.workTex.load(self.workLayer)
+    if self.enabled:
+      self.paintModel.setMat(render, self.origModel.getMat(render))
+      
+      # copy cameraposition from user-camera
+      self.backcam.setMat(render, WindowManager.activeWindow.camera.getMat(render))
+      # render the backbuffer
+      base.graphicsEngine.renderFrame()
+      # save the rendering as texture
+      self.pickTex.store(self.pickLayer)
+      
+      if not base.mouseWatcherNode.hasMouse():
+          return
+      
+      mpos = base.mouseWatcherNode.getMouse()
+      mx = int(((mpos.getX()+1)/2)*WINDOWSIZE[0])
+      my = WINDOWSIZE[1] - int(((mpos.getY()+1)/2)*WINDOWSIZE[1])
+      
+      # get the color below the mousepick from the rendered frame
+      r = self.pickLayer.getRedVal(mx,my)
+      g = self.pickLayer.getGreenVal(mx,my)
+      b = self.pickLayer.getBlueVal(mx,my)
+      # calculate uv-texture position from the color
+      x = r + ((b%16)*256)
+      y = g + ((b//16)*256)
+      
+      # make a square on the worklayer
+      for i in xrange(-self.paintSize, self.paintSize+1):
+        ny = i + y
+        if 0 <= ny < TEXTURESIZE:
+          for j in xrange(-self.paintSize, self.paintSize+1):
+            nx = j + x
+            if 0 <= nx < TEXTURESIZE:
+              c = self.workLayer.getXel(nx,ny)
+              density = min(1.0,max(0.0, ((i**2+j**2)*1.414 / float(self.paintSize**2*2))))
+              p = c*density + (self.paintColor * (1-density))
+              self.workLayer.setXel(nx,ny,p[0],p[1],p[2])
+      
+      # display the modified texture
+      self.workTex.load(self.workLayer)
+    else:
+      print "W: TexturePainter.paint: paint mode not enabled!"
 
 
 '''
