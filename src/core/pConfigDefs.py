@@ -26,9 +26,6 @@ VALID_SOUND_FORMATS = ['mp3', 'wav']
 
 DEFAULT_EDITOR_COLLIDEMASK = BitMask32(0x80)
 
-# this may have caused a crash under osx, however it is likely to be solved
-DISABLE_SHADERS_WHILE_EDITING = False
-
 # model with translation, rotation and scale arrows
 # named:
 # xTranslate, yTranslate, zTranslate

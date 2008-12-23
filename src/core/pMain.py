@@ -8,6 +8,7 @@ import traceback
 from direct.task.Task import Task
 from pandac.PandaModules import *
 from direct.showbase.DirectObject import DirectObject
+from direct.fsm.FSM import FSM
 
 #from editorObjects import *
 from core.pModelController import modelController
@@ -21,26 +22,21 @@ from core.pSoundManager import soundManager
 
 DEBUG = False
 
-class EditorClass(DirectObject):
+class EditorClass(DirectObject, FSM):
   def __init__(self, parentNodePath):
+    FSM.__init__(self,'EditorClass')
     self.parentNodePath = render
     
     self.enabled = False
     # enable the editor
     self.toggle( False ) # must be called with eighter False or True
   
-  def toggle(self, state=None):
-    if state is None:
-      state = not self.enabled
-    
-    if state:
-      self.enableEditmode()
-    else:
-      self.disableEditmode()
-    
-    self.enabled = state
+  def enterDisabled(self):
+    pass
+  def exitDisabled(self):
+    pass
   
-  def enableEditmode(self):
+  def enterEditmode(self):
     if not self.enabled:
       self.sceneHelperModels = NodePath('editor-helper-models')
       self.sceneHelperModels.reparentTo(render)
@@ -52,9 +48,6 @@ class EditorClass(DirectObject):
       
       # a grid model
       gridNp = DirectGrid(parent=self.sceneHelperModels)
-      
-      if DISABLE_SHADERS_WHILE_EDITING:
-        render.setShaderOff(10000)
       
       for model in modelIdManager.getAllModels():
         try:
@@ -68,11 +61,10 @@ class EditorClass(DirectObject):
       
       # refresh the scenegraphbrowser
       messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
-  
-  def disableEditmode(self):
+      
+      self.enabled = True
+  def exitEditmode(self):
     if self.enabled:
-      if DISABLE_SHADERS_WHILE_EDITING:
-        render.setShaderOff(-1)
       # drop what we have selected
       modelController.selectModel( None )
       # ignoreAll events
@@ -83,8 +75,25 @@ class EditorClass(DirectObject):
           model.disableEditmode()
       
       modelController.toggle(False)
+      
+      self.enabled = False
     
     self.accept( EDITOR_TOGGLE_ON_EVENT, self.toggle, [True] )
+  
+  def enterPaintmode(self):
+    # me wants to include
+    # http://panda3d.org/phpbb2/viewtopic.php?t=2325&highlight=
+    pass
+  def exitPaintmode(self):
+    pass
+  
+  def toggle(self, state=None):
+    if state is None:
+      state = not self.enabled
+    if state:
+      self.request('Editmode')
+    else:
+      self.request('Disabled')
   
   def getData(self):
     modelData = ''
