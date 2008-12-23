@@ -122,13 +122,12 @@ class BaseWrapper(DirectObject):
                 command=self.setEntryCommand,
                 extraArgs=[paramName],)
           elif paramType.__name__ == "Enum":
-#            print "W: dgui.BaseWrapper.createEditWindow: Enum entry type"
-#            print paramType
-#            print dir(paramType)
             items = paramType.keys()
-#            for k,v in paramType.items():
-#              if 
-            initialitem = 0
+            # select the default item 0
+            for k, v in paramType.items():
+              if v == 0:
+                i = k
+            initialitem = items.index(i)
             paramEntry = DirectOptionMenu(
                 pos = (0.52, 0, dy-0.08 - y*0.1),
                 scale=.05,
