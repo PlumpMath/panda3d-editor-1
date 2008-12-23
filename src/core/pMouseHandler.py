@@ -18,6 +18,7 @@ class MouseHandlerClass:
     self.prevMousePos = 0, 0
     self.taskTimer = 0
     self.enabled = False
+    self.lastTaskTime = 0
   
   def toggleMouseFixed(self, state = None):
     """Set the mouse fixed"""
