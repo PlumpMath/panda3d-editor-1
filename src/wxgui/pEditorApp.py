@@ -180,7 +180,7 @@ class EditorApp(AppShell):
     self.wxStep()
     ViewportManager.initializeAll()
     self.reloadViewportMenus()
-    self.editorInstance.toggle(True)
+    self.editorInstance.toggle('WorldEditMode')
     # Position the camera
     if base.trackball != None:
       base.trackball.node().setPos(0, 30, 0)
