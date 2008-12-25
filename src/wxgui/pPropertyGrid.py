@@ -8,7 +8,6 @@ import wx, re
 # Local imports
 from core.pConfigDefs import *
 from core.pModelController import modelController
-from core.modules.pLightNodeWrapper import LightNodeWrapper
 
 def makeRenderer(type):
   """Returns a new GridCellRenderer for the given property type."""
@@ -46,7 +45,6 @@ class PropertyGrid(Grid, DirectObject):
     self.SetColSize(0, self.ClientSize.GetWidth() / 2)
     self.SetColSize(1, self.ClientSize.GetWidth() / 2)
     self.SetSelectionMode(0)
-    self.properties = []
     self.object = None
     
     # Catch events
@@ -62,7 +60,6 @@ class PropertyGrid(Grid, DirectObject):
   
   def reset(self):
     """Entirely resets the grid."""
-    self.properties = []
     self.ClearGrid()
     if self.GetNumberRows() > 0:
       self.DeleteRows(0, self.GetNumberRows())

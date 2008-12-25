@@ -24,6 +24,7 @@ from gc import collect
 # Local imports
 from pPropertyGrid import PropertyGrid
 from pSceneGraphTree import SceneGraphTree
+from pTextureManager import TextureManager
 from pViewport import *
 
 from core.modules import *
@@ -72,15 +73,20 @@ class EditorApp(AppShell):
     
     # Initialize the app shell and add some controls
     AppShell.__init__(self, title = "Panda Editor", pos = origin)
-    self.splitter = wx.SplitterWindow(self, style = wx.SP_3D | wx.SP_BORDER)
-    self.sideBarSplitter = wx.SplitterWindow(self.splitter, style = wx.SP_3D | wx.SP_BORDER)
-    self.sceneGraphTree = SceneGraphTree(self.sideBarSplitter)
-    self.propertyGrid = PropertyGrid(self.sideBarSplitter)
-    self.view = Viewport.makePerspective(self.splitter)
+    self.splitter1 = wx.SplitterWindow(self, style = wx.SP_3D | wx.SP_BORDER)
+    self.splitter2 = wx.SplitterWindow(self.splitter1, style = wx.SP_3D | wx.SP_BORDER)
+    self.leftBarSplitter = wx.SplitterWindow(self.splitter2, style = wx.SP_3D | wx.SP_BORDER)
+    #self.rightBarSplitter = wx.SplitterWindow(self.splitter1, style = wx.SP_3D | wx.SP_BORDER)
+    self.sceneGraphTree = SceneGraphTree(self.leftBarSplitter)
+    self.propertyGrid = PropertyGrid(self.leftBarSplitter)
+    self.textureManager = TextureManager(self.splitter1, style = wx.SP_3D | wx.SUNKEN_BORDER)
+    self.view = Viewport.makePerspective(self.splitter2)
     sizer = wx.BoxSizer(wx.VERTICAL)
-    assert self.sideBarSplitter.SplitHorizontally(self.sceneGraphTree, self.propertyGrid)
-    assert self.splitter.SplitVertically(self.sideBarSplitter, self.view, 200)
-    sizer.Add(self.splitter, 1, wx.EXPAND, 0)
+    assert self.leftBarSplitter.SplitHorizontally(self.sceneGraphTree, self.propertyGrid)
+    assert self.splitter2.SplitVertically(self.leftBarSplitter, self.view, 200)
+    #assert self.rightBarSplitter.SplitHorizontally(self.textureManager, None)
+    assert self.splitter1.SplitVertically(self.splitter2, self.textureManager, -200)
+    sizer.Add(self.splitter1, 1, wx.EXPAND, 0)
     self.SetSizer(sizer)
     self.Layout()
     self.initialize()
@@ -180,7 +186,7 @@ class EditorApp(AppShell):
     self.wxStep()
     ViewportManager.initializeAll()
     self.reloadViewportMenus()
-    self.editorInstance.toggle('WorldEditMode')
+    self.editorInstance.toggle("WorldEditMode")
     # Position the camera
     if base.trackball != None:
       base.trackball.node().setPos(0, 30, 0)
@@ -221,7 +227,9 @@ class EditorApp(AppShell):
   
   def onOpen(self, evt = None):
     filter = "Panda3D Egg Format (*.egg)|*.[eE][gG][gG]"
+    filter += "|Panda3D Compressed Egg Format (*.egg.pz)|*.[eE][gG][gG].[pP][zZ]"
     filter += "|Panda3D Binary Format (*.bam)|*.[bB][aA][mM]"
+    filter += "|Panda3D Compressed Binary Format (*.bam)|*.[bB][aA][mM].[pP][zZ]"
     ''' # disabled by hypnos, making the loading work
     filter += "|MultiGen (*.flt)|*.[fF][lL][tT]"
     filter += "|Lightwave (*.lwo)|*.[lL][wW][oO]"
@@ -239,8 +247,9 @@ class EditorApp(AppShell):
         self.modified = False
         self.editorInstance.loadEggModelsFile( self.filename )
         # Reset the camera
-        base.trackball.node().setPos(0, 30, 0)
-        base.trackball.node().setHpr(0, 15, 0)
+        if base.trackball != None:
+          base.trackball.node().setPos(0, 30, 0)
+          base.trackball.node().setHpr(0, 15, 0)
         self.onCenterTrackball()
         if p3dFilename.getExtension().lower() != "bam":
           self.filename = Filename()
@@ -348,7 +357,7 @@ class EditorApp(AppShell):
         self.view.close()
         self.view = ViewportSplitter(self.splitter, Viewport.VPTOP, Viewport.VPPERSPECTIVE, orientation)
     self.splitter.Unsplit()
-    assert self.splitter.SplitVertically(self.sideBarSplitter, self.view, sashpos)
+    assert self.splitter.SplitVertically(self.leftBarSplitter, self.view, sashpos)
     # Reload the menus
     collect()
     self.reloadViewportMenus()
