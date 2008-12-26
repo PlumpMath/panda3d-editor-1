@@ -30,6 +30,12 @@ class ViewportManager(WindowManager):
     """Calls Update() on all the viewports."""
     for v in ViewportManager.viewports:
       v.Update(*args, **kwargs)
+  
+  @staticmethod
+  def layoutAll(*args, **kwargs):
+    """Calls Layout() on all the viewports."""
+    for v in ViewportManager.viewports:
+      v.Layout(*args, **kwargs)
 
 class Viewport(wx.Panel, Window, DirectObject):
   """Class representing a 3D Viewport."""
@@ -144,7 +150,8 @@ class ViewportSplitter(wx.SplitterWindow):
     self.prevSize = self.ClientSize
     if win1 != None and win2 != None and orientation != None:
       self.split(win1, win2, orientation)
-    self.Bind(wx.EVT_SPLITTER_DCLICK, lambda evt: evt.Veto(0))
+    # Hack to disable unsplitting
+    self.SetMinimumPaneSize(1)
   
   def onSize(self, evt):
     d = self.ClientSize - self.prevSize
@@ -178,6 +185,11 @@ class ViewportSplitter(wx.SplitterWindow):
     self.win1.Update()
     self.win2.Update()
     wx.SplitterWindow.Update(self, *args, **kwargs)
+
+  def Layout(self, *args, **kwargs):
+    self.win1.Layout()
+    self.win2.Layout()
+    wx.SplitterWindow.Layout(self, *args, **kwargs)
   
   def close(self):
     """Removes the viewports."""
@@ -268,3 +280,4 @@ class ViewportMenu(wx.Menu):
         self.viewport.win.setClearColor(*data)
     finally:
       dlg.Destroy()
+

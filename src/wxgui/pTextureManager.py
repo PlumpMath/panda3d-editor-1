@@ -27,6 +27,7 @@ class TextureLayer(wx.Panel):
   def __init__(self, parent, stage, tex):
     wx.Panel.__init__(self, parent, style = wx.NO_BORDER)
     self.stage, self.tex = stage, tex
+    self.selected = False
     self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
     self.sizer = wx.BoxSizer(wx.HORIZONTAL)
     self.icon = wx.StaticBitmap(self, size = (16, 16))
@@ -58,11 +59,19 @@ class TextureLayer(wx.Panel):
       self.stage.setMode(mode)
   
   def select(self):
+    self.selected = True
     self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHT))
     self.panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHT))
     self.label.SetForegroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHTTEXT))
   
+  def unfocus(self):
+    if not self.selected: return
+    self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INACTIVECAPTION))
+    self.panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INACTIVECAPTION))
+    self.label.SetForegroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INACTIVECAPTIONTEXT))
+  
   def deselect(self):
+    self.selected = False
     self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
     self.panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
     self.label.SetForegroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT))
@@ -146,6 +155,8 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.SetSizer(self.sizer)
     self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.viewForNodePath)
     self.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, self.viewForSelection)
+    self.panel.Bind(wx.EVT_SET_FOCUS, self.onSetFocus)
+    self.panel.Bind(wx.EVT_KILL_FOCUS, self.onKillFocus)
     self.panel.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
     self.combo.Bind(wx.EVT_COMBOBOX, self.onChangeMode)
     self.check.Bind(wx.EVT_CHECKBOX, self.onChangeSavedResult)
@@ -175,9 +186,17 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
   def onChangeSavedResult(self, evt):
     self.selection.stage.setSavedResult(self.check.Value)
   
+  def onSetFocus(self, evt):
+    if self.selection != None:
+      self.selection.select()
+  
+  def onKillFocus(self, evt):
+    print "AAAAAAAAAAAAAHGR"
+    if self.selection != None:
+      self.selection.defocus()
+  
   def onSelect(self, evt):
     for l in self.layers:
-      print l.HitTest(evt.Position)
       if l.HitTest(evt.Position) == wx.HT_WINDOW_INSIDE:
         self.select(l)
         return

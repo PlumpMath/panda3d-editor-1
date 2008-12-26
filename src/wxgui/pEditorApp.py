@@ -74,9 +74,13 @@ class EditorApp(AppShell):
     # Initialize the app shell and add some controls
     AppShell.__init__(self, title = "Panda Editor", pos = origin)
     self.splitter1 = wx.SplitterWindow(self, style = wx.SP_3D | wx.SP_BORDER)
+    self.splitter1.SetMinimumPaneSize(1)
     self.splitter2 = wx.SplitterWindow(self.splitter1, style = wx.SP_3D | wx.SP_BORDER)
+    self.splitter2.SetMinimumPaneSize(1)
     self.leftBarSplitter = wx.SplitterWindow(self.splitter2, style = wx.SP_3D | wx.SP_BORDER)
+    self.leftBarSplitter.SetMinimumPaneSize(1)
     #self.rightBarSplitter = wx.SplitterWindow(self.splitter1, style = wx.SP_3D | wx.SP_BORDER)
+    #self.rightBarSplitter.SetMinimumPaneSize(1)
     self.sceneGraphTree = SceneGraphTree(self.leftBarSplitter)
     self.propertyGrid = PropertyGrid(self.leftBarSplitter)
     self.textureManager = TextureManager(self.splitter1, style = wx.SP_3D | wx.SUNKEN_BORDER)
@@ -87,13 +91,15 @@ class EditorApp(AppShell):
     #assert self.rightBarSplitter.SplitHorizontally(self.textureManager, None)
     assert self.splitter1.SplitVertically(self.splitter2, self.textureManager, -200)
     sizer.Add(self.splitter1, 1, wx.EXPAND, 0)
-    self.SetSizer(sizer)
-    self.Layout()
+    self.splitter1.Unsplit() # Yes, I know this looks odd.
+    self.SetSizer(sizer); self.Layout()
     self.initialize()
+    self.splitter2.SetSashPosition(200)
     
     # Setup some events
     base.accept("c", self.onCenterTrackball)
     
+    base.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.onModelSelect)
     # If a model-translate-rotate-scale tool is selected the automatic mouse
     # movement has to be disable to prevent camera & object movement.
     # Hmm doesnt really work as well... (camera is still moved)
@@ -215,7 +221,14 @@ class EditorApp(AppShell):
     self.wxApp.ProcessIdle()
     if task != None: return task.cont
   
-  def onDestroy(self, event):
+  def onModelSelect(self, model):
+    """Invoked when a model is selected. Shows/hides the texture panel."""
+    if model == None and self.splitter1.IsSplit():
+      self.splitter1.Unsplit()
+    elif model != None and not self.splitter1.IsSplit():
+      assert self.splitter1.SplitVertically(self.splitter2, self.textureManager, -200)
+  
+  def onDestroy(self, evt):
     """Invoked when the window is destroyed."""
     wx.EventLoop.SetActive(self.oldLoop)
   
@@ -334,30 +347,31 @@ class EditorApp(AppShell):
   def onChangeViewports(self, e):
     """Invoked when the user changes viewport layout."""
     self.Update()
-    sashpos = self.splitter.GetSashPosition()
+    sashpos = self.splitter2.GetSashPosition()
+    print sashpos
     if e.Id == ID_SINGLE_VIEWPORT:
       if isinstance(self.view, Viewport): return
       self.view.close()
-      self.view = Viewport.makePerspective(self.splitter)
+      self.view = Viewport.makePerspective(self.splitter2)
     elif e.Id == ID_4x4_GRID:
       if isinstance(self.view, ViewportGrid): return
       self.view.close()
-      self.view = ViewportGrid(self.splitter, [[Viewport.VPTOP,  Viewport.VPFRONT],
+      self.view = ViewportGrid(self.splitter2, [[Viewport.VPTOP,  Viewport.VPFRONT],
                                                [Viewport.VPLEFT, Viewport.VPPERSPECTIVE]])
       self.view.center()
     else:
       if e.Id == ID_2_HORIZONTAL: orientation = wx.SPLIT_HORIZONTAL
       elif e.Id == ID_2_VERTICAL: orientation = wx.SPLIT_VERTICAL
       else: return
-      if isinstance(self.view, ViewportSplitter):
+      if isinstance(self.view, ViewportSplitter) and not isinstance(self.view, ViewportGrid):
         if self.view.GetSplitMode() == orientation: return
         self.view.close()
         self.view.split(Viewport.VPTOP, Viewport.VPPERSPECTIVE, orientation)
       else:
         self.view.close()
-        self.view = ViewportSplitter(self.splitter, Viewport.VPTOP, Viewport.VPPERSPECTIVE, orientation)
-    self.splitter.Unsplit()
-    assert self.splitter.SplitVertically(self.leftBarSplitter, self.view, sashpos)
+        self.view = ViewportSplitter(self.splitter2, Viewport.VPTOP, Viewport.VPPERSPECTIVE, orientation)
+    self.splitter2.Unsplit()
+    assert self.splitter2.SplitVertically(self.leftBarSplitter, self.view, sashpos)
     # Reload the menus
     collect()
     self.reloadViewportMenus()
