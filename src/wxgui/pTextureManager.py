@@ -1,7 +1,7 @@
 __all__ = ["TextureManager"]
 """For managing of the textures assigned to a model."""
 
-from pandac.PandaModules import Texture, TextureStage
+from pandac.PandaModules import Texture, TextureStage, CardMaker
 from direct.showbase.DirectObject import DirectObject
 import wx
 
@@ -9,9 +9,12 @@ import wx
 from core.pConfigDefs import *
 from core.pModelController import modelController
 from core.pTexturePainter import texturePainter
+from core.pWindow import WindowManager
 
 THUMBNAIL_SIZE =  64
 THUMBNAIL_MAX_WIDTH = 64
+
+PREVIEW_SIZE = (128, 128)
 
 TEXTURESTAGE_MODES = {
   "Modulate" : TextureStage.MModulate,
@@ -23,6 +26,57 @@ TEXTURESTAGE_MODES = {
 def modeAsString(mode):
   for k, v in TEXTURESTAGE_MODES.items():
     if v == mode: return k
+
+def makeBitmap(tex, thumb = False):
+  """Returns a wx.Bitmap. 'tex' should be a Panda Texture object."""
+  assert isinstance(tex, Texture)
+  xsize, ysize = tex.getXSize(), tex.getYSize()
+  data, adata = None, None
+  
+  # Only available in 1.6.0 and higher
+  if hasattr(Texture, "getRamImageAs"):
+    data = tex.getRamImageAs("RGB")
+    if tex.getNumComponents() in [2, 4]:
+      adata = tex.getRamImageAs("A")
+  else:
+    # Grab the RGB data
+    ttex = tex.makeCopy()
+    ttex.setFormat(Texture.FRgb)
+    data = ttex.getUncompressedRamImage()
+    # If we have an alpha channel, grab it as well.
+    if tex.getNumComponents() in [2, 4]:
+      ttex = tex.makeCopy()
+      ttex.setFormat(Texture.FAlpha)
+      adata = ttex.getUncompressedRamImage()
+  
+  # Now for the conversion to wx.
+  assert not data.isNull()
+  if adata == None:
+    img = wx.ImageFromData(xsize, ysize, data.getData())
+  else:
+    assert not adata.isNull()
+    img = wx.ImageFromDataWithAlpha(xsize, ysize, data.getData(), adata.getData())
+  
+  if thumb:
+   # Resize it not to be bigger than the THUMBNAIL_SIZE.
+    if xsize == ysize:
+      xsize, ysize = THUMBNAIL_SIZE, THUMBNAIL_SIZE
+    else:
+      factor = ysize / float(THUMBNAIL_SIZE)
+      xsize, ysize = int(xsize / factor), int(ysize / factor)
+    if xsize > THUMBNAIL_MAX_WIDTH:
+      factor = xsize / float(THUMBNAIL_MAX_WIDTH)
+      xsize, ysize = int(xsize / factor), int(ysize / factor)
+    img.Rescale(xsize, ysize, wx.IMAGE_QUALITY_HIGH)
+  
+  # Swap red and blue channels, if we aren't using 1.6.0 or higher.
+  if not hasattr(Texture, "getRamImageAs"):
+    for x in xrange(xsize):
+      for y in xrange(ysize):
+        img.SetRGB(x, y, img.GetBlue(x, y), img.GetGreen(x, y), img.GetRed(x, y))
+  img = img.Mirror(False) # Downside up.
+  
+  return wx.BitmapFromImage(img)
 
 class TextureLayer(wx.Panel):
   def __init__(self, parent, stage, tex):
@@ -36,7 +90,9 @@ class TextureLayer(wx.Panel):
     self.sizer.Add(self.icon, 0, wx.ALIGN_CENTER | wx.ALL, 4)
     self.panel = wx.Panel(self, style = wx.DOUBLE_BORDER)
     self.panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
-    self.bitmap = self.makeStaticBitmap(tex)
+    bitmap = makeBitmap(tex, thumb = True)
+    self.bitmap = wx.StaticBitmap(self.panel, size = bitmap.GetSize())
+    self.bitmap.SetBitmap(bitmap)
     self.sizer.Add(self.panel, 0, wx.ADJUST_MINSIZE | wx.ALIGN_CENTER | wx.ALL, 4)
     self.sizer.AddSpacer((3, 0))
     self.label = wx.StaticText(self, label = tex.getName() + "\non " + stage.getName())
@@ -76,59 +132,6 @@ class TextureLayer(wx.Panel):
     self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
     self.panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
     self.label.SetForegroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT))
-  
-  def makeStaticBitmap(self, tex):
-    """Changes the image. 'tex' should be a Panda Texture object."""
-    assert isinstance(tex, Texture)
-    xsize, ysize = tex.getXSize(), tex.getYSize()
-    data, adata = None, None
-    
-    # Only available in 1.6.0 and higher
-    if hasattr(Texture, "getRamImageAs"):
-      data = tex.getRamImageAs("RGB")
-      if tex.getNumComponents() in [2, 4]:
-        adata = tex.getRamImageAs("A")
-    else:
-      # Grab the RGB data
-      ttex = tex.makeCopy()
-      ttex.setFormat(Texture.FRgb)
-      data = ttex.getUncompressedRamImage()
-      # If we have an alpha channel, grab it as well.
-      if tex.getNumComponents() in [2, 4]:
-        ttex = tex.makeCopy()
-        ttex.setFormat(Texture.FAlpha)
-        adata = ttex.getUncompressedRamImage()
-    
-    # Now for the conversion to wx.
-    assert not data.isNull()
-    if adata == None:
-      img = wx.ImageFromData(xsize, ysize, data.getData())
-    else:
-      assert not adata.isNull()
-      img = wx.ImageFromDataWithAlpha(xsize, ysize, data.getData(), adata.getData())
-    
-    # Resize it not to be bigger than the THUMBNAIL_SIZE.
-    if xsize == ysize:
-      xsize, ysize = THUMBNAIL_SIZE, THUMBNAIL_SIZE
-    else:
-      factor = ysize / float(THUMBNAIL_SIZE)
-      xsize, ysize = int(xsize / factor), int(ysize / factor)
-    if xsize > THUMBNAIL_MAX_WIDTH:
-      factor = xsize / float(THUMBNAIL_MAX_WIDTH)
-      xsize, ysize = int(xsize / factor), int(ysize / factor)
-    self.SetSize((self.Size.GetWidth(), ysize + 4))
-    img.Rescale(xsize, ysize, wx.IMAGE_QUALITY_HIGH)
-    
-    # Swap red and blue channels, if we aren't using 1.6.0 or higher.
-    if not hasattr(Texture, "getRamImageAs"):
-      for x in xrange(xsize):
-        for y in xrange(ysize):
-          img.SetRGB(x, y, img.GetBlue(x, y), img.GetGreen(x, y), img.GetRed(x, y))
-    img = img.Mirror(False) # Downside up.
-    
-    bitmap = wx.StaticBitmap(self.panel, size = (xsize, ysize))
-    bitmap.SetBitmap(wx.BitmapFromImage(img))
-    return bitmap
 
 class TextureManager(wx.ScrolledWindow, DirectObject):
   """This class is responsible for managing the texture stages.""" 
@@ -150,6 +153,9 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.sizer.Add(self.panel, 1, wx.EXPAND, 0)
     self.psizer = wx.BoxSizer(wx.VERTICAL)
     self.panel.SetSizer(self.psizer)
+    # For preview.
+    self.preview = None
+    self.previewBuffer = None
     # Disable for now
     self.button.Disable()
     self.paint.Disable()
@@ -166,6 +172,40 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.panel.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
     self.combo.Bind(wx.EVT_COMBOBOX, self.onChangeMode)
     self.check.Bind(wx.EVT_CHECKBOX, self.onChangeSavedResult)
+  
+  def __setupPreview(self):
+    """Creates the preview."""
+    self.preview = wx.StaticBitmap(self, style = wx.SUNKEN_BORDER, size = PREVIEW_SIZE)
+    self.sizer.Add(self.preview, 0, wx.ADJUST_MINSIZE | wx.ALIGN_CENTER, 0)
+    cm = CardMaker("preview")
+    cm.setFrame(-1, 1, -1, 1)
+    cm.setUvRange(Point2(0, 0), Point2(1, 1))
+    if self.previewBuffer != None:
+      base.removeWindow(self.previewBuffer)
+    self.previewBuffer = WindowManager.windows[0].win.makeTextureBuffer("preview", *PREVIEW_SIZE)
+    self.previewBuffer.setClearColor(Vec4(1, 1, 1, 1))
+    self.previewCamera = base.makeCamera2d(self.previewBuffer)
+    self.previewPlane = NodePath(cm.generate())
+    self.previewPlane.setFogOff()
+    self.previewPlane.setLightOff()
+    self.previewCamera.node().setScene(self.previewPlane)
+    self.previewTexture = Texture()
+    self.previewBuffer.addRenderTexture(self.previewTexture, GraphicsOutput.RTMCopyRam)
+    self.previewCamera.node().setActive(False)
+  
+  def updatePreview(self):
+    """Renders the preview."""
+    if self.preview == None:
+      self.__setupPreview()
+    self.previewPlane.clearTexture()
+    if self.object != None:
+      for stage in self.object.findAllTextureStages():
+        self.previewPlane.setTexture(stage, self.object.findTexture(stage))
+    self.previewCamera.node().setActive(True)
+    base.graphicsEngine.renderFrame()
+    base.graphicsEngine.renderFrame()
+    self.previewCamera.node().setActive(False)
+    self.preview.SetBitmap(makeBitmap(self.previewTexture))
   
   def reset(self):
     """Clears the TextureManager by deleting all layers."""
@@ -211,6 +251,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
             self.select(l)
     finally:
       dlg.Destroy()
+    self.updatePreview()
   
   def onPaint(self, evt = None):
     if self.object == None or self.selection == None: # Huh? Something must be wrong.
@@ -228,9 +269,11 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
   
   def onChangeMode(self, evt):
     self.selection.setStageMode(self.combo.Value)
+    self.updatePreview()
   
   def onChangeSavedResult(self, evt):
     self.selection.stage.setSavedResult(self.check.Value)
+    self.updatePreview()
   
   def onSelect(self, evt):
     for l in reversed(self.layers):
@@ -274,6 +317,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.button.Enable()
     for stage in reversed(nodePath.findAllTextureStages()):
       self.__addLayer(stage, nodePath.findTexture(stage))
+    self.updatePreview()
   
   def viewForSelection(self):
     """Similar to viewForNodePath, but this uses the currently selected model."""
