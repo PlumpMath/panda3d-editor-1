@@ -239,10 +239,10 @@ class EditorApp(AppShell):
     self.editorInstance.destroyAllModels()
   
   def onOpen(self, evt = None):
-    filter = "Panda3D Egg Format (*.egg)|*.[eE][gG][gG]"
-    filter += "|Panda3D Compressed Egg Format (*.egg.pz)|*.[eE][gG][gG].[pP][zZ]"
-    filter += "|Panda3D Binary Format (*.bam)|*.[bB][aA][mM]"
-    filter += "|Panda3D Compressed Binary Format (*.bam)|*.[bB][aA][mM].[pP][zZ]"
+    filter = "Panda3D Egg Format (*.egg)|*.[eE][gG][gG];*.egg"
+    filter += "|Panda3D Compressed Egg Format (*.egg.pz)|*.[eE][gG][gG].[pP][zZ];*.egg.pz"
+    filter += "|Panda3D Binary Format (*.bam)|*.[bB][aA][mM];*.bam"
+    filter += "|Panda3D Compressed Binary Format (*.bam)|*.[bB][aA][mM].[pP][zZ];*.bam.pz"
     ''' # disabled by hypnos, making the loading work
     filter += "|MultiGen (*.flt)|*.[fF][lL][tT]"
     filter += "|Lightwave (*.lwo)|*.[lL][wW][oO]"
@@ -276,7 +276,7 @@ class EditorApp(AppShell):
     if self.filename == None or self.filename.empty():
       self.onSaveAs(evt)
     else:
-      dlg = wx.FileDialog(self, "Save file", "", "", "Panda3D Binary Format (*.bam)|.[bB][aA][mM]", wx.SAVE | wx.FD_OVERWRITE_PROMPT)
+      dlg = wx.FileDialog(self, "Save file", "", "", "Panda3D Binary Format (*.bam)|.[bB][aA][mM];*.bam", wx.SAVE | wx.FD_OVERWRITE_PROMPT)
       try:
         if dlg.ShowModal() == wx.ID_OK:
           self.filename = Filename.fromOsSpecific(dlg.GetPath())
@@ -287,7 +287,7 @@ class EditorApp(AppShell):
         dlg.Destroy()
   
   def onSaveAs(self, evt = None):
-    dlg = wx.FileDialog(self, "Save file as", "", "", "Panda3D Binary Format (*.bam)|.[bB][aA][mM]", wx.SAVE | wx.FD_OVERWRITE_PROMPT)
+    dlg = wx.FileDialog(self, "Save file as", "", "", "Panda3D Binary Format (*.bam)|.[bB][aA][mM];*.bam", wx.SAVE | wx.FD_OVERWRITE_PROMPT)
     try:
       if dlg.ShowModal() == wx.ID_OK:
         self.onNew()
@@ -307,14 +307,14 @@ class EditorApp(AppShell):
     if e.Id == ID_NODEPATH:
       objectInstance = NodePathWrapper.onCreateInstance(modelParent)
     elif e.Id == ID_MODEL:
-      filter = "Panda3D Egg Format (*.egg)|*.[eE][gG][gG]"
-      filter += "|Panda3D Binary Format (*.bam)|*.[bB][aA][mM]"
-      filter += "|MultiGen (*.flt)|*.[fF][lL][tT]"
-      filter += "|Lightwave (*.lwo)|*.[lL][wW][oO]"
-      filter += "|AutoCAD (*.dxf)|*.[dD][xX][fF]"
-      filter += "|VRML (*.wrl)|*.[wW][rR][lL]"
-      filter += "|DirectX (*.x)|*.[xX]"
-      filter += "|COLLADA (*.dae)|*.[dD][aA][eE]"
+      filter = "Panda3D Egg Format (*.egg)|*.[eE][gG][gG];*.egg"
+      filter += "|Panda3D Binary Format (*.bam)|*.[bB][aA][mM];*.bam"
+      filter += "|MultiGen (*.flt)|*.[fF][lL][tT];*.flt"
+      filter += "|Lightwave (*.lwo)|*.[lL][wW][oO];*.lwo"
+      filter += "|AutoCAD (*.dxf)|*.[dD][xX][fF];*.dxf"
+      filter += "|VRML (*.wrl)|*.[wW][rR][lL];*.wrl"
+      filter += "|DirectX (*.x)|*.[xX];*.x"
+      filter += "|COLLADA (*.dae)|*.[dD][aA][eE];*.dae"
       dlg = wx.FileDialog(self, "Select model", "", "", filter, wx.OPEN)
       try:
         if dlg.ShowModal() == wx.ID_OK:
@@ -322,7 +322,7 @@ class EditorApp(AppShell):
       finally:
         dlg.Destroy()
     elif e.Id == ID_TERRAIN:
-      filter = "Portable Network Graphics (*.png)|*.[pP][nN][gG]"
+      filter = "Portable Network Graphics (*.png)|*.[pP][nN][gG];*.png"
       dlg = wx.FileDialog(self, "Select heightfield", "", "", filter, wx.OPEN)
       try:
         if dlg.ShowModal() == wx.ID_OK:

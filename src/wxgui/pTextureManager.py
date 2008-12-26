@@ -104,7 +104,7 @@ class TextureLayer(wx.Panel):
       img = wx.ImageFromData(xsize, ysize, data.getData())
     else:
       assert not adata.isNull()
-      img = wx.ImageFromDataWithAlpha(xsize, ysize, data, adata.getData())
+      img = wx.ImageFromDataWithAlpha(xsize, ysize, data.getData(), adata.getData())
     
     # Resize it not to be bigger than the THUMBNAIL_SIZE.
     if xsize == ysize:
@@ -155,8 +155,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.SetSizer(self.sizer)
     self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.viewForNodePath)
     self.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, self.viewForSelection)
-    self.panel.Bind(wx.EVT_SET_FOCUS, self.onSetFocus)
-    self.panel.Bind(wx.EVT_KILL_FOCUS, self.onKillFocus)
+    self.button.Bind(wx.EVT_BUTTON, self.onAddNewTextureStage)
     self.panel.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
     self.combo.Bind(wx.EVT_COMBOBOX, self.onChangeMode)
     self.check.Bind(wx.EVT_CHECKBOX, self.onChangeSavedResult)
@@ -180,23 +179,37 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.Layout()
     return layer
   
+  def onAddNewTextureStage(self, evt):
+    if self.object == None: # Huh? Something must be wrong.
+      self.button.Disable()
+      return
+    filter = "Portable Network Graphics (*.png)|*.[pP][nN][gG];*.png"
+    filter += "|All files|*.*"
+    dlg = wx.FileDialog(self, "Select texture", "", "", filter, wx.OPEN)
+    try:
+      if dlg.ShowModal() == wx.ID_OK:
+        tex = loader.loadTexture(Filename.fromOsSpecific(dlg.GetPath()).getFullpath())
+        if tex == None:
+          wx.MessageDialog(None, "Failed to load texture!", "Error", wx.OK | wx.ICON_ERROR).ShowModal()
+          return
+        stage = TextureStage(tex.getName())
+        self.object.setTexture(stage, tex)
+        self.viewForNodePath(self.object)
+        # Select the newly created layer.
+        for l in self.layers:
+          if l.stage == stage and l.tex == tex:
+            self.select(l)
+    finally:
+      dlg.Destroy()
+  
   def onChangeMode(self, evt):
     self.selection.setStageMode(self.combo.Value)
   
   def onChangeSavedResult(self, evt):
     self.selection.stage.setSavedResult(self.check.Value)
   
-  def onSetFocus(self, evt):
-    if self.selection != None:
-      self.selection.select()
-  
-  def onKillFocus(self, evt):
-    print "AAAAAAAAAAAAAHGR"
-    if self.selection != None:
-      self.selection.defocus()
-  
   def onSelect(self, evt):
-    for l in self.layers:
+    for l in reversed(self.layers):
       if l.HitTest(evt.Position) == wx.HT_WINDOW_INSIDE:
         self.select(l)
         return
