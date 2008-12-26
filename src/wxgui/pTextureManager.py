@@ -15,6 +15,7 @@ THUMBNAIL_SIZE =  64
 THUMBNAIL_MAX_WIDTH = 64
 
 PREVIEW_SIZE = (128, 128)
+PREVIEW_ENABLED_DEFAULT = False 
 
 TEXTURESTAGE_MODES = {
   "Modulate" : TextureStage.MModulate,
@@ -27,7 +28,7 @@ def modeAsString(mode):
   for k, v in TEXTURESTAGE_MODES.items():
     if v == mode: return k
 
-def makeBitmap(tex, thumb = False):
+def makeBitmap(tex, alpha = True, thumb = False):
   """Returns a wx.Bitmap. 'tex' should be a Panda Texture object."""
   assert isinstance(tex, Texture)
   xsize, ysize = tex.getXSize(), tex.getYSize()
@@ -36,7 +37,7 @@ def makeBitmap(tex, thumb = False):
   # Only available in 1.6.0 and higher
   if hasattr(Texture, "getRamImageAs"):
     data = tex.getRamImageAs("RGB")
-    if tex.getNumComponents() in [2, 4]:
+    if alpha and tex.getNumComponents() in [2, 4]:
       adata = tex.getRamImageAs("A")
   else:
     # Grab the RGB data
@@ -44,7 +45,7 @@ def makeBitmap(tex, thumb = False):
     ttex.setFormat(Texture.FRgb)
     data = ttex.getUncompressedRamImage()
     # If we have an alpha channel, grab it as well.
-    if tex.getNumComponents() in [2, 4]:
+    if alpha and tex.getNumComponents() in [2, 4]:
       ttex = tex.makeCopy()
       ttex.setFormat(Texture.FAlpha)
       adata = ttex.getUncompressedRamImage()
@@ -154,6 +155,9 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.psizer = wx.BoxSizer(wx.VERTICAL)
     self.panel.SetSizer(self.psizer)
     # For preview.
+    self.previewCheck = wx.CheckBox(self, label = "Pre&view")
+    self.previewCheck.Value = PREVIEW_ENABLED_DEFAULT
+    self.sizer.Add(self.previewCheck, 0, wx.EXPAND, 0)
     self.preview = None
     self.previewBuffer = None
     # Disable for now
@@ -167,6 +171,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.SetSizer(self.sizer)
     self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.viewForNodePath)
     self.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, self.viewForSelection)
+    self.previewCheck.Bind(wx.EVT_CHECKBOX, self.onChangePreview)
     self.button.Bind(wx.EVT_BUTTON, self.onAddNewTextureStage)
     self.paint.Bind(wx.EVT_TOGGLEBUTTON, self.onPaint)
     self.panel.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
@@ -175,13 +180,14 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
   
   def __setupPreview(self):
     """Creates the preview."""
+    if not self.previewCheck.Value: return
+    if self.preview != None:
+      self.__destroyPreview()
     self.preview = wx.StaticBitmap(self, style = wx.SUNKEN_BORDER, size = PREVIEW_SIZE)
     self.sizer.Add(self.preview, 0, wx.ADJUST_MINSIZE | wx.ALIGN_CENTER, 0)
     cm = CardMaker("preview")
     cm.setFrame(-1, 1, -1, 1)
     cm.setUvRange(Point2(0, 0), Point2(1, 1))
-    if self.previewBuffer != None:
-      base.removeWindow(self.previewBuffer)
     self.previewBuffer = WindowManager.windows[0].win.makeTextureBuffer("preview", *PREVIEW_SIZE)
     self.previewBuffer.setClearColor(Vec4(1, 1, 1, 1))
     self.previewCamera = base.makeCamera2d(self.previewBuffer)
@@ -192,20 +198,39 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.previewTexture = Texture()
     self.previewBuffer.addRenderTexture(self.previewTexture, GraphicsOutput.RTMCopyRam)
     self.previewCamera.node().setActive(False)
+    self.Layout()
+  
+  def __destroyPreview(self):
+    """Destroys the preview."""
+    if self.previewBuffer != None:
+      base.graphicsEngine.removeWindow(self.previewBuffer)
+    self.preview.Destroy()
+    self.preview = None
+    self.previewBuffer = None
+    self.previewCamera = None
+    self.previewPlane.removeNode()
+    self.previewPlane = None
+    self.previewTexture = Texture()
+    self.Layout()
   
   def updatePreview(self):
     """Renders the preview."""
+    if not self.previewCheck.Value: return
     if self.preview == None:
       self.__setupPreview()
     self.previewPlane.clearTexture()
+    self.previewPlane.clearColor()
+    self.previewPlane.clearColorScale()
     if self.object != None:
+      if self.object.hasColor(): self.previewPlane.setColor(self.object.getColor())
+      if self.object.hasColorScale(): self.previewPlane.setColorScale(self.object.getColorScale())
       for stage in self.object.findAllTextureStages():
         self.previewPlane.setTexture(stage, self.object.findTexture(stage))
     self.previewCamera.node().setActive(True)
     base.graphicsEngine.renderFrame()
     base.graphicsEngine.renderFrame()
     self.previewCamera.node().setActive(False)
-    self.preview.SetBitmap(makeBitmap(self.previewTexture))
+    self.preview.SetBitmap(makeBitmap(self.previewTexture, alpha = False))
   
   def reset(self):
     """Clears the TextureManager by deleting all layers."""
@@ -228,6 +253,13 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.layers.append(layer)
     self.Layout()
     return layer
+  
+  def onChangePreview(self, evt):
+    if self.previewCheck.Value:
+      if self.preview == None:
+        self.updatePreview()
+    elif self.preview != None:
+      self.__destroyPreview()
   
   def onAddNewTextureStage(self, evt):
     if self.object == None: # Huh? Something must be wrong.
