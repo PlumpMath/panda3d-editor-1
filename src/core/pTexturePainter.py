@@ -122,7 +122,7 @@ class TexturePainter(DirectObject):
     self.enabled = False
     
     if self.paintModel != None:
-      self.stopEdit(self.paintModel)
+      self.stopEdit()
   
   def setPaintColor(self, paintColor):
     self.paintColor = paintColor
@@ -134,7 +134,7 @@ class TexturePainter(DirectObject):
     if self.enabled:
       
       if self.paintModel != None:
-        self.stopEdit(self.paintModel)
+        self.stopEdit()
       
       # load the working texture (this must load the real texure of the object)
       self.workTex = texture #loader.loadTexture('models/maps/smiley.rgb')
@@ -177,7 +177,7 @@ class TexturePainter(DirectObject):
     taskMgr.remove('paintTask')
   
   def paint(self):
-    if self.enabled and self.paintModel:
+    if self.enabled and self.paintModel and WindowManager.activeWindow != None:
       # update the camera according to the active camera
       self.backcam.reparentTo(self.backgroundRender)
       self.backcam.setMat(render, WindowManager.activeWindow.camera.getMat(render))

@@ -348,7 +348,6 @@ class EditorApp(AppShell):
     """Invoked when the user changes viewport layout."""
     self.Update()
     sashpos = self.splitter2.GetSashPosition()
-    print sashpos
     if e.Id == ID_SINGLE_VIEWPORT:
       if isinstance(self.view, Viewport): return
       self.view.close()

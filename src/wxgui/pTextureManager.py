@@ -8,6 +8,7 @@ import wx
 # Local imports
 from core.pConfigDefs import *
 from core.pModelController import modelController
+from core.pTexturePainter import texturePainter
 
 THUMBNAIL_SIZE =  64
 THUMBNAIL_MAX_WIDTH = 64
@@ -134,12 +135,16 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
   def __init__(self, *args, **kwargs):
     wx.ScrolledWindow.__init__(self, *args, **kwargs)
     self.sizer = wx.BoxSizer(wx.VERTICAL)
-    self.button = wx.Button(self, label = "Add Texture &Stage")
-    self.sizer.Add(self.button, 0, wx.ADJUST_MINSIZE, 0)
+    self.hsizer = wx.BoxSizer(wx.HORIZONTAL)
+    self.button = wx.Button(self, label = "Add &Stage")
+    self.hsizer.Add(self.button, 1, wx.EXPAND, 0)
+    self.paint = wx.ToggleButton(self, label = "&Paint")
+    self.hsizer.Add(self.paint, 1, wx.EXPAND, 0)
+    self.sizer.Add(self.hsizer, 0, wx.EXPAND, 0)
     self.combo = wx.ComboBox(self, value = "Mode", choices = TEXTURESTAGE_MODES.keys())
-    self.sizer.Add(self.combo, 0, wx.ADJUST_MINSIZE, 0)
+    self.sizer.Add(self.combo, 0, wx.EXPAND, 0)
     self.check = wx.CheckBox(self, label = "Saved &Result")
-    self.sizer.Add(self.check, 0, wx.ADJUST_MINSIZE, 0)
+    self.sizer.Add(self.check, 0, wx.EXPAND, 0)
     self.panel = wx.Panel(self, style = wx.SUNKEN_BORDER)
     self.panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
     self.sizer.Add(self.panel, 1, wx.EXPAND, 0)
@@ -147,6 +152,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.panel.SetSizer(self.psizer)
     # Disable for now
     self.button.Disable()
+    self.paint.Disable()
     self.combo.Disable()
     self.check.Disable()
     self.layers = []
@@ -156,18 +162,22 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.viewForNodePath)
     self.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, self.viewForSelection)
     self.button.Bind(wx.EVT_BUTTON, self.onAddNewTextureStage)
+    self.paint.Bind(wx.EVT_TOGGLEBUTTON, self.onPaint)
     self.panel.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
     self.combo.Bind(wx.EVT_COMBOBOX, self.onChangeMode)
     self.check.Bind(wx.EVT_CHECKBOX, self.onChangeSavedResult)
   
   def reset(self):
     """Clears the TextureManager by deleting all layers."""
+    if texturePainter.enabled:
+      self.disablePaint()
     self.selection = None
     for l in self.layers:
       l.Destroy()
     self.layers = []
     self.object = None
     self.button.Disable()
+    self.paint.Disable()
     self.combo.Disable()
     self.check.Disable()
   
@@ -202,6 +212,21 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     finally:
       dlg.Destroy()
   
+  def onPaint(self, evt = None):
+    if self.object == None or self.selection == None: # Huh? Something must be wrong.
+      self.paint.Disable()
+      return
+    if self.paint.Value and not texturePainter.enabled:
+      texturePainter.enableEditor()
+      print texturePainter.enabled
+      texturePainter.startEdit(self.object, self.selection.tex)
+    elif texturePainter.enabled and not self.paint.Value:
+      texturePainter.disableEditor()
+  
+  def disablePaint(self):
+    self.paint.Value = False
+    texturePainter.disableEditor()
+  
   def onChangeMode(self, evt):
     self.selection.setStageMode(self.combo.Value)
   
@@ -217,18 +242,29 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
   
   def select(self, layer):
     if layer == self.selection: return
+    # Deselect the current.
     if self.selection != None:
       self.selection.deselect()
       self.selection = None
+    self.selection = layer
+    # If we have a painter, update it for the new selection.
+    if texturePainter.enabled or self.paint.Value:
+      if layer == None:
+        self.disablePaint()
+      else:
+        texturePainter.stopEdit()
+        self.onPaint()
+    # Update the controls.
     if layer == None:
+      self.paint.Disable()
       self.combo.Disable()
       self.check.Disable()
     else:
+      self.paint.Enable()
       self.combo.Enable()
       self.check.Enable()
       self.combo.Value = modeAsString(layer.stage.getMode())
       self.check.Value = layer.stage.getSavedResult()
-      self.selection = layer
       layer.select()
   
   def viewForNodePath(self, nodePath):

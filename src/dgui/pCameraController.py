@@ -7,15 +7,7 @@ from core.pConfigDefs import *
 from core.pMouseHandler import mouseHandler
 from core.pWindow import WindowManager
 
-MOUSE_ROTATION_SPEED = 25.0
-MOUSE_MOVEMENT_SPEED = 25.0
-# camera distance parameters
-MOUSE_ZOOM_SPEED = 10.0
-STARTUP_CAMERA_DISTANCE = 100
-STARTUP_CAMERA_HPR = Vec3( 30,-30,0 )
-MIN_CAMERA_DISTANCE = 10
-MAX_CAMERA_DISTANCE = 1000
-
+# Note: globals moved to pConfigDefs
 
 class CameraController( DirectObject, FSM ):
   def __init__(self):

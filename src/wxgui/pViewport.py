@@ -5,6 +5,7 @@ from direct.showbase.DirectObject import DirectObject
 from pandac.PandaModules import WindowProperties, OrthographicLens, Point3
 import wx
 
+from core.pConfigDefs import *
 from core.pWindow import WindowManager, Window
 
 HORIZONTAL = wx.SPLIT_HORIZONTAL
@@ -67,6 +68,12 @@ class Viewport(wx.Panel, Window, DirectObject):
     if self.camPos != None:    self.camera.setPos(self.camPos)
     if self.camLookAt != None: self.camera.lookAt(self.camLookAt)
     self.Bind(wx.EVT_SIZE, self.onSize)
+    self.accept("wheel_down", self.zoomOut)
+    self.accept("wheel_up", self.zoomIn)
+    self.accept("page_down", self.zoomOut)
+    self.accept("page_down-repeat", self.zoomOut)
+    self.accept("page_up", self.zoomIn)
+    self.accept("page_up-repeat", self.zoomIn)
     #self.accept("mouse3", self.onRightDown)
   
   def close(self):
@@ -94,6 +101,12 @@ class Viewport(wx.Panel, Window, DirectObject):
     self.Update()
     self.PopupMenu(menu, mpos)
     menu.Destroy()
+  
+  def zoomOut(self):
+    self.camera.setY(self.camera, -MOUSE_ZOOM_SPEED)
+  
+  def zoomIn(self):
+    self.camera.setY(self.camera,  MOUSE_ZOOM_SPEED)
   
   @staticmethod
   def make(parent, vpType = None):
