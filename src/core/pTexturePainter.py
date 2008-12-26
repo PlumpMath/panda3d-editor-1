@@ -1,6 +1,6 @@
 from direct.showbase.DirectObject import *
 from pandac.PandaModules import TextureAttrib, Texture, PNMImage, \
-GraphicsOutput, NodePath, Filename, TextureStage, VBase3D
+GraphicsOutput, NodePath, Filename, TextureStage, VBase4D, PNMPainter, PNMBrush
 
 from core.pWindow import WindowManager
 from core.pMouseHandler import mouseHandler
@@ -28,8 +28,8 @@ def getTextureAndStage(nodePath):
   texStages = rec(nodePath, nodePath.getNetState(), [])
   return texStages
 
-def createPickingImage( size ):
-  # create the image
+def createPickingImage(size):
+  # Create the image
   image = PNMImage(*size)
   for x in xrange(size[0]):
     for y in xrange(size[1]):
@@ -38,7 +38,7 @@ def createPickingImage( size ):
       b = (x // 256) + (y//256) * 16
       image.setXelVal(x,y,r,g,b)
   
-  # reverse way is:
+  # Reverse way is:
   #    tx = r + ((b%16)*256)
   #    ty = g + ((b//16)*256)
   imageFilename = 'data/textures/index-%i-%i.png' % (size[0], size[1])
@@ -48,7 +48,7 @@ class TexturePainter(DirectObject):
   def __init__(self):
     self.paintModel = None
     self.origModel = None
-    self.accept('window-event', self.windowEvent)
+    self.accept("window-event", self.windowEvent)
     self.enabled = False
   
   def enableEditor(self):
@@ -58,20 +58,21 @@ class TexturePainter(DirectObject):
     
     self.backgroundRender = NodePath("backgroundRender")
     self.backgroundRender.setLightOff()
+    self.backgroundRender.setFogOff()
     self.buffer = None
     self.backcam = None
     
-    self.backgroundResize()
+    self.backgroundResize(WindowManager.windows[0].win)
     
-    self.accept( "mouse1", self.startPaint )
-    self.accept( "mouse1-up", self.stopPaint )
+    self.accept("mouse1", self.startPaint)
+    self.accept("mouse1-up", self.stopPaint)
     self.accept("v", base.bufferViewer.toggleEnable)
     self.accept("V", base.bufferViewer.toggleEnable)
     base.bufferViewer.setPosition("llcorner")
     base.bufferViewer.setCardSize(1.0, 0.0)
     
-    self.setPaintColor( VBase3D(1,0,0) )
-    self.setPaintSize( 7 )
+    self.painter = None
+    self.brush = PNMBrush.makeSpot(VBase4D(1, 0, 0, 1), 7, True)
     
     self.enabled = True
   
@@ -82,39 +83,30 @@ class TexturePainter(DirectObject):
         # on window resize there seems to be never a active window
         # get window size
         win = WindowManager.activeWindow.win
-        if self.buffer.getXSize()!=win.getXSize() or self.buffer.getXSize()!=win.getYSize():
+        if self.buffer.getXSize() != win.getXSize() or self.buffer.getXSize() != win.getYSize():
           self.backgroundResize(win)
       else:
         # but the win is given
         if self.buffer and win:
-          if self.buffer.getXSize()!=win.getXSize() or self.buffer.getXSize()!=win.getYSize():
+          if self.buffer.getXSize() != win.getXSize() or self.buffer.getXSize() != win.getYSize():
             self.backgroundResize(win)
         else:
           print "W: TexturePainter.windowEvent: buffer or win unavailable", self.buffer, win
   
-  def backgroundResize(self, win=None):
-    ''' when the window is resized, we need to recreate the background renderer
-    '''
-    # window has been resized
-    if win is None:
-      if WindowManager.activeWindow:
-        win = WindowManager.activeWindow.win
+  def backgroundResize(self, win):
+    """ When the window is resized, we need to recreate the background renderer. """
+    if self.buffer:
+      # Destroy the buffer
+      base.graphicsEngine.removeWindow(self.buffer)
+      self.buffer = None
+      # Remove the camera
+      self.backcam.removeNode()
     
-    if win:
-      if self.buffer:
-        # destroy the buffer
-        base.graphicsEngine.removeWindow(self.buffer)
-        self.buffer = None
-        # remove the camera
-        self.backcam.removeNode()
-      
-      # create the buffer with the new window size
-      self.buffer = base.win.makeTextureBuffer("pickBuffer", win.getXSize(), win.getYSize())
-      self.buffer.addRenderTexture(self.pickTex, GraphicsOutput.RTMCopyRam)
-      # create the camera again
-      self.backcam = base.makeCamera(self.buffer, sort=-10)
-    else:
-      print "I: TexturePainter.backgroundResize: no win defined"
+    # Create the buffer
+    self.buffer = win.makeTextureBuffer("pickBuffer", win.getXSize(), win.getYSize())
+    self.buffer.addRenderTexture(self.pickTex, GraphicsOutput.RTMCopyRam)
+    # Create the camera again
+    self.backcam = base.makeCamera(self.buffer, sort = -10)
   
   def disableEditor(self):
     self.ignoreAll()
@@ -123,12 +115,6 @@ class TexturePainter(DirectObject):
     
     if self.paintModel != None:
       self.stopEdit()
-  
-  def setPaintColor(self, paintColor):
-    self.paintColor = paintColor
-  
-  def setPaintSize(self, paintSize):
-    self.paintSize = int(paintSize)
   
   def startEdit(self, model, texture):
     if self.enabled:
@@ -141,7 +127,9 @@ class TexturePainter(DirectObject):
       
       # copy the image from the texture to the working layer
       self.workLayer = PNMImage()
-      self.workTex.store( self.workLayer )
+      self.painter = PNMPainter(self.workLayer)
+      self.painter.setPen(self.brush)
+      self.workTex.store(self.workLayer)
       
       self.paintModel = model.copyTo(self.backgroundRender) #loader.loadModel('models/smiley.egg')
       if self.paintModel:
@@ -167,6 +155,8 @@ class TexturePainter(DirectObject):
         self.paintModel.detachNode()
         self.paintModel = None
         self.origModel = None
+      self.workLayer = None
+      self.painter = None
   
   def startPaint(self):
     taskMgr.add(self.paintTask, 'paintTask')
@@ -187,11 +177,13 @@ class TexturePainter(DirectObject):
       
       # render the backbuffer
       base.graphicsEngine.renderFrame()
+      base.graphicsEngine.renderFrame()
+      
       # save the rendering as texture
       self.pickTex.store(self.pickLayer)
       
-      if not base.mouseWatcherNode.hasMouse():
-          return
+      if not WindowManager.activeWindow.mouseWatcherNode.hasMouse():
+        return
       
       # get window size
       win = WindowManager.activeWindow.win
@@ -203,24 +195,15 @@ class TexturePainter(DirectObject):
       my = self.windowSize[1] - int(((my+1)/2)*self.windowSize[1])
       
       # get the color below the mousepick from the rendered frame
-      r = self.pickLayer.getRedVal(mx,my)
-      g = self.pickLayer.getGreenVal(mx,my)
-      b = self.pickLayer.getBlueVal(mx,my)
+      r = self.pickLayer.getRed(mx,my)
+      g = self.pickLayer.getGreen(mx,my)
+      b = self.pickLayer.getBlue(mx,my)
       # calculate uv-texture position from the color
       x = r + ((b%16)*256)
       y = g + ((b//16)*256)
       
       # render a spot into the texture
-      for i in xrange(-self.paintSize, self.paintSize+1):
-        ny = i + y
-        if 0 <= ny < self.textureSize[1]:
-          for j in xrange(-self.paintSize, self.paintSize+1):
-            nx = j + x
-            if 0 <= nx < self.textureSize[0]:
-              c = self.workLayer.getXel(nx,ny)
-              density = min(1.0,max(0.0, ((i**2+j**2)*1.414 / float(self.paintSize**2*2))))
-              p = c*density + (self.paintColor * (1-density))
-              self.workLayer.setXel(nx,ny,p[0],p[1],p[2])
+      self.painter.drawPoint(self.workLayer.getXSize() * x, self.workLayer.getXSize() * y)
       
       # display the modified texture
       self.workTex.load(self.workLayer)

@@ -218,7 +218,6 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
       return
     if self.paint.Value and not texturePainter.enabled:
       texturePainter.enableEditor()
-      print texturePainter.enabled
       texturePainter.startEdit(self.object, self.selection.tex)
     elif texturePainter.enabled and not self.paint.Value:
       texturePainter.disableEditor()
