@@ -195,14 +195,14 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     cm = CardMaker("preview")
     cm.setFrame(-1, 1, -1, 1)
     cm.setUvRange(Point2(0, 0), Point2(1, 1))
-    self.previewBuffer = WindowManager.windows[0].win.makeTextureBuffer("preview", *PREVIEW_SIZE)
+    self.previewTexture = Texture()
+    self.previewBuffer = WindowManager.makeTextureBuffer("preview", *PREVIEW_SIZE)
     self.previewBuffer.setClearColor(Vec4(1, 1, 1, 1))
     self.previewCamera = base.makeCamera2d(self.previewBuffer)
     self.previewPlane = NodePath(cm.generate())
     self.previewPlane.setFogOff()
     self.previewPlane.setLightOff()
     self.previewCamera.node().setScene(self.previewPlane)
-    self.previewTexture = Texture()
     self.previewBuffer.addRenderTexture(self.previewTexture, GraphicsOutput.RTMCopyRam)
     self.previewCamera.node().setActive(texturePainter.enabled)
     self.Layout()
@@ -319,7 +319,8 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
   def enablePaint(self):
     self.paint.Value = True
     texturePainter.enableEditor()
-    texturePainter.startEdit(self.object, self.selection.tex)
+    texturePainter.selectPaintModel(self.object)
+    texturePainter.startEdit(self.selection.tex)
     self.updatePreview()
     if self.previewCamera != None:
       self.previewCamera.node().setActive(True)
