@@ -211,7 +211,8 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     """Destroys the preview."""
     if self.previewBuffer != None:
       base.graphicsEngine.removeWindow(self.previewBuffer)
-    self.previewCamera.node().setActive(False)
+    if self.previewCamera != None:
+      self.previewCamera.node().setActive(False)
     self.preview.Destroy()
     self.preview = None
     self.previewBuffer = None
@@ -233,7 +234,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
   def updatePreview(self):
     """Renders the preview."""
     if not self.previewCheck.Value: return
-    if self.preview == None:
+    if self.preview == None or self.previewCamera == None:
       self.__setupPreview()
     self.previewPlane.clearTexture()
     self.previewPlane.clearColor()
@@ -241,7 +242,10 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     if self.object != None:
       if self.object.hasColor(): self.previewPlane.setColor(self.object.getColor())
       if self.object.hasColorScale(): self.previewPlane.setColorScale(self.object.getColorScale())
-      for stage in self.object.findAllTextureStages():
+      stages = self.object.findAllTextureStages()
+      if not hasattr(Texture, "__iter__"):
+        stages = [stages.getTextureStage(i) for i in range(stages.getNumTextureStages())]
+      for stage in stages:
         self.previewPlane.setTexture(stage, self.object.findTexture(stage))
     wasActive = self.previewCamera.node().isActive()
     self.previewCamera.node().setActive(True)
@@ -322,7 +326,8 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     taskMgr.doMethodLater(.1, self.__updatePreview, "_TextureManager__updatePreview")
   
   def disablePaint(self):
-    self.previewCamera.node().setActive(False)
+    if self.previewCamera != None:
+      self.previewCamera.node().setActive(False)
     self.paint.Value = False
     texturePainter.disableEditor()
     taskMgr.remove("_TextureManager__updatePreview")
@@ -375,11 +380,9 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.object = nodePath
     if nodePath == None: return
     self.button.Enable()
-    if hasattr(NodePath, "__iter__"):
-      stages = reversed()
-    else:
-      stages = nodePath.findAllTextureStages()
-      stages = reversed([stages.getTextureStage(i) for i in range(stages.getNumTextureStages())])
+    stages = nodePath.findAllTextureStages()
+    if not hasattr(Texture, "__iter__"):
+      stages = [stages.getTextureStage(i) for i in range(stages.getNumTextureStages())]
     for stage in stages:
       self.__addLayer(stage, nodePath.findTexture(stage))
     self.updatePreview()
