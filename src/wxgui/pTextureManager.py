@@ -43,12 +43,18 @@ def makeBitmap(tex, alpha = True, thumb = False):
     # Grab the RGB data
     ttex = tex.makeCopy()
     ttex.setFormat(Texture.FRgb)
-    data = ttex.getUncompressedRamImage()
+    if hasattr(ttex, "getUncompressedRamImage"):
+      data = ttex.getUncompressedRamImage()
+    else:
+      data = ttex.getRamImage()
     # If we have an alpha channel, grab it as well.
     if alpha and tex.getNumComponents() in [2, 4]:
       ttex = tex.makeCopy()
       ttex.setFormat(Texture.FAlpha)
-      adata = ttex.getUncompressedRamImage()
+      if hasattr(ttex, "getUncompressedRamImage"):
+        adata = ttex.getUncompressedRamImage()
+      else:
+        adata = ttex.getRamImage()
   
   # Now for the conversion to wx.
   assert not data.isNull()
@@ -160,6 +166,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.sizer.Add(self.previewCheck, 0, wx.EXPAND, 0)
     self.preview = None
     self.previewBuffer = None
+    self.previewCamera = None
     # Disable for now
     self.button.Disable()
     self.paint.Disable()
@@ -197,13 +204,14 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.previewCamera.node().setScene(self.previewPlane)
     self.previewTexture = Texture()
     self.previewBuffer.addRenderTexture(self.previewTexture, GraphicsOutput.RTMCopyRam)
-    self.previewCamera.node().setActive(False)
+    self.previewCamera.node().setActive(texturePainter.enabled)
     self.Layout()
   
   def __destroyPreview(self):
     """Destroys the preview."""
     if self.previewBuffer != None:
       base.graphicsEngine.removeWindow(self.previewBuffer)
+    self.previewCamera.node().setActive(False)
     self.preview.Destroy()
     self.preview = None
     self.previewBuffer = None
@@ -212,6 +220,15 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.previewPlane = None
     self.previewTexture = Texture()
     self.Layout()
+  
+  def __updatePreview(self, task):
+    """Only used internally."""
+    if not self.previewCheck.Value: return
+    if self.preview == None or self.previewCamera == None or self.previewTexture == None or not self.previewCamera.node().isActive():
+      return task.done
+    else:
+      self.preview.SetBitmap(makeBitmap(self.previewTexture, alpha = False))
+      return task.again
   
   def updatePreview(self):
     """Renders the preview."""
@@ -226,10 +243,11 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
       if self.object.hasColorScale(): self.previewPlane.setColorScale(self.object.getColorScale())
       for stage in self.object.findAllTextureStages():
         self.previewPlane.setTexture(stage, self.object.findTexture(stage))
+    wasActive = self.previewCamera.node().isActive()
     self.previewCamera.node().setActive(True)
     base.graphicsEngine.renderFrame()
     base.graphicsEngine.renderFrame()
-    self.previewCamera.node().setActive(False)
+    self.previewCamera.node().setActive(wasActive)
     self.preview.SetBitmap(makeBitmap(self.previewTexture, alpha = False))
   
   def reset(self):
@@ -290,14 +308,24 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
       self.paint.Disable()
       return
     if self.paint.Value and not texturePainter.enabled:
-      texturePainter.enableEditor()
-      texturePainter.startEdit(self.object, self.selection.tex)
+      self.enablePaint()
     elif texturePainter.enabled and not self.paint.Value:
-      texturePainter.disableEditor()
+      self.disablePaint()
+  
+  def enablePaint(self):
+    self.paint.Value = True
+    texturePainter.enableEditor()
+    texturePainter.startEdit(self.object, self.selection.tex)
+    self.updatePreview()
+    if self.previewCamera != None:
+      self.previewCamera.node().setActive(True)
+    taskMgr.doMethodLater(.1, self.__updatePreview, "_TextureManager__updatePreview")
   
   def disablePaint(self):
+    self.previewCamera.node().setActive(False)
     self.paint.Value = False
     texturePainter.disableEditor()
+    taskMgr.remove("_TextureManager__updatePreview")
   
   def onChangeMode(self, evt):
     self.selection.setStageMode(self.combo.Value)
@@ -347,7 +375,12 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.object = nodePath
     if nodePath == None: return
     self.button.Enable()
-    for stage in reversed(nodePath.findAllTextureStages()):
+    if hasattr(NodePath, "__iter__"):
+      stages = reversed()
+    else:
+      stages = nodePath.findAllTextureStages()
+      stages = reversed([stages.getTextureStage(i) for i in range(stages.getNumTextureStages())])
+    for stage in stages:
       self.__addLayer(stage, nodePath.findTexture(stage))
     self.updatePreview()
   

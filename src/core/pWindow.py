@@ -1,7 +1,8 @@
 __all__ = ["Window"]
 
-from pandac.PandaModules import WindowProperties, loadPrcFileData, Trackball, DriveInterface, Transform2SG
-from pandac.PandaModules import MouseAndKeyboard, MouseWatcher, KeyboardButton, ButtonThrower, ModifierButtons
+from pandac.PandaModules import WindowProperties, loadPrcFileData, Trackball, DriveInterface
+from pandac.PandaModules import MouseAndKeyboard, MouseWatcher, KeyboardButton, ButtonThrower
+from pandac.PandaModules import GraphicsStateGuardian, Transform2SG, ModifierButtons, GraphicsPipe
 from direct.showbase.ShowBase import ShowBase
 
 from core.pConfigDefs import EVENT_WINDOW_FOCUS_CHANGE
@@ -11,6 +12,7 @@ class WindowManager:
   allowMultipleWindows = False
   windows = [] # Don't add windows to this list yourself!
   activeWindow = None
+  gsg = None
   
   @staticmethod
   def startBase(showDefaultWindow = True, allowMultipleWindows = False):
@@ -86,6 +88,7 @@ class WindowManager:
   
   @staticmethod
   def checkActiveWindow(task = None):
+    """Internal task that checks which of the windows is currently active."""
     activeWindow = None
     for w in WindowManager.windows:
       if w.mouseWatcherNode.hasMouse():
@@ -95,6 +98,33 @@ class WindowManager:
       messenger.send(EVENT_WINDOW_FOCUS_CHANGE)
     if task != None:
       return task.cont
+    else:
+      return activeWindow
+
+  @staticmethod
+  def makeTextureBuffer(name, xSize, ySize, tex = None, toRam = False, fbp = None):
+    """Copied from graphicsOutput.cxx and pythonified."""
+    if fbp == None:
+      fbp = FrameBufferProperties()
+      fbp.setRgbColor(1)
+      fbp.setDepthBits(1)
+    
+    flags = GraphicsPipe.BFRefuseWindow;
+    if Texture.getTexturesPower2() != Texture.ATSNone:
+      flags |= GraphicsPipe.BFSizePower2
+    if tex != None and tex.getTextureType() == Texture.TTCubeMap:
+      flags |= GraphicsPipe.BFSizeSquare
+    
+    buffer = gsg.getEngine().makeOutput(gsg.getPipe(), name, 0, fbp, WindowProperties.size(xSize, ySize), flags, gsg)
+    
+    if buffer != None:
+      if toRam:
+        buffer.addRenderTexture(tex, RTMCopyRam);
+      else:
+        buffer.addRenderTexture(tex, RTMBindOrCopy);
+      return buffer
+    
+    return None
 
 class Window(object):
   """Class representing a graphics window."""
@@ -104,11 +134,13 @@ class Window(object):
     if extraProps != None:
       props.addProperties(extraProps)
     if not WindowManager.allowMultipleWindows:
-      base.openDefaultWindow(props = props)
+      base.openDefaultWindow(props = props, gsg = WindowManager.gsg)
       self.win = base.win
       assert len(WindowManager.windows) == 0
     else:
-      self.win = base.openWindow(props = props)
+      self.win = base.openWindow(props = props, gsg = WindowManager.gsg)
+    if WindowManager.gsg == None:
+      WindowManager.gsg = self.win.getGsg()
     self.camera = base.camList[-1]
     self.camNode = self.camera.node()
     self.camLens = self.camNode.getLens()

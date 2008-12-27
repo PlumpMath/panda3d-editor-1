@@ -43,7 +43,7 @@ def createPickingImage(size):
   #    tx = r + ((b%16)*256)
   #    ty = g + ((b//16)*256)
   imageFilename = 'data/textures/index-%i-%i.png' % (size[0], size[1])
-  image.write(imageFilename)
+  image.write(Filename(imageFilename))
 
 class TexturePainter(DirectObject):
   def __init__(self):
