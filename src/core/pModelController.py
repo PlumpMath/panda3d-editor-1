@@ -20,7 +20,6 @@ class ModelController( DirectObject ):
     self.__modelMode = MODEL_MODIFICATION_MODES[0]
     
     self.__selectedModel = None
-    self.previouslySelectedModel = None
     self.selectedObjectParent = None
     self.selectedObjectDistance = 0
     self.selectedObjectRelativePos = Vec3(0,0,0)
@@ -217,7 +216,6 @@ class ModelController( DirectObject ):
         self.__selectModel()
         self.__setMode()
         messenger.send( EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, [model] )
-      self.previouslySelectedModel = self.__selectedModel
   
   def getSelectedModel( self ):
     return self.__selectedModel

@@ -47,10 +47,18 @@ def createPickingImage(size):
 
 class TexturePainter(DirectObject):
   def __init__(self):
+    self.origModel = None
     self.paintModel = None
     self.origModel = None
     self.accept("window-event", self.windowEvent)
     self.enabled = False
+  
+  def selectPaintModel(self, selectModel):
+    self.origModel = selectModel
+  
+  def getStages(self):
+    if self.origModel:
+      return getTextureAndStage(self.origModel)
   
   def enableEditor(self):
     # setup an offscreen buffer for the colour index
@@ -117,8 +125,8 @@ class TexturePainter(DirectObject):
     if self.paintModel != None:
       self.stopEdit()
   
-  def startEdit(self, model, texture):
-    if self.enabled:
+  def startEdit(self, texture):
+    if self.enabled and self.origModel is not None:
       
       if self.paintModel != None:
         self.stopEdit()
@@ -132,10 +140,10 @@ class TexturePainter(DirectObject):
       self.painter.setPen(self.brush)
       self.workTex.store(self.workLayer)
       
-      self.paintModel = model.copyTo(self.backgroundRender) #loader.loadModel('models/smiley.egg')
+      self.paintModel = self.origModel.copyTo(self.backgroundRender) #loader.loadModel('models/smiley.egg')
       if self.paintModel:
         #tester.reparentTo(self.backgroundRender)
-        self.paintModel.setMat(render, model.getMat(render))
+        self.paintModel.setMat(render, self.origModel.getMat(render))
         textureSize = (texture.getXSize(), texture.getYSize())
         createPickingImage( textureSize )
         self.paintModel.setTexture(loader.loadTexture("textures/index-%i-%i.png" % (textureSize[0], textureSize[1])),1)
@@ -143,7 +151,6 @@ class TexturePainter(DirectObject):
         
         self.pickTex.store(self.pickLayer)
         
-        self.origModel = model
         self.textureSize = textureSize
       else:
         print "W: TexturePainter.startEdit: error copying model", model, texture

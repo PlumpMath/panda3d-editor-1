@@ -35,9 +35,15 @@ class EditorClass(DirectObject, FSM):
     self.request('DisabledEditMode')
   
   def enterDisabledEditMode(self):
-    pass
+    for model in modelIdManager.getAllModels():
+      if model.hasTag(EDITABLE_OBJECT_TAG):
+        model.disableEditmode()
   def exitDisabledEditMode(self):
-    pass
+    for model in modelIdManager.getAllModels():
+      try:
+        model.enableEditmode()
+      except:
+        pass # some objects are not part of the scene (like arrows to move etc.)
   
   def enterWorldEditMode(self):
     self.sceneHelperModels = NodePath('editor-helper-models')
@@ -51,33 +57,33 @@ class EditorClass(DirectObject, FSM):
     # a grid model
     gridNp = DirectGrid(parent=self.sceneHelperModels)
     
-    for model in modelIdManager.getAllModels():
-      try:
-        model.enableEditmode()
-      except:
-        pass # some objects are not part of the scene (like arrows to move etc.)
-    
     modelController.toggle(True)
     
     # refresh the scenegraphbrowser
     messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
   def exitWorldEditMode(self):
+    # save the selected model to the texturePainter
+    texturePainter.selectPaintModel(modelController.getSelectedModel())
+    
     # drop what we have selected
     modelController.selectModel( None )
-    
-    for model in modelIdManager.getAllModels():
-      if model.hasTag(EDITABLE_OBJECT_TAG):
-        model.disableEditmode()
     
     modelController.toggle(False)
   
   def enterObjectEditMode(self):
     texturePainter.enableEditor()
-    model = modelController.previouslySelectedModel
-    if model:
-      texStages = getTextureAndStage(model)
-      if len(texStages) > 0:
-        texturePainter.startEdit(model, texStages[0][1])
+    texStages = texturePainter.getStages()
+    if len(texStages) > 0:
+      texturePainter.startEdit(texStages[0][1])
+    '''
+    texStage = texturePainter.getTextureStage(0)
+    if texStage is None:
+      print "generating texStage"
+      texturePainter.addStageByNameSize(name='test')
+      texStage = texturePainter.getTextureStage(0)
+    texturePainter.selectPaintStage(texStage)
+    texturePainter.startEdit()
+    '''
   def exitObjectEditMode(self):
     texturePainter.stopEdit()
     texturePainter.disableEditor()
