@@ -19,6 +19,7 @@ from core.pConfigDefs import *
 from core.pGrid import DirectGrid
 from core.pMouseHandler import mouseHandler
 from core.pSoundManager import soundManager
+from core.pTexturePainter import texturePainter, getTextureAndStage
 
 DEBUG = False
 
@@ -71,9 +72,15 @@ class EditorClass(DirectObject, FSM):
     modelController.toggle(False)
   
   def enterObjectEditMode(self):
-    pass
+    texturePainter.enableEditor()
+    model = modelController.previouslySelectedModel
+    if model:
+      texStages = getTextureAndStage(model)
+      if len(texStages) > 0:
+        texturePainter.startEdit(model, texStages[0][1])
   def exitObjectEditMode(self):
-    pass
+    texturePainter.stopEdit()
+    texturePainter.disableEditor()
   
   def toggle(self, state=None):
     if state is None:

@@ -1,6 +1,7 @@
 from direct.showbase.DirectObject import *
 from pandac.PandaModules import TextureAttrib, Texture, PNMImage, \
-GraphicsOutput, NodePath, Filename, TextureStage, VBase4D, PNMPainter, PNMBrush
+GraphicsOutput, NodePath, Filename, TextureStage, VBase4D, PNMPainter, \
+PNMBrush, VBase3D
 
 from core.pWindow import WindowManager
 from core.pMouseHandler import mouseHandler
@@ -195,21 +196,20 @@ class TexturePainter(DirectObject):
       my = self.windowSize[1] - int(((my+1)/2)*self.windowSize[1])
       
       # get the color below the mousepick from the rendered frame
-      r = self.pickLayer.getRed(mx,my)
-      g = self.pickLayer.getGreen(mx,my)
-      b = self.pickLayer.getBlue(mx,my)
+      r = self.pickLayer.getRedVal(mx,my)
+      g = self.pickLayer.getGreenVal(mx,my)
+      b = self.pickLayer.getBlueVal(mx,my)
       # calculate uv-texture position from the color
       x = r + ((b%16)*256)
       y = g + ((b//16)*256)
       
       # render a spot into the texture
-      self.painter.drawPoint(self.workLayer.getXSize() * x, self.workLayer.getXSize() * y)
+      self.painter.drawPoint(x, y)
       
       # display the modified texture
       self.workTex.load(self.workLayer)
     else:
       print "W: TexturePainter.paint: paint mode not enabled!"
-
 
 '''
 1,1,1   *   1,0,0  * 100%   => 1,0,0
@@ -217,7 +217,6 @@ class TexturePainter(DirectObject):
 
 0,1,1   *   1,0,0  * 100%   >  1,0,0
 0,1,1   *   1,0,0  * 50%   >  0.5,0.5,0.5
-
 '''
 
 texturePainter = TexturePainter()

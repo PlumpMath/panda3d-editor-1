@@ -21,6 +21,6 @@ for [sx,sy,sz], [ex,ey,ez], col in \
     modelHelperLines.drawTo( ex, ey, ez )
 modelHelperLinesNode = modelHelperLines.create()
 modelHelperLinesNodePath = NodePath(modelHelperLinesNode)
-modelHelperLinesNodePath.writeBamFile( 'axisCube.bam' )
+modelHelperLinesNodePath.writeBamFile( 'misc/axisCube.bam' )
 
 print "done"

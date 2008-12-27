@@ -36,7 +36,7 @@ DEFAULT_EDITOR_COLLIDEMASK = BitMask32(0x80)
 # xRotate, yRotate, zRotate
 # xScale, yScale, zScale
 # must contain: <Collide> { Polyset keep descend }
-MODEL_MODIFICATION_MODEL = 'models/modificators.egg'
+MODEL_MODIFICATION_MODEL = 'models/misc/modificators.egg'
 #                                translate  , rotate      , scale
 MODEL_MODIFICATION_FUNCTIONS =  {
     'xTranslate'  : [ Vec3(.5, 0, 0), Vec3(.5, 0, 0), Vec3(0,0, 0), Vec3(0,0, 0), Vec3(0,0,0), Vec3(0,0,0) ]
@@ -77,27 +77,25 @@ MODEL_MODIFICATOR_TAG = 'modelController'
 # to suppress the model from showing up in the scenegraphBrowser
 ENABLE_SCENEGRAPHBROWSER_MODEL_TAG = 'editorEnabledObject'
 
-# model shown when the real model is not found
-MODEL_NOT_FOUND_MODEL = 'models/modelnotfound.egg'
-SOUND_NOT_FOUND_SOUND = 'soundnotfound.mp3'
-
-# tag set to the object which defines the type of wrapper used to edit
+# tag set to the object, which defines the type of wrapper used to edit
 MODEL_WRAPPER_TYPE_TAG = 'modelWrapperTypeTag'
 
-PARTICLE_WRAPPER_DUMMYOBJECT = 'models/sphere.egg.pz'
+# model shown when the real model is not found
+MODEL_NOT_FOUND_MODEL = 'models/nodes/ModelNotFound.egg.pz'
+SOUND_NOT_FOUND_SOUND = 'soundnotfound.mp3'
+SOUNDNODE_WRAPPER_DUMMYOBJECT = 'models/nodes/SoundNode.egg.pz'
+PARTICLE_WRAPPER_DUMMYOBJECT = 'models/nodes/PartcielSystem.egg.pz'
+CODE_WRAPPER_DUMMYOBJECT = 'models/nodes/CodeNode.egg.pz'
+# light nodes, visual objects
+SPOTLIGHT_WRAPPER_DUMMYOBJECT = 'models/nodes/Spotlight.egg.pz'
+DIRECTIONALLIGHT_WRAPPER_DUMMYOBJECT = 'models/nodes/Dirlight.egg.pz'
+POINTLIGHT_WRAPPER_DUMMYOBJECT = 'models/nodes/Pointlight.egg.pz'
+AMBIENTLIGHT_WRAPPER_DUMMYOBJECT = 'models/nodes/AmbientLight.egg.pz'
 
-# light nodes, visual objects (usually they are not visible)
-SPOTLIGHT_WRAPPER_DUMMYOBJECT = 'models/Spotlight.egg.pz'
-DIRECTIONALLIGHT_WRAPPER_DUMMYOBJECT = 'models/Dirlight.egg.pz'
-POINTLIGHT_WRAPPER_DUMMYOBJECT = 'models/Pointlight.egg.pz'
-AMBIENTLIGHT_WRAPPER_DUMMYOBJECT = 'models/AmbientLight.egg.pz'
-SOUNDNODE_WRAPPER_DUMMYOBJECT = 'models/sphere.egg.pz'
+# helper models for the scene
+CAMERACONTROLLER_PIVOT_MODEL = 'models/misc/sphere.egg'
+MODELCONTROLLER_AXISCUBE_MODEL = 'models/misc/axisCube.bam'
 
-CAMERACONTROLLER_PIVOT_MODEL = 'models/sphere.egg'
-
-MODELCONTROLLER_AXISCUBE_MODEL = 'models/axisCube.bam'
-
-CODE_WRAPPER_DUMMYOBJECT = 'models/codeNode.egg'
 
 MOUSE_ROTATION_SPEED = 25.0
 MOUSE_MOVEMENT_SPEED = 25.0

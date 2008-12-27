@@ -14,7 +14,7 @@ from dgui.directSidebar import *
 
 from core.pConfigDefs import *
 from core.pModelController import modelController
-from core.pTexturePainter import texturePainter, getTextureAndStage
+#from core.pTexturePainter import texturePainter, getTextureAndStage
 
 EDITOR_DGUI_TOGGLE_BUTTON = 'tab'
 EDITOR_DGUI_DISABLE_BUTTON = 'f11'
@@ -210,16 +210,9 @@ class EditorApp(DirectObject, FSM):
     messenger.send( EDITOR_MODE_DISABLED )
   
   def enterObjectEditMode(self):
-    texturePainter.enableEditor()
-    model = modelController.previouslySelectedModel
-    if model:
-      texStages = getTextureAndStage(model)
-      if len(texStages) > 0:
-        texturePainter.startEdit(model, texStages[0][1])
-  
+    pass
   def exitObjectEditMode(self):
-    texturePainter.stopEdit()
-    texturePainter.disableEditor()
+    pass
   
   def duplicateModelWrapper(self):
     originalModel = modelController.getSelectedModel()
