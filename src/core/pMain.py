@@ -35,15 +35,21 @@ class EditorClass(DirectObject, FSM):
     self.request('DisabledEditMode')
   
   def enterDisabledEditMode(self):
+    # drop what we have selected
+    modelController.selectModel( None )
+    # disable the selecting of nodes
+    modelController.toggleEditmode(False)
+    # disable edit mode on all nodes
     for model in modelIdManager.getAllModels():
       if model.hasTag(EDITABLE_OBJECT_TAG):
         model.disableEditmode()
   def exitDisabledEditMode(self):
+    # enable editmode on all nodes
     for model in modelIdManager.getAllModels():
-      try:
-        model.enableEditmode()
-      except:
-        pass # some objects are not part of the scene (like arrows to move etc.)
+      try:    model.enableEditmode()
+      except: pass # some objects are not wrappers (like arrows to move etc.)
+    # allow selecting of nodes
+    modelController.toggleEditmode(True)
   
   def enterWorldEditMode(self):
     self.sceneHelperModels = NodePath('editor-helper-models')
@@ -57,18 +63,13 @@ class EditorClass(DirectObject, FSM):
     # a grid model
     gridNp = DirectGrid(parent=self.sceneHelperModels)
     
-    modelController.toggle(True)
-    
     # refresh the scenegraphbrowser
     messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+  
   def exitWorldEditMode(self):
     # save the selected model to the texturePainter
     texturePainter.selectPaintModel(modelController.getSelectedModel())
     
-    # drop what we have selected
-    modelController.selectModel( None )
-    
-    modelController.toggle(False)
   
   def enterObjectEditMode(self):
     texturePainter.enableEditor()
