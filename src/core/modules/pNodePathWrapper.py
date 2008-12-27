@@ -76,11 +76,19 @@ class NodePathWrapper(BaseWrapper):
     # creates a directFrame to edit this object
     BaseWrapper.startEdit(self)
     if self.editModeEnabled:
-      self.model.showBounds()
+      if self.highlightModel is None:
+        self.highlightModel = self.model.copyTo(self)
+      self.highlightModel.setRenderModeWireframe(True)
+      self.highlightModel.setLightOff(1000)
+      self.highlightModel.setColor(*HIGHLIGHT_COLOR)
+      #self.model.showBounds()
   def stopEdit(self):
     # the object is deselected from being edited
     if self.editModeEnabled:
-      self.model.hideBounds()
+      if self.highlightModel is not None:
+        self.highlightModel.removeNode()
+        self.highlightModel = None
+      #self.model.hideBounds()
     BaseWrapper.stopEdit(self)
   
   def getSaveData(self, relativeTo):

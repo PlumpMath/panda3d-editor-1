@@ -59,6 +59,9 @@ class BaseWrapper(NodePath):
     self.reparentTo(parent)
     self.editModeEnabled = False
     
+    # model used to show highlighting of this node
+    self.highlightModel = None
+    
     # all values that can be changed require a entry in the mutableParameters
     
     # when a value exists, it means that it's allowed to read/write the value
