@@ -8,6 +8,9 @@ from direct.showbase.ShowBase import ShowBase
 
 from core.pConfigDefs import EVENT_WINDOW_FOCUS_CHANGE
 
+# Workaround for a bug in panda
+ATSNone = 0
+
 class WindowManager:
   """Manages the windows in the editor."""
   allowMultipleWindows = False
@@ -111,12 +114,15 @@ class WindowManager:
       fbp.setDepthBits(1)
     
     flags = GraphicsPipe.BFRefuseWindow;
-    if Texture.getTexturesPower2() != Texture.ATSNone:
+    if hasattr(GraphicsPipe, "BFSizePower2") and Texture.getTexturesPower2() != ATSNone:
       flags |= GraphicsPipe.BFSizePower2
     if tex != None and tex.getTextureType() == Texture.TTCubeMap:
       flags |= GraphicsPipe.BFSizeSquare
     
-    buffer = gsg.getEngine().makeOutput(gsg.getPipe(), name, 0, fbp, WindowProperties.size(xSize, ySize), flags, gsg)
+    buffer = WindowManager.gsg.getEngine().makeOutput(base.pipe, name, 0,
+               fbp, WindowProperties.size(xSize, ySize), flags, WindowManager.gsg)
+    if WindowManager.gsg == None:
+      WindowManager.gsg = buffer.getGsg()
     
     if buffer != None:
       if toRam:

@@ -77,7 +77,7 @@ MODEL_MODIFICATOR_TAG = 'modelController'
 # to suppress the model from showing up in the scenegraphBrowser
 ENABLE_SCENEGRAPHBROWSER_MODEL_TAG = 'editorEnabledObject'
 
-HIGHLIGHT_COLOR = [1,.3,.3]
+HIGHLIGHT_COLOR = [1,0,0]
 
 # tag set to the object, which defines the type of wrapper used to edit
 MODEL_WRAPPER_TYPE_TAG = 'modelWrapperTypeTag'

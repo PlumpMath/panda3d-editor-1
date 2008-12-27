@@ -80,6 +80,9 @@ class NodePathWrapper(BaseWrapper):
         self.highlightModel = self.model.copyTo(self)
       self.highlightModel.setRenderModeWireframe(True)
       self.highlightModel.setLightOff(1000)
+      self.highlightModel.setFogOff(1000)
+      self.highlightModel.clearTexture()
+      self.highlightModel.clearColorScale()
       self.highlightModel.setColor(*HIGHLIGHT_COLOR)
       #self.model.showBounds()
   def stopEdit(self):
