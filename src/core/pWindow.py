@@ -2,7 +2,8 @@ __all__ = ["Window"]
 
 from pandac.PandaModules import WindowProperties, loadPrcFileData, Trackball, DriveInterface
 from pandac.PandaModules import MouseAndKeyboard, MouseWatcher, KeyboardButton, ButtonThrower
-from pandac.PandaModules import GraphicsStateGuardian, Transform2SG, ModifierButtons, GraphicsPipe
+from pandac.PandaModules import GraphicsStateGuardian, Transform2SG, ModifierButtons
+from pandac.PandaModules import FrameBufferProperties, GraphicsPipe, Texture
 from direct.showbase.ShowBase import ShowBase
 
 from core.pConfigDefs import EVENT_WINDOW_FOCUS_CHANGE

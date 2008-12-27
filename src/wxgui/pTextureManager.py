@@ -318,6 +318,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
   
   def enablePaint(self):
     self.paint.Value = True
+    modelController.disableEditmode(deselect = False)
     texturePainter.enableEditor()
     texturePainter.selectPaintModel(self.object)
     texturePainter.startEdit(self.selection.tex)
@@ -331,6 +332,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
       self.previewCamera.node().setActive(False)
     self.paint.Value = False
     texturePainter.disableEditor()
+    modelController.enableEditmode()
     taskMgr.remove("_TextureManager__updatePreview")
   
   def onChangeMode(self, evt):

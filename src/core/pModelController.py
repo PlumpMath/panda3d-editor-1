@@ -88,9 +88,10 @@ class ModelController(DirectObject):
       
       self.accept('mouse1', self.mouseButtonPress)
   
-  def disableEditmode(self):
+  def disableEditmode(self, deselect = True):
     if self.editmodeEnabled:
-      self.selectModel(None)
+      if deselect:
+        self.selectModel(None)
       
       self.ignoreAll()
       
