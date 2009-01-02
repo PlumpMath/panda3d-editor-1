@@ -59,7 +59,6 @@ class NodePathWrapper(BaseWrapper):
     # destroy this object
     self.stopEdit()
     self.disableEditmode()
-    modelIdManager.delObjectId(self.id)
     self.model.detachNode()
     self.model.removeNode()
     BaseWrapper.destroy(self)
