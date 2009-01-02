@@ -7,14 +7,15 @@ from direct.fsm.FSM import FSM
 from pandac.PandaModules import *
 
 from dgui.filebrowser import FG
-from dgui.scenegraphBrowser import SceneGraphBrowser
+from dgui.pScenegraphBrowser import SceneGraphBrowser
 from dgui.directWindow.src.directWindow import DirectWindow
 from dgui.pCameraController import cameraController
 from dgui.directSidebar import *
 
 from core.pConfigDefs import *
 from core.pModelController import modelController
-#from core.pTexturePainter import texturePainter, getTextureAndStage
+# doesnt work, because the editor may be started before panda
+#from core.modules import *
 
 EDITOR_DGUI_TOGGLE_BUTTON = 'tab'
 EDITOR_DGUI_DISABLE_BUTTON = 'f11'
@@ -54,7 +55,7 @@ class EditorApp(DirectObject, FSM):
     self.shaderAuto = False
     self.objectEditorVisible = False
     self.lastSelectedModel = None
-    self.request('DisabledEditMode')
+    self.request('WorldEditMode')
   
   def toggle(self, state=None):
     ''' toggle between world and object edit mode
@@ -76,21 +77,30 @@ class EditorApp(DirectObject, FSM):
   
   def disable(self, state=None):
     if state is None:
-      if self.editorInstance.state == 'DisabledEditMode':
+      if self.editorInstance.state == 'DisabledMode' or self.editorInstance.state == 'PlayMode':
         state = 'WorldEditMode'
       else:
-        state = 'DisabledEditMode'
+        state = 'PlayMode'
     print "I: dgui.EditorApp.disable: toggling to", state
     
     self.editorInstance.toggle(state)
     self.request(self.editorInstance.state)
   
-  def enterDisabledEditMode(self):
+  def enterDisabledMode(self):
+    pass
+    #cameraController.disable()
+  def exitDisabledMode(self):
+    #cameraController.enable()
+    pass
+  
+  def enterPlayMode(self):
     cameraController.disable()
-  def exitDisabledEditMode(self):
-    cameraController.enable()
+  def exitPlayMode(self):
+    pass
+    #cameraController.enable()
   
   def enterWorldEditMode(self):
+    cameraController.enable()
     self.scenegraphBrowserWindow = DirectSidebar(
       frameSize=(1., 1.5)
     , pos=Vec3(0,0,0.05)
@@ -187,7 +197,7 @@ class EditorApp(DirectObject, FSM):
     messenger.send( EDITOR_MODE_DISABLED )
   
   def enterObjectEditMode(self):
-    pass
+    cameraController.enable()
   def exitObjectEditMode(self):
     pass
   
@@ -288,7 +298,7 @@ class EditorApp(DirectObject, FSM):
     if filepath != None and filepath != '' and filepath != ' ':
       filepath = Filename.fromOsSpecific(filepath).getFullpath()
       modelParent = modelController.getSelectedModel()
-      module = __import__("core.modules.p%s" % objectType, globals(), locals(), [objectType], -1)
+      #module = __import__("core.modules.p%s" % objectType, globals(), locals(), [objectType], -1)
       #exec("objectInstance = module.%s.onCreateInstance(modelParent, filepath)" % (objectType))
       objectInstance = getattr(module, objectType).onCreateInstance(modelParent, filepath)
       if objectInstance is not None:
@@ -298,7 +308,7 @@ class EditorApp(DirectObject, FSM):
   
   def createModelWrapper(self, type):
     # create the actual wrapper of the object
-    module = __import__("core.modules.p%s" % type, globals(), locals(), [type], -1)
+    #module = __import__("core.modules.p%s" % type, globals(), locals(), [type], -1)
     modelParent = modelController.getSelectedModel()
     #exec("objectInstance = module.%s.onCreateInstance(modelParent)" % type)
     objectInstance = getattr(module, type).onCreateInstance(modelParent)
