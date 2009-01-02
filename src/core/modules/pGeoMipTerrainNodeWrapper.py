@@ -1,3 +1,5 @@
+__all__=['GeoMipTerrainNodeWrapper']
+
 from pandac.PandaModules import *
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
@@ -57,9 +59,9 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
     self.setTerrain(extRefFilename)
     BaseWrapper.loadFromData(self, eggGroup, filepath)
   
-  def makeCopy(self, original):
-    objectInstance = super(GeoMipTerrainNodeWrapper, self).makeCopy(original)
+  def makeInstance(self, original):
+    objectInstance = super(GeoMipTerrainNodeWrapper, self).makeInstance(original)
     objectInstance.setTerrain(original.terrainImageFilepath)
     return objectInstance
-  makeCopy = classmethod(makeCopy)
+  makeInstance = classmethod(makeInstance)
 

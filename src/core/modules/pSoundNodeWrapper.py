@@ -1,7 +1,8 @@
+__all__=['SoundNodeWrapper']
+
 from pandac.PandaModules import *
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
-from core.pModelController import modelController
 from core.pConfigDefs import *
 from core.pSoundManager import soundManager
 

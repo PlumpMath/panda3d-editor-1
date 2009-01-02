@@ -1,7 +1,8 @@
+__all__=['CodeNodeWrapper']
+
 import imp, os, traceback
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
-from core.pModelController import modelController
 from core.pConfigDefs import *
 
 DEBUG = False
@@ -64,8 +65,8 @@ class CodeNodeWrapper(VirtualNodeWrapper):
     self.setScript(extRefFilename)
     VirtualNodeWrapper.loadFromData(self, eggGroup, filepath)
   
-  def makeCopy(self, original):
-    objectInstance = super(CodeNodeWrapper, self).makeCopy(original)
+  def makeInstance(self, original):
+    objectInstance = super(CodeNodeWrapper, self).makeInstance(original)
     objectInstance.setScript(original.scriptFilepath)
     return objectInstance
-  makeCopy = classmethod(makeCopy)
+  makeInstance = classmethod(makeInstance)

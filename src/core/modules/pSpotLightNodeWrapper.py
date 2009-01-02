@@ -1,9 +1,8 @@
-import pickle
+__all__=['SpotLightNodeWrapper']
 
 from pandac.PandaModules import *
 
 from core.modules.pLightNodeWrapper import LightNodeWrapper
-from core.pModelController import modelController
 from core.pConfigDefs import *
 
 class SpotLightNodeWrapper(LightNodeWrapper):
@@ -43,7 +42,24 @@ class SpotLightNodeWrapper(LightNodeWrapper):
       None,
       None ]
   
+  def destroy(self):
+    # delete the lens?
+    #self.lensNode.removeNode()
+    LightNodeWrapper.destroy(self)
+  
   def setExponent(self, value):
     # prevent a crash by limiting the value
     value = min(127.0, max(0.0, value))
     return self.light.setExponent(value)
+  
+  def startEdit(self):
+    # the object is selected to be edited
+    # creates a directFrame to edit this object
+    LightNodeWrapper.startEdit(self)
+    if self.editModeEnabled:
+      self.light.showFrustum()
+  def stopEdit(self):
+    # the object is deselected from being edited
+    if self.editModeEnabled:
+      self.light.hideFrustum()
+    LightNodeWrapper.stopEdit(self)

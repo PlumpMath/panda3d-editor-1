@@ -1,9 +1,8 @@
-import pickle
+__all__=['LightNodeWrapper']
 
 from pandac.PandaModules import *
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
-from core.pModelController import modelController
 from core.pConfigDefs import *
 
 class LightNodeWrapper(VirtualNodeWrapper):

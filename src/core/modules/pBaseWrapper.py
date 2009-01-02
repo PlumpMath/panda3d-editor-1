@@ -1,18 +1,16 @@
-import pickle, traceback, posixpath
+__all__=['BaseWrapper']
+
+import traceback, posixpath
 
 from pandac.PandaModules import *
-from direct.gui.DirectGui import *
 
 from core.pModelIdManager import modelIdManager
-from core.pConfigDefs import *
 from core.pCommonPath import relpath
+from core.pConfigDefs import *
 
 DEBUG = False
 
 BASEWRAPPER_DATA_TAG = 'parameters'
-
-class Enum(dict):
-  __name__ = "Enum"
 
 TransparencyEnum = Enum(
   MNone = TransparencyAttrib.MNone,
@@ -144,6 +142,7 @@ class BaseWrapper(NodePath):
       print "E: core.BaseWrapper.stopEdit: object is not in editmode", self
   
   def destroy(self):
+    modelIdManager.delObjectId( self.id )
     self.detachNode()
     self.removeNode()
   
@@ -288,11 +287,11 @@ class BaseWrapper(NodePath):
     self.setParameters(data)
   ''' --- end : load & save to files --- '''
   
-  def makeCopy(self, originalInstance):
+  def makeInstance(self, originalInstance):
     ''' create a copy of this instance
     '''
     newInstance = self(originalInstance.getParent(), originalInstance.getName())
     newInstance.setMat(originalInstance.getMat())
     newInstance.setParameters(originalInstance.getParameters())
     return newInstance
-  makeCopy = classmethod(makeCopy)
+  makeInstance = classmethod(makeInstance)

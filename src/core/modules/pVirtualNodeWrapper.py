@@ -1,11 +1,9 @@
-import pickle
+__all__=['VirtualNodeWrapper']
 
 from pandac.PandaModules import *
 
 from core.modules.pBaseWrapper import BaseWrapper
-from core.pModelController import modelController
 from core.pConfigDefs import *
-from core.pModelIdManager import modelIdManager
 
 # parent class for all nodetypes that have no real model
 # like lights, particle systems etc. (well most except the NodePath)
@@ -20,7 +18,7 @@ class VirtualNodeWrapper(BaseWrapper):
     # destroy this object
     self.stopEdit()
     self.disableEditmode()
-    modelIdManager.delObjectId( self.id )
+    #modelIdManager.delObjectId( self.id )
     BaseWrapper.destroy( self )
   
   def enableEditmode( self ):

@@ -1,11 +1,12 @@
+__all__=['ParticleSystemWrapper']
+
 import traceback
 
-from direct.particles.ParticleEffect import ParticleEffect
-from direct.particles.Particles import Particles
 from pandac.PandaModules import *
+from direct.particles.Particles import Particles
+from direct.particles.ParticleEffect import ParticleEffect
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
-from core.pModelController import modelController
 from core.pConfigDefs import *
 
 PARTICLES_ENABLED = False
@@ -84,9 +85,9 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
     self.setParticleConfig(extRefFilename)
     VirtualNodeWrapper.loadFromData(self, eggGroup, filepath)
   
-  def makeCopy(self, original):
-    objectInstance = super(ParticleSystemWrapper, self).makeCopy(original)
+  def makeInstance(self, original):
+    objectInstance = super(ParticleSystemWrapper, self).makeInstance(original)
     objectInstance.setParticleConfig(original.particleFilename)
     return objectInstance
-  makeCopy = classmethod(makeCopy)
+  makeInstance = classmethod(makeInstance)
   

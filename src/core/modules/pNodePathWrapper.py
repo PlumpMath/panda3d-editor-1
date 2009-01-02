@@ -1,5 +1,6 @@
+__all__=['NodePathWrapper']
+
 from core.modules.pBaseWrapper import *
-from core.pModelController import modelController
 
 DEBUG = False
 
@@ -81,9 +82,10 @@ class NodePathWrapper(BaseWrapper):
       self.highlightModel.setRenderModeWireframe(True)
       self.highlightModel.setLightOff(1000)
       self.highlightModel.setFogOff(1000)
-      self.highlightModel.clearTexture()
+      #self.highlightModel.clearTexture()
+      self.highlightModel.setTextureOff(1000)
       self.highlightModel.clearColorScale()
-      self.highlightModel.setColor(*HIGHLIGHT_COLOR)
+      self.highlightModel.setColor(HIGHLIGHT_COLOR[0], HIGHLIGHT_COLOR[1], HIGHLIGHT_COLOR[2], 1000)
       #self.model.showBounds()
   def stopEdit(self):
     # the object is deselected from being edited
@@ -104,8 +106,8 @@ class NodePathWrapper(BaseWrapper):
     self.setModel(extRefFilename)
     BaseWrapper.loadFromData(self, eggGroup, filepath)
   
-  def makeCopy(self, original):
-    objectInstance = super(NodePathWrapper, self).makeCopy(original)
+  def makeInstance(self, original):
+    objectInstance = super(NodePathWrapper, self).makeInstance(original)
     objectInstance.setModel(original.modelFilepath)
     return objectInstance
-  makeCopy = classmethod(makeCopy)
+  makeInstance = classmethod(makeInstance)

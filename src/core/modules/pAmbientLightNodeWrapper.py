@@ -1,9 +1,8 @@
-import pickle
+__all__=['AmbientLightNodeWrapper']
 
 from pandac.PandaModules import *
 
 from core.modules.pLightNodeWrapper import LightNodeWrapper
-from core.pModelController import modelController
 from core.pConfigDefs import *
 
 class AmbientLightNodeWrapper( LightNodeWrapper ):
