@@ -1,7 +1,9 @@
 __all__=['NodePathWrapper']
 
 from pandac.PandaModules import *
+
 from core.modules.pBaseWrapper import *
+from core.pConfigDefs import *
 
 DEBUG = False
 
