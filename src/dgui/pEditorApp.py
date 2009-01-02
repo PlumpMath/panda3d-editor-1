@@ -91,45 +91,22 @@ class EditorApp(DirectObject, FSM):
     cameraController.enable()
   
   def enterWorldEditMode(self):
-    def nodeSelected(np): # don't forget to receive the selected node (np)
-      modelController.selectNodePath( np )
-    
-    def nodeRightClicked(np): # don't forget to receive the selected node (np)
-      if DEBUG:
-        print np.getName(),'RIGHT CLICKED, DO SOMETHING !'
-    
     self.scenegraphBrowserWindow = DirectSidebar(
-      frameSize=(1.07, 1.5)
-    , pos=Vec3(0,0,0.0)
+      frameSize=(1., 1.5)
+    , pos=Vec3(0,0,0.05)
     , align=ALIGN_LEFT|ALIGN_BOTTOM
     , orientation=VERTICAL
     , text='scenegraph')
     # create SceneGraphBrowser and point it on aspect2d
     self.scenegraphBrowser = SceneGraphBrowser(
                parent=self.scenegraphBrowserWindow, # where to attach SceneGraphBrowser frame
-               root=render, # display children under this root node
-               command=nodeSelected, # user defined method, executed when a node get selected,
-                                     # with the selected node passed to it
-               contextMenu=nodeRightClicked,
-               # selectTag and noSelectTag are used to filter the selectable nodes.
-               # The unselectable nodes will be grayed.
-               # You should use only selectTag or noSelectTag at a time. Don't use both at the same time.
-               selectTag=[ENABLE_SCENEGRAPHBROWSER_MODEL_TAG, EDITABLE_OBJECT_TAG],   # only nodes which have the tag(s) are selectable. You could use multiple tags.
-               #noSelectTag=['noSelect','dontSelectMe'], # only nodes which DO NOT have the tag(s) are selectable. You could use multiple tags.
-               # nodes which have exclusionTag wouldn't be displayed at all
-               frameSize=(1,1.4),
-               font=None, titleScale=.05, itemScale=.035, itemTextScale=1.2, itemTextZ=0,
-               rolloverColor=(1,.8,.2,1),
-               collapseAll=0, # initial tree state
-               suppressMouseWheel=1,  # 1 : blocks mouse wheel events from being sent to all other objects.
-                                      #     You can scroll the window by putting mouse cursor
-                                      #     inside the scrollable window.
-                                      # 0 : does not block mouse wheel events from being sent to all other objects.
-                                      #     You can scroll the window by holding down the modifier key
-                                      #     (defined below) while scrolling your wheel.
-               modifier='control'  # shift/control/alt
+               treeRoot=render, # display children under this root node
+               includeTag=ENABLE_SCENEGRAPHBROWSER_MODEL_TAG,
+               button1func=modelController.selectNodePath,
+               pos=(0,0,0),
+               frameSize=(1,1.5)
                )
-    self.scenegraphBrowser.accept(EVENT_SCENEGRAPHBROWSER_REFRESH,self.scenegraphBrowser.refresh)
+    self.scenegraphBrowser.accept(EVENT_SCENEGRAPHBROWSER_REFRESH,self.scenegraphBrowser.update)
     self.accept( 'r', messenger.send, [EVENT_SCENEGRAPHBROWSER_REFRESH] )
     
     sceneButtonDefinitions = [ 
@@ -216,7 +193,7 @@ class EditorApp(DirectObject, FSM):
   
   def duplicateModelWrapper(self):
     originalModel = modelController.getSelectedModel()
-    objectInstance = originalModel.makeCopy(originalModel)
+    objectInstance = originalModel.makeInstance(originalModel)
     if objectInstance is not None:
       objectInstance.enableEditmode()
     #objectInstance.loadFromData( originalModel.getSaveData('.') )
