@@ -108,3 +108,7 @@ STARTUP_CAMERA_HPR = Vec3( 30,-30,0 )
 MIN_CAMERA_DISTANCE = 10
 MAX_CAMERA_DISTANCE = 1000
 
+
+# in here because most classes import this file anyway
+class Enum(dict):
+  __name__ = "Enum"
