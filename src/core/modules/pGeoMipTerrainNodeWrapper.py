@@ -4,7 +4,7 @@ from pandac.PandaModules import *
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.modules.pBaseWrapper import *
-from core.pModelController import modelController
+from core.pConfigDefs import *
 
 DEBUG = False
 
