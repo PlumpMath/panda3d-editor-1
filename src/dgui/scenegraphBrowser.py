@@ -55,7 +55,7 @@ class SceneGraphBrowser(DirectObject):
     for treeNode in self.oldNodeDict.keys()[:]:
       #print "destryoing node", treeNode
       treeItem = self.oldNodeDict[treeNode]
-      del treeItem.np
+      del treeItem.sceneNp
       treeItem.destroy()
       del self.oldNodeDict[treeNode]
     self.browser.treeStructure = treeParent
