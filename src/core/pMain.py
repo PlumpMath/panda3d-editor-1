@@ -19,7 +19,7 @@ from core.pConfigDefs import *
 from core.pGrid import DirectGrid
 from core.pMouseHandler import mouseHandler
 from core.pSoundManager import soundManager
-from core.pTexturePainter import texturePainter, getTextureAndStage
+from core.pObjectEditor import objectEditor
 
 DEBUG = False
 
@@ -28,30 +28,33 @@ class EditorClass(DirectObject, FSM):
     FSM.__init__(self,'EditorClass')
     self.parentNodePath = render
     
-    self.accept( 'DisabledEditMode', self.request, ['DisabledEditMode'] )
+    self.accept( 'PlayMode', self.request, ['PlayMode'] )
     self.accept( 'WorldEditMode', self.request, ['WorldEditMode'] )
     self.accept( 'ObjectEditMode', self.request, ['ObjectEditMode'] )
     
-    self.request('DisabledEditMode')
+    self.request('DisabledMode')
   
-  def enterDisabledEditMode(self):
-    # drop what we have selected
-    modelController.selectModel( None )
-    # disable the selecting of nodes
-    modelController.toggleEditmode(False)
+  def enterDisabledMode(self):
+    pass
+  def exitDisabledMode(self):
+    for model in modelIdManager.getAllModels():
+      try:    model.enableEditmode()
+      except: pass # some objects are not wrappers (like arrows to move etc.)
+  
+  def enterPlayMode(self):
+    soundManager.enable()
     # disable edit mode on all nodes
     for model in modelIdManager.getAllModels():
       if model.hasTag(EDITABLE_OBJECT_TAG):
         model.disableEditmode()
-  def exitDisabledEditMode(self):
-    # enable editmode on all nodes
+  def exitPlayMode(self):
     for model in modelIdManager.getAllModels():
       try:    model.enableEditmode()
       except: pass # some objects are not wrappers (like arrows to move etc.)
-    # allow selecting of nodes
-    modelController.toggleEditmode(True)
   
   def enterWorldEditMode(self):
+    soundManager.enable()
+    
     self.sceneHelperModels = NodePath('editor-helper-models')
     self.sceneHelperModels.reparentTo(render)
     self.sceneHelperModels.setLightOff()
@@ -65,47 +68,42 @@ class EditorClass(DirectObject, FSM):
     
     # refresh the scenegraphbrowser
     messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+    
+    modelController.toggleEditmode(True)
   
   def exitWorldEditMode(self):
     # save the selected model to the texturePainter
-    texturePainter.selectPaintModel(modelController.getSelectedModel())
-    
+    objectEditor.setEditObject(modelController.getSelectedModel())
+    # drop what we have selected
+    modelController.selectModel(None)
+    # disable the selecting of nodes
+    modelController.toggleEditmode(False)
   
   def enterObjectEditMode(self):
-    texturePainter.enableEditor()
-    texStages = texturePainter.getStages()
-    if len(texStages) > 0:
-      texturePainter.startEdit(texStages[0][1])
-    '''
-    texStage = texturePainter.getTextureStage(0)
-    if texStage is None:
-      print "generating texStage"
-      texturePainter.addStageByNameSize(name='test')
-      texStage = texturePainter.getTextureStage(0)
-    texturePainter.selectPaintStage(texStage)
-    texturePainter.startEdit()
-    '''
+    objectEditor.enableEditor()
+  
   def exitObjectEditMode(self):
-    texturePainter.stopEdit()
-    texturePainter.disableEditor()
+    objectEditor.disableEditor()
   
   def toggle(self, state=None):
     if state is None:
       # switch to next mode
-      if self.state == 'DisabledEditMode':
+      if self.state == 'DisabledMode':
+        state = 'WorldEditMode'
+      elif self.state == 'PlayMode':
         state = 'WorldEditMode'
       elif self.state == 'WorldEditMode':
         state = 'ObjectEditMode'
       elif self.state == 'ObjectEditMode':
-        state = 'DisabledEditMode'
+        state = 'PlayMode'
       else:
-        state = 'DisabledEditMode'
+        state = 'PlayMode'
         print "W: EditorClass.toggle: unknown previous mode", self.state, "setting to", state
     
-    if state in ['DisabledEditMode', 'WorldEditMode', 'ObjectEditMode']:
+    if state in ['DisabledMode', 'PlayMode', 'WorldEditMode', 'ObjectEditMode']:
       self.request(state)
     else:
-      self.request('DisabledEditMode')
+      self.request('PlayMode')
       print "W: EditorClass.toggle: unknown requested mode", state, ", setting to", self.state
   
   def getData(self):

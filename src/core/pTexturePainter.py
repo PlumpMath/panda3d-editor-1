@@ -6,31 +6,9 @@ PNMBrush, VBase3D
 from core.pWindow import WindowManager
 from core.pMouseHandler import mouseHandler
 
-def getTextureAndStage(nodePath):
-  def getStages(gnode, state, texStages): #, textures):
-    for i in range(gnode.getNumGeoms()):
-      gstate = state.compose(gnode.getGeomState(i))
-      attrib = gstate.getAttrib(TextureAttrib.getClassSlot())
-      if attrib != None:
-        for j in range(attrib.getNumOnStages()):
-          texStage = attrib.getOnStage(j)
-          texture = attrib.getTexture()
-          if (texStage not in texStages) or (texture not in textures):
-            texStages.append([texStage, texture])
-    return texStages
-  
-  def rec(parent, state, texStages):
-    for child in parent.getChildren():
-      texStages = rec(child, state, texStages)
-      if child.node().isGeomNode():
-        texStages = getStages(child.node(), state, texStages)
-    return texStages
-  
-  texStages = rec(nodePath, nodePath.getNetState(), [])
-  return texStages
-
 def createPickingImage(size):
-  # Create the image
+  ''' create a picking image with uniq colors for each point in the image
+  '''
   image = PNMImage(*size)
   for x in xrange(size[0]):
     for y in xrange(size[1]):
@@ -49,6 +27,7 @@ class TexturePainter(DirectObject):
   def __init__(self):
     self.origModel = None
     self.paintModel = None
+    self.paintTexture = None
     self.origModel = None
     self.accept("window-event", self.windowEvent)
     self.enabled = False
@@ -56,9 +35,17 @@ class TexturePainter(DirectObject):
   def selectPaintModel(self, selectModel):
     self.origModel = selectModel
   
-  def getStages(self):
-    if self.origModel:
-      return getTextureAndStage(self.origModel)
+  def addStageByNameSize(self, name='Texture', size=[512,512]):
+    # create a image of size
+    texture = Texture(name)
+    texture.setXSize(size[0])
+    texture.setYSize(size[1])
+    return self.addStageByTex(texture)
+  
+  def addStageByTex(self, texture):
+    stage = TextureStage(texture.getName())
+    self.paintModel.setTexture(stage, texture)
+    return stage
   
   def enableEditor(self):
     # setup an offscreen buffer for the colour index
@@ -73,8 +60,6 @@ class TexturePainter(DirectObject):
     
     self.backgroundResize(WindowManager.windows[0].win)
     
-    self.accept("mouse1", self.startPaint)
-    self.accept("mouse1-up", self.stopPaint)
     self.accept("v", base.bufferViewer.toggleEnable)
     self.accept("V", base.bufferViewer.toggleEnable)
     base.bufferViewer.setPosition("llcorner")
@@ -118,21 +103,30 @@ class TexturePainter(DirectObject):
     self.backcam = base.makeCamera(self.buffer, sort = -10)
   
   def disableEditor(self):
+    if self.paintModel != None:
+      self.stopEdit()
+    
     self.ignoreAll()
     
     self.enabled = False
-    
-    if self.paintModel != None:
-      self.stopEdit()
   
   def startEdit(self, texture):
+    self.paintTexture = texture
+    self.accept("mouse1", self.startPaint)
+    self.accept("mouse1-up", self.stopPaint)
+  
+  def stopEdit(self):
+    self.ignore("mouse1")
+    self.ignore("mouse1-up")
+  
+  def startPaint(self):
     if self.enabled and self.origModel is not None:
       
       if self.paintModel != None:
         self.stopEdit()
       
       # load the working texture (this must load the real texure of the object)
-      self.workTex = texture #loader.loadTexture('models/maps/smiley.rgb')
+      self.workTex = self.paintTexture #loader.loadTexture('models/maps/smiley.rgb')
       
       # copy the image from the texture to the working layer
       self.workLayer = PNMImage()
@@ -144,7 +138,7 @@ class TexturePainter(DirectObject):
       if self.paintModel:
         #tester.reparentTo(self.backgroundRender)
         self.paintModel.setMat(render, self.origModel.getMat(render))
-        textureSize = (texture.getXSize(), texture.getYSize())
+        textureSize = (self.paintTexture.getXSize(), self.paintTexture.getYSize())
         createPickingImage( textureSize )
         self.paintModel.setTexture(loader.loadTexture("textures/index-%i-%i.png" % (textureSize[0], textureSize[1])),1)
         base.graphicsEngine.renderFrame()
@@ -156,35 +150,21 @@ class TexturePainter(DirectObject):
         print "W: TexturePainter.startEdit: error copying model", model, texture
     else:
       print "W: TexturePainter.startEdit: paint mode not enabled!"
-  
-  def stopEdit(self):
-    if self.enabled:
-      if self.paintModel:
-        self.paintModel.detachNode()
-        self.paintModel = None
-        self.origModel = None
-      self.workLayer = None
-      self.painter = None
-  
-  def startPaint(self):
+    
+    # could also be in the paintTask
+    # update the camera according to the active camera
+    self.backcam.reparentTo(self.backgroundRender)
+    self.backcam.setMat(render, WindowManager.activeWindow.camera.getMat(render))
+    self.backcam.node().copyLens(WindowManager.activeWindow.camera.node().getLens())
+    # update the mat of the model we currently paint on
+    self.paintModel.setMat(render, self.origModel.getMat(render))
+    
     taskMgr.add(self.paintTask, 'paintTask')
-  def paintTask(self, task):
-    self.paint()
-    return task.cont
-  def stopPaint(self):
-    taskMgr.remove('paintTask')
   
-  def paint(self):
+  def paintTask(self, task):
     if self.enabled and self.paintModel and WindowManager.activeWindow != None:
-      # update the camera according to the active camera
-      self.backcam.reparentTo(self.backgroundRender)
-      self.backcam.setMat(render, WindowManager.activeWindow.camera.getMat(render))
-      self.backcam.node().copyLens(WindowManager.activeWindow.camera.node().getLens())
-      # update the mat of the model we currently paint on
-      self.paintModel.setMat(render, self.origModel.getMat(render))
       
       # render the backbuffer
-      base.graphicsEngine.renderFrame()
       base.graphicsEngine.renderFrame()
       
       # save the rendering as texture
@@ -217,13 +197,15 @@ class TexturePainter(DirectObject):
       self.workTex.load(self.workLayer)
     else:
       print "W: TexturePainter.paint: paint mode not enabled!"
+    return task.cont
+  
+  def stopPaint(self):
+    taskMgr.remove('paintTask')
+    if self.paintModel:
+      self.paintModel.detachNode()
+      self.paintModel = None
+    self.workLayer = None
+    self.painter = None
 
-'''
-1,1,1   *   1,0,0  * 100%   => 1,0,0
-1,1,1   *   1,0,0  * 50%    => 0.75,0.5,0.5
-
-0,1,1   *   1,0,0  * 100%   >  1,0,0
-0,1,1   *   1,0,0  * 50%   >  0.5,0.5,0.5
-'''
 
 texturePainter = TexturePainter()
