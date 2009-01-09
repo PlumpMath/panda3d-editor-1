@@ -9,7 +9,7 @@ from core.pWindow import WindowManager
 
 # Note: globals moved to pConfigDefs
 
-class CameraController( DirectObject, FSM ):
+class CameraController(DirectObject, FSM):
   def __init__(self):
     FSM.__init__(self,'mouseControllerClass')
     
@@ -21,12 +21,33 @@ class CameraController( DirectObject, FSM ):
     self.posPivotModel.reparentTo( self.cameraPosPivot )
     self.posPivotModel.setScale( 0.1 )
     
-    self.request( 'Disabled' )
+    self.pressedKeys = dict()
+    moveSpeed = 25
+    self.moveVec = Vec3(0)
+    self.moveActions = {'w': Vec3(0,moveSpeed,0),
+                        's': Vec3(0,-moveSpeed,0),
+                        'a': Vec3(-moveSpeed,0,0),
+                        'd': Vec3(moveSpeed,0,0),
+                        'e': Vec3(0,0,moveSpeed),
+                        'q': Vec3(0,0,-moveSpeed)}
+    #taskMgr.remove('movePivotTask')
+    taskMgr.add(self.movePivotTask, 'movePivotTask')
+    
+    self.cameraHprResets = {'1': Vec3(90,0,0),
+                            '2': Vec3(180,0,0),
+                            '3': Vec3(0,-90,0),
+                            '4': Vec3(-90,0,0),
+                            '5': Vec3(0,0,0),
+                            '6': Vec3(0,90,0),}
+    
+    self.request('Disabled')
+    
+    self.accept('0', self.toggleLens)
   
   def enable( self ):
-    self.request( 'Default' )
+    self.request('Default')
   def disable( self ):
-    self.request( 'Disabled' )
+    self.request('Disabled')
   
   def enterDisabled( self ):
     try:
@@ -34,38 +55,89 @@ class CameraController( DirectObject, FSM ):
     except:
       pass
     self.posPivotModel.hide()
+    self.ignoreAll()
   def exitDisabled( self ):
     WindowManager.getDefaultCamera().reparentTo( self.cameraRotPivot )
     WindowManager.getDefaultCamera().setY( -STARTUP_CAMERA_DISTANCE )
     self.posPivotModel.show()
-    
   
   # --- Default start ---
   def enterDefault( self ):
     #self.accept( 'mouse1', self.request, ['MouseButton1Pressed'] )
-    self.accept( 'mouse2', self.request, ['MouseButton2Pressed'] )
-    self.accept( 'mouse3', self.request, ['MouseButton3Pressed'] )
-    self.accept( 'wheel_down', self.zoomOut )
-    self.accept( 'wheel_up', self.zoomIn )
-    self.accept( 'page_down', self.zoomOut )
-    self.accept( 'page_up', self.zoomIn )
+    self.accept('mouse2', self.request, ['MouseButton2Pressed'])
+    self.accept('mouse3', self.request, ['MouseButton3Pressed'])
+    self.accept('wheel_down', self.zoomOut)
+    self.accept('wheel_up', self.zoomIn)
+    self.accept('page_down', self.zoomOut)
+    self.accept('page_up', self.zoomIn)
+    # camera movement
+    for key, vec in self.moveActions.items():
+      self.accept( key, self.movePivot, [key, True] )
+      self.accept( key+"-up", self.movePivot, [key, False] )
+    # camera rotation reset
+    for key, rot in self.cameraHprResets.items():
+      self.accept( key, self.setCameraRotation, [rot] )
   
   def exitDefault( self ):
-    self.ignoreAll()
+    self.ignore('mouse2')
+    self.ignore('mouse3')
+    self.ignore('wheel_down')
+    self.ignore('wheel_up')
+    self.ignore('page_down')
+    self.ignore('page_up')
   # --- Default end ---
   
   # --- helper function begin ---
   def zoomOut( self ):
-    cam = WindowManager.getDefaultCamera()
-    cam.setY( min( -MIN_CAMERA_DISTANCE
-            , max( -MAX_CAMERA_DISTANCE
-            , cam.getY() -1 * MOUSE_ZOOM_SPEED ) ) )
+    camera = WindowManager.getDefaultCamera()
+    if type(camera.node().getLens()) == PerspectiveLens:
+      camera.setY( min( -MIN_CAMERA_DISTANCE
+                 , max( -MAX_CAMERA_DISTANCE
+                 , camera.getY() -1 * MOUSE_ZOOM_SPEED ) ) )
+    elif type(camera.node().getLens()) == OrthographicLens:
+      lens = camera.node().getLens()
+      filmSize = lens.getFilmSize()
+      lens.setFilmSize(filmSize*1.25)
   
   def zoomIn( self ):
+    camera = WindowManager.getDefaultCamera()
+    if type(camera.node().getLens()) == PerspectiveLens:
+      camera.setY( min( -MIN_CAMERA_DISTANCE
+              , max( -MAX_CAMERA_DISTANCE
+              , camera.getY() + 1 * MOUSE_ZOOM_SPEED ) ) )
+    elif type(camera.node().getLens()) == OrthographicLens:
+      lens = camera.node().getLens()
+      filmSize = lens.getFilmSize()
+      lens.setFilmSize(filmSize*0.75)
+  
+  def movePivot(self, key, active):
+    self.pressedKeys[key] = active
+  
+  def movePivotTask(self, task):
+    moveVec = Vec3(0)
+    for key, active in self.pressedKeys.items():
+      if active:
+        moveVec += self.moveActions[key]
     cam = WindowManager.getDefaultCamera()
-    cam.setY( min( -MIN_CAMERA_DISTANCE
-            , max( -MAX_CAMERA_DISTANCE
-            , cam.getY() + 1 * MOUSE_ZOOM_SPEED ) ) )
+    relVec = self.cameraPosPivot.getRelativeVector(cam, moveVec)
+    self.cameraPosPivot.setPos( self.cameraPosPivot, relVec*globalClock.getDt() )
+    return task.cont
+  
+  def setCameraRotation(self, rotation):
+    print "I: CameraController.setCameraRotation", rotation
+    self.cameraRotPivot.setHpr( render, rotation )
+  
+  def toggleLens(self):
+    camera = WindowManager.getDefaultCamera()
+    print type(camera.node())
+    print type(camera.node().getLens())
+    if type(camera.node().getLens()) == PerspectiveLens:
+      lens = OrthographicLens()
+      lens.setFilmSize(Vec2(10,10))
+      camera.node().setLens(lens)
+    elif type(camera.node().getLens()) == OrthographicLens:
+      lens = PerspectiveLens()
+      camera.node().setLens(lens)
   
   def getCreatePos( self ):
     return self.cameraPosPivot.getPos( render )
@@ -74,7 +146,7 @@ class CameraController( DirectObject, FSM ):
   # --- MouseButton1Pressed start ---
   def enterMouseButton2Pressed( self ):
     #print "enterMouseButton1Pressed"
-    self.ignoreAll()
+    #self.ignoreAll()
     
     # add the task and the abort funtion
     self.taskMouseButton2PressedRunning = True
@@ -96,6 +168,7 @@ class CameraController( DirectObject, FSM ):
     return task.cont
   
   def exitMouseButton2Pressed( self ):
+    self.ignore('mouse2-up')
     taskMgr.remove( 'taskMouseButton2Pressed' )
     self.taskMouseButton2PressedRunning = False
     mouseHandler.toggleMouseFixed( False )
@@ -104,7 +177,7 @@ class CameraController( DirectObject, FSM ):
   
   # --- MouseButton1Pressed start ---
   def enterMouseButton3Pressed( self ):
-    self.ignoreAll()
+    #self.ignoreAll()
     
     # add the task and the abort funtion
     self.taskMouseButton3PressedRunning = True
@@ -130,6 +203,7 @@ class CameraController( DirectObject, FSM ):
     return task.cont
   
   def exitMouseButton3Pressed( self ):
+    self.ignore('mouse3-up')
     taskMgr.remove( 'taskMouseButton3Pressed' )
     self.taskMouseButton1PressedRunning = False
     mouseHandler.toggleMouseFixed( False )

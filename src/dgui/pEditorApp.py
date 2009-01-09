@@ -134,6 +134,7 @@ class EditorApp(DirectObject, FSM):
     , ['codeNode', self.createFilebrowserModelWrapper, ['CodeNodeWrapper']]
     , ['GeoMipTerrain', self.createFilebrowserModelWrapper, ['GeoMipTerrainNodeWrapper']]
     , ['sound', self.createFilebrowserModelWrapper, ['SoundNodeWrapper']]
+    , ['scene', self.createFilebrowserModelWrapper, ['SceneNodeWrapper']]
     ]
     self.nodeButtons = self.createInterface(nodeButtonDefinitions, 'nodes', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.85,0,0))
     lightButtonDefinitions = [
@@ -298,8 +299,7 @@ class EditorApp(DirectObject, FSM):
     if filepath != None and filepath != '' and filepath != ' ':
       filepath = Filename.fromOsSpecific(filepath).getFullpath()
       modelParent = modelController.getSelectedModel()
-      #module = __import__("core.modules.p%s" % objectType, globals(), locals(), [objectType], -1)
-      #exec("objectInstance = module.%s.onCreateInstance(modelParent, filepath)" % (objectType))
+      module = __import__("core.modules.p%s" % objectType, globals(), locals(), [objectType], -1)
       objectInstance = getattr(module, objectType).onCreateInstance(modelParent, filepath)
       if objectInstance is not None:
         objectInstance.enableEditmode()
@@ -308,9 +308,8 @@ class EditorApp(DirectObject, FSM):
   
   def createModelWrapper(self, type):
     # create the actual wrapper of the object
-    #module = __import__("core.modules.p%s" % type, globals(), locals(), [type], -1)
+    module = __import__("core.modules.p%s" % type, globals(), locals(), [type], -1)
     modelParent = modelController.getSelectedModel()
-    #exec("objectInstance = module.%s.onCreateInstance(modelParent)" % type)
     objectInstance = getattr(module, type).onCreateInstance(modelParent)
     if objectInstance is not None:
       objectInstance.enableEditmode()

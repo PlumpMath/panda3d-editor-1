@@ -202,8 +202,9 @@ class DirectTree(DirectObject):
         nodeButton.unbind(DGG.B1PRESS)
         nodeButton.unbind(DGG.B2PRESS)
         nodeButton.unbind(DGG.B3PRESS)
-        nodeButton.detachNode()
-        nodeButton.removeNode()
+        #nodeButton.detachNode()
+        #nodeButton.removeNode()
+        nodeButton.destroy()
         if treeButton:
           #treeButton['text']=''
           #treeButton['command']=None
@@ -214,8 +215,9 @@ class DirectTree(DirectObject):
         vert.detachNode()
         vert.removeNode()
         treeItem.destroy()
-        treeNode.detachNode()
+        #treeNode.detachNode()
         treeNode.removeNode()
+        #treeNode.destroy()
         del self.treeStructureNodes[treeItem]
     
     frameHeight = len(self.treeStructureNodes) * self.verticalSpacing
