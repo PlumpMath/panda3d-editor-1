@@ -7,6 +7,7 @@ from pandac.PandaModules import *
 from core.pModelIdManager import modelIdManager
 from core.pCommonPath import relpath
 from core.pConfigDefs import *
+from core.modules.pTreeNode import *
 
 DEBUG = False
 
@@ -31,7 +32,7 @@ AntialiasEnum = Enum(
   MAuto = AntialiasAttrib.MAuto,
 )
 
-class BaseWrapper(NodePath):
+class BaseWrapper(NodePath): # planned to use TreeNode in here
   def onCreateInstance(self, parent, name='BaseWrapper'):
     # create instance of this class
     objectInstance = self(parent, name)

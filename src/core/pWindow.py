@@ -41,6 +41,15 @@ class WindowManager:
         return w.camera
   
   @staticmethod
+  def getDefaultCam():
+    """Returns the default camera. If there are multiple, returns the one with the mouse focus."""
+    if len(WindowManager.windows) == 0: return None
+    if len(WindowManager.windows) == 1: return WindowManager.windows[0].cam
+    for w in WindowManager.windows:
+      if w.mouseWatcherNode.hasMouse():
+        return w.cam
+  
+  @staticmethod
   def getDefaultGraphicsWindow():
     """Returns the default graphics window. If there are multiple, returns the one with the mouse focus."""
     if len(WindowManager.windows) == 0: return None

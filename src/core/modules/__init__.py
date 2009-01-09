@@ -12,3 +12,4 @@ from pSpotLightNodeWrapper import *
 from pCodeNodeWrapper import *
 from pParticleSystemWrapper import *
 from pSoundNodeWrapper import *
+from pSceneNodeWrapper import *

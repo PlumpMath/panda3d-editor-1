@@ -3,6 +3,7 @@ __all__=['NodePathWrapper']
 from pandac.PandaModules import *
 
 from core.modules.pBaseWrapper import *
+from core.modules.pNodePathWrapper.pBase import *
 from core.pConfigDefs import *
 
 DEBUG = False
@@ -84,18 +85,16 @@ class NodePathWrapper(BaseWrapper):
       self.highlightModel.setRenderModeWireframe(True)
       self.highlightModel.setLightOff(1000)
       self.highlightModel.setFogOff(1000)
-      #self.highlightModel.clearTexture()
       self.highlightModel.setTextureOff(1000)
       self.highlightModel.clearColorScale()
       self.highlightModel.setColor(HIGHLIGHT_COLOR[0], HIGHLIGHT_COLOR[1], HIGHLIGHT_COLOR[2], 1000)
-      #self.model.showBounds()
+  
   def stopEdit(self):
     # the object is deselected from being edited
     if self.editModeEnabled:
       if self.highlightModel is not None:
         self.highlightModel.removeNode()
         self.highlightModel = None
-      #self.model.hideBounds()
     BaseWrapper.stopEdit(self)
   
   def getSaveData(self, relativeTo):
