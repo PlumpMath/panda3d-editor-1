@@ -123,6 +123,7 @@ class ModelController(DirectObject):
   def mouseButtonPress(self):
     if self.editmodeEnabled:
       pickedObjects = self.getMouseOverNodesList()
+      print "I: ModelController.mouseButtonPress: found", len(pickedObjects)
       if len(pickedObjects) > 0:
         editModel = self.getMouseOverObjectModel(pickedObjects[0])
         editTool = self.getMouseOverObjectTool(pickedObjects)
@@ -143,10 +144,10 @@ class ModelController(DirectObject):
       self.__modificationNode = self.__selectedModel
     else:
       # we are moving relative to some other node
-      self.__origModelParent = self.__selectedModel.getParent()
+      self.__origModelParent = self.__selectedModel.nodePath.getParent()
       self.__modificationNode = self.__relativeModificationTo.attachNewNode('dummyNode')
-      self.__modificationNode.setPos(self.__selectedModel.getPos())
-      self.__selectedModel.wrtReparentTo(self.__modificationNode)
+      self.__modificationNode.setPos(self.__selectedModel.nodePath.getPos())
+      self.__selectedModel.nodePath.wrtReparentTo(self.__modificationNode)
     
     taskMgr.add(task, 'editToolTask', extraArgs = [task,transX, transY, rotX, rotY, scaleX, scaleY], uponDeath=self.editToolCleanup)
     self.accept('mouse1-up', taskMgr.remove, ['editToolTask'])
@@ -163,22 +164,22 @@ class ModelController(DirectObject):
       dScaleX = scaleX * mx * dt
       dScaleY = scaleY * my * dt
       
-      self.__modificationNode.setPos(self.__modificationNode, dPosX)
-      self.__modificationNode.setPos(self.__modificationNode, dPosY)
-      self.__modificationNode.setHpr(self.__modificationNode, dRotX)
-      self.__modificationNode.setHpr(self.__modificationNode, dRotY)
-      self.__modificationNode.setScale(self.__modificationNode.getScale() + dScaleX)
-      self.__modificationNode.setScale(self.__modificationNode.getScale() + dScaleY)
+      self.__modificationNode.nodePath.setPos(self.__modificationNode.nodePath, dPosX)
+      self.__modificationNode.nodePath.setPos(self.__modificationNode.nodePath, dPosY)
+      self.__modificationNode.nodePath.setHpr(self.__modificationNode.nodePath, dRotX)
+      self.__modificationNode.nodePath.setHpr(self.__modificationNode.nodePath, dRotY)
+      self.__modificationNode.nodePath.setScale(self.__modificationNode.nodePath.getScale() + dScaleX)
+      self.__modificationNode.nodePath.setScale(self.__modificationNode.nodePath.getScale() + dScaleY)
       
       messenger.send(EVENT_MODELCONTROLLER_FAST_REFRESH)
       
-      self.objectAxisCube.setScale(self.__modificationNode.getPos(render))
+      self.objectAxisCube.setScale(self.__modificationNode.nodePath.getPos(render))
     return task.cont
   def editToolCleanup(self, task):
     messenger.send(EVENT_MODELCONTROLLER_EDITTOOL_DESELECTED)
     # the modification node needs to be destroyed if it's not the __selectedModel
     if self.__modificationNode != self.__selectedModel:
-        self.__selectedModel.wrtReparentTo(self.__origModelParent)
+        self.__selectedModel.nodePath.wrtReparentTo(self.__origModelParent)
         self.__modificationNode.detachNode()
         self.__modificationNode.removeNode()
     
@@ -187,8 +188,12 @@ class ModelController(DirectObject):
     messenger.send(EVENT_MODELCONTROLLER_FULL_REFRESH)
   
   def selectNodePath(self, nodePath):
+    print "I: ModelController.selectNodePath:"
+    print "  -", nodePath
     modelId = modelIdManager.getObjectId(nodePath)
     object = modelIdManager.getObject(modelId)
+    print "  -", modelId
+    print "  -", object
     self.selectModel(object)
   
   def selectModel(self, model=None):
@@ -225,7 +230,7 @@ class ModelController(DirectObject):
       self.__selectedModel.startEdit()
       
       self.objectAxisCube.reparentTo(render)
-      self.objectAxisCube.setScale(self.__selectedModel.getPos(render))
+      self.objectAxisCube.setScale(self.__selectedModel.nodePath.getPos(render))
   
   def __deselectModel(self):
     if self.__selectedModel:
@@ -258,17 +263,17 @@ class ModelController(DirectObject):
       self.modelModeNode.reparentTo(render)
       self.modelModeNode.setMat(render, Mat4().identMat())
       
-      self.modelModeNode.setPos(render, self.__selectedModel.getPos(render))
+      self.modelModeNode.setPos(render, self.__selectedModel.nodePath.getPos(render))
       
       if self.__selectedModel == self.__relativeModificationTo:
         if self.__relativeModificationTo == render:
-          hpr = self.__selectedModel.getHpr()
+          hpr = self.__selectedModel.nodePath.getHpr()
         else:
-          hpr = self.__selectedModel.getHpr(render)
+          hpr = self.__selectedModel.nodePath.getHpr(render)
       elif self.__relativeModificationTo == render:
         hpr = Vec3(0,0,0)
       self.modelModeNode.setHpr(render, hpr)
-      self.modelModeNode.wrtReparentTo(self.__selectedModel)
+      self.modelModeNode.wrtReparentTo(self.__selectedModel.nodePath)
       
       self.modelModeNode.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
       self.modelModeNode.show()
@@ -323,6 +328,7 @@ class ModelController(DirectObject):
         self.editorCollHandler.sortEntries() #this is so we get the closest object
         for i in xrange(self.editorCollHandler.getNumEntries()):
           pickedObj=self.editorCollHandler.getEntry(i).getIntoNodePath()
+          print "I: ModelController.getMouseOverNodesList", i, pickedObj
           pickedObjects.append(pickedObj)
     return pickedObjects
   

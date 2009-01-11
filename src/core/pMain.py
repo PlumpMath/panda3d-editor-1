@@ -21,25 +21,28 @@ from core.pMouseHandler import mouseHandler
 from core.pSoundManager import soundManager
 from core.pObjectEditor import objectEditor
 from core.modules import *
+from core.pTreeNode import *
 
 DEBUG = False
+
 
 class EditorClass(DirectObject, FSM):
   def __init__(self, parentNodePath):
     FSM.__init__(self,'EditorClass')
-    self.parentNodePath = render
     
     self.accept( 'PlayMode', self.request, ['PlayMode'] )
     self.accept( 'WorldEditMode', self.request, ['WorldEditMode'] )
     self.accept( 'ObjectEditMode', self.request, ['ObjectEditMode'] )
     
     self.request('DisabledMode')
+    
+    self.treeParent = TreeParentNode(parentNodePath)
   
   def enterDisabledMode(self):
     pass
   def exitDisabledMode(self):
-    for model in modelIdManager.getAllModels():
-      try:    model.enableEditmode()
+    for node in modelIdManager.getAllNodes():
+      try:    node.enableEditmode()
       except: pass # some objects are not wrappers (like arrows to move etc.)
   
   def enterPlayMode(self):
@@ -150,13 +153,18 @@ class EditorClass(DirectObject, FSM):
       self.destroyAllModels()
       
       filetype = os.path.splitext(filepath)
-      parentModel = SceneNodeWrapper.onCreateInstance(render, filepath)
+      self.parentWrapper = SceneNodeWrapper.onCreateInstance(self.treeParent, filepath)
+      
+      #print "I: EditorClass.loadEggModelsFile: TESTING tree"
+      #self.treeParent.printTree()
+      #self.parentWrapper.printTree()
+      #print "I: done"
       
       if self.getCurrentOrNextState() == 'WorldEditMode':
         # enable the editing on the objects when editing is enabled
-        for model in modelIdManager.getAllModels():
+        for node in modelIdManager.getAllNodes():
           try:
-            model.enableEditmode()
+            node.enableEditmode()
           except:
             pass # some objects are not part of the scene (like arrows to move etc.)
         # select no model
@@ -178,7 +186,8 @@ class EditorClass(DirectObject, FSM):
   def destroyAllModels(self):
     # delete all loaded models
     modelController.selectModel(None) 
-    for model in modelIdManager.getAllModels():
-      if model.hasTag(EDITABLE_OBJECT_TAG):
-        model.destroy()
-        del model
+    for node in modelIdManager.getAllNodes():
+      if type(node) != NodePath:
+        if node.nodePath.hasTag(EDITABLE_OBJECT_TAG):
+          node.destroy()
+          del node

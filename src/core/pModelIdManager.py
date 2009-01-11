@@ -1,39 +1,42 @@
 VALIDITYCHECK_RATE = None
 
+from core.pTreeNode import TreeNode
+
 class ModelIdManager:
-  def __init__( self ):
+  def __init__(self):
+    #self.modelTree = TreeNode()
     self.modelId = 0
     self.modelIdDict = dict()
     if VALIDITYCHECK_RATE:
       taskMgr.doMethodLater(VALIDITYCHECK_RATE, self.validityCheck, 'ModelIdManager-validityCheck')
   
-  def getId( self ):
+  def getId(self):
     # get next free modelId
     self.modelId += 1
     while self.modelId in self.modelIdDict.keys():
       self.modelId += 1
     return str(self.modelId)
   
-  def setObject( self, model_, modelId ):
+  def setObject(self, model_, modelId):
     self.modelIdDict[ modelId ] = model_
   
-  def getObjectId( self, model ):
+  def getObjectId(self, model):
     for objId, obj in self.modelIdDict.items():
       if obj == model:
         return objId
     return None
   
-  def getObject( self, modelId ):
+  def getObject(self, modelId):
     if self.modelIdDict.has_key( modelId ):
       obj = self.modelIdDict[modelId]
       return obj
     return None
   
-  def delObjectId( self, modelId ):
+  def delObjectId(self, modelId):
     if self.modelIdDict.has_key( modelId ):
       del self.modelIdDict[modelId]
   
-  def delObject( self, model ):
+  def delObject(self, model):
     objectIds = list()
     for objId, obj in self.modelIdDict.items():
       if obj == model:
@@ -41,7 +44,7 @@ class ModelIdManager:
     for objId in objectIds:
       self.delObjectId( objId )
   
-  def getAllModels(self):
+  def getAllNodes(self):
     return self.modelIdDict.values()
   
   def validityCheck(self, task):
