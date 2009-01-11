@@ -1,18 +1,19 @@
 from pandac.PandaModules import *
 
-class ObjectEggPolygon:
-  def __init__(self, eggPolygon, modelWrapper):
+from core.modules.pNodePathWrapper.pEggBase import *
+
+class ObjectEggPolygon(ObjectEggBase):
+  def __init__(self, parent, modelWrapper, eggPolygon):
+    ObjectEggBase.__init__(self, parent, modelWrapper, 'EggPolygon')
     self.eggPolygon = eggPolygon
-    self.modelWrapper = modelWrapper
-    self.mutableParameters = dict()
     
     # testing
-    print "I: ObjectEggPolygon: textures"
-    print self.eggPolygon.getNumTextures()
-    for i in xrange(eggPolygon.getNumTextures()):
-      print eggPolygon.getTexture(i)
-    print dir(eggPolygon)
-    if self.eggPolygon.getNumTextures() > 2:
+    #print "I: ObjectEggPolygon.__init__: textures"
+    #print self.eggPolygon.getNumTextures()
+    #for i in xrange(eggPolygon.getNumTextures()):
+    #  print eggPolygon.getTexture(i)
+    #print dir(eggPolygon)
+    '''if self.eggPolygon.getNumTextures() > 2:
       tex0 = self.eggPolygon.getTexture(0)
       tex1 = self.eggPolygon.getTexture(1)
       self.eggPolygon.clearTexture()
@@ -21,7 +22,7 @@ class ObjectEggPolygon:
       self.eggPolygon.addTexture(tex1)
       print self.eggPolygon.getNumTextures()
       print self.eggPolygon.getTexture(0)
-      print self.eggPolygon.getTexture(1)
+      print self.eggPolygon.getTexture(1)'''
   
   def destroy(self):
     self.eggPolygon = None

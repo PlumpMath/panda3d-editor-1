@@ -3,10 +3,49 @@ __all__=['NodePathWrapper']
 from pandac.PandaModules import *
 
 from core.modules.pBaseWrapper import *
-from core.modules.pNodePathWrapper.pBase import *
+#from core.modules.pNodePathWrapper.pBase import *
 from core.pConfigDefs import *
 
 DEBUG = False
+
+
+from core.modules.pNodePathWrapper.pEggData import *
+from core.modules.pNodePathWrapper.pEggGroup import *
+from core.modules.pNodePathWrapper.pEggTexture import *
+from core.modules.pNodePathWrapper.pEggVertexPool import *
+from core.modules.pNodePathWrapper.pEggPolygon import *
+
+def getEggDataEditable(parent, objectNode, modelFilepath):
+  ''' Egg Data parser
+  '''
+  def recurse(parent, objectNode, eggParentData):
+    if type(eggParentData) == EggData:
+      subParent = ObjectEggData(parent, objectNode, eggParentData)
+      for eggChildData in eggParentData.getChildren():
+        recurse(subParent, objectNode, eggChildData)
+    elif type(eggParentData) == EggGroup:
+      subParent = ObjectEggGroup(parent, objectNode, eggParentData)
+      for eggChildData in eggParentData.getChildren():
+        recurse(subParent, objectNode, eggChildData)
+    elif type(eggParentData) == EggPolygon:
+      #ObjectEggPolygon(parent, objectNode, eggParentData)
+      pass
+    elif type(eggParentData) == EggTexture:
+      ObjectEggTexture(parent, objectNode, eggParentData)
+    elif type(eggParentData) == EggVertexPool:
+      ObjectEggVertexPool(parent, objectNode, eggParentData)
+    elif type(eggParentData) == EggComment:
+      pass
+    elif type(eggParentData) == EggExternalReference:
+      pass
+    elif type(eggParentData) == EggMaterial:
+      pass
+    else:
+      print "core.pNodePathWrapper.bBase.getEditable: unknown type:", str(type(eggParentData))
+  
+  eggData = EggData()
+  eggData.read(modelFilepath)
+  recurse(parent, objectNode, eggData)
 
 class NodePathWrapper(BaseWrapper):
   def onCreateInstance(self, parent, filepath):
@@ -48,13 +87,21 @@ class NodePathWrapper(BaseWrapper):
       self.modelFilepath = modelFilepath
       # load the model
       self.model = loader.loadModel(filepath)
+      
+      # create the children treeNodes of the nodepath
+      parent = self
+      modelFilepath = self.modelFilepath
+      node = self
+      print "I: NodePathWrapper.setModel: creating child treeWrappers"
+      getEggDataEditable(parent, node, modelFilepath)
+      self.printTree()
     
     # if the model loading fails or no path given, use a dummy object
     if self.model is None:
       print "W: NodePathWrapper.setModel: model could not be loaded, loading dummy"
       self.model = loader.loadModel(MODEL_NOT_FOUND_MODEL)
     # make the model visible
-    self.model.reparentTo(self)
+    self.model.reparentTo(self.nodePath)
   
   def destroy(self):
     # destroy this object
@@ -65,15 +112,16 @@ class NodePathWrapper(BaseWrapper):
     BaseWrapper.destroy(self)
   
   def enableEditmode(self):
+    print "I: NodePathWrapper.enableEditmode", self
     if not self.editModeEnabled:
       # edit mode is enabled
       BaseWrapper.enableEditmode(self)
-      self.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
+      self.nodePath.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
   def disableEditmode(self):
     if self.editModeEnabled:
       # edit mode is disabled
       BaseWrapper.disableEditmode( self )
-      self.setCollideMask(BitMask32.allOff())
+      self.nodePath.setCollideMask(BitMask32.allOff())
   
   def startEdit(self):
     # the object is selected to be edited
@@ -81,7 +129,7 @@ class NodePathWrapper(BaseWrapper):
     BaseWrapper.startEdit(self)
     if self.editModeEnabled:
       if self.highlightModel is None:
-        self.highlightModel = self.model.copyTo(self)
+        self.highlightModel = self.model.copyTo(self.nodePath)
       self.highlightModel.setRenderModeWireframe(True)
       self.highlightModel.setLightOff(1000)
       self.highlightModel.setFogOff(1000)

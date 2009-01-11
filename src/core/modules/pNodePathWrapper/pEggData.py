@@ -1,10 +1,11 @@
 from pandac.PandaModules import *
 
-class ObjectEggData:
-  def __init__(self, eggData, modelWrapper):
+from core.modules.pNodePathWrapper.pEggBase import *
+
+class ObjectEggData(ObjectEggBase):
+  def __init__(self, parent, modelWrapper, eggData):
+    ObjectEggBase.__init__(self, parent, modelWrapper, 'EggData')
     self.eggData = eggData
-    self.modelWrapper = modelWrapper
-    self.mutableParameters = dict()
   
   def destroy(self):
     self.eggData = None

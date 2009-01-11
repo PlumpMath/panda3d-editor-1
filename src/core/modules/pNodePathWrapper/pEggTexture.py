@@ -1,5 +1,6 @@
 from core.pTexturePainter import texturePainter
 from core.pConfigDefs import * # imports Enum
+from core.modules.pNodePathWrapper.pEggBase import *
 
 class TextureLayer:
   ''' a texturelayer consists of a texture and a stage
@@ -130,11 +131,10 @@ Texture_CompressionMode = Enum(
   CMDxt5 = Texture.CMDxt5,
 )
 
-class ObjectEggTexture:
-  def __init__(self, eggTexture, modelWrapper):
+class ObjectEggTexture(ObjectEggBase):
+  def __init__(self, parent, modelWrapper, eggTexture):
+    ObjectEggBase.__init__(self, parent, modelWrapper, 'EggTexture')
     self.eggTexture = eggTexture
-    self.modelWrapper = modelWrapper
-    self.mutableParameters = dict()
     self.startEdit()
   
   def destroy(self):
@@ -143,16 +143,15 @@ class ObjectEggTexture:
     self.modelWrapper = None
   
   def startEdit(self):
-    
     # search for the corresponding nodepath-texture in the egg-file
     eggTextureFilename = self.eggTexture.getFilename()
     texture = None
     for texLayer in getTextureLayers(self.modelWrapper.model):
       if str(eggTextureFilename) in str(texLayer.texture.getFullpath()):
-        print "I: ObjectEggTexture.startEdit: modifying texture", str(eggTextureFilename), str(texLayer.texture.getFullpath())
+        #print "I: ObjectEggTexture.startEdit: modifying texture", str(eggTextureFilename), str(texLayer.texture.getFullpath())
         texture = texLayer.texture
     if texture:
-      print "I: ObjectEggTexture.startEdit: editing texture", texture
+      #print "I: ObjectEggTexture.startEdit: editing texture", texture
       texturePainter.selectPaintModel(self.modelWrapper.model)
       texturePainter.enableEditor()
       texturePainter.startEdit(texture)

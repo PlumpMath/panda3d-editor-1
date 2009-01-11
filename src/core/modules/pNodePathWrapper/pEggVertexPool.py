@@ -1,10 +1,11 @@
 from pandac.PandaModules import *
 
-class ObjectEggVertexPool:
-  def __init__(self, eggVertexPool, modelWrapper):
+from core.modules.pNodePathWrapper.pEggBase import *
+
+class ObjectEggVertexPool(ObjectEggBase):
+  def __init__(self, parent, modelWrapper, eggVertexPool):
+    ObjectEggBase.__init__(self, parent, modelWrapper, 'EggVertexPool')
     self.eggVertexPool = eggVertexPool
-    self.modelWrapper = modelWrapper
-    self.mutableParameters = dict()
   
   def destroy(self):
     self.eggVertexPool = None

@@ -5,6 +5,7 @@ __all__ = ['ObjectEggGroup', 'EggGroup_CollideFlags',
 from pandac.PandaModules import *
 
 from core.pConfigDefs import *
+from core.modules.pNodePathWrapper.pEggBase import *
 
 EggGroup_CollideFlags = Enum(
   CFNone = EggGroup.CFNone,
@@ -44,13 +45,12 @@ EggGroup_BillboardType = Enum(
   BTPointWorldRelative = EggGroup.BTPointWorldRelative,
 )
 
-class ObjectEggGroup: #(EggGroup):
-  def __init__(self, eggGroup, modelWrapper):
+class ObjectEggGroup(ObjectEggBase):
+  def __init__(self, parent, modelWrapper, eggGroup):
+    ObjectEggBase.__init__(self, parent, modelWrapper, 'EggGroup')
     # we need to work on the external eggGroup
     self.eggGroup = eggGroup
-    self.modelWrapper = modelWrapper
     # store the types of mutable parameters
-    self.mutableParameters = dict()
     self.mutableParameters['collision_solid_type'] = [ EggGroup_CollisionSolidType,
       self.eggGroup.getCsType,
       self.eggGroup.setCsType,
