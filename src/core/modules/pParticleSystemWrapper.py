@@ -69,7 +69,7 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
       particles.enable()
       self.particleSystem.addParticles(particles)
     #Sets particles to birth relative to the teapot, but to render at toplevel
-    self.particleSystem.start(self)
+    self.particleSystem.start(self.nodePath)
   
   def destroy( self ):
     # destroy this object

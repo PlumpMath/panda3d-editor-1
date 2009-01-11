@@ -11,7 +11,7 @@ class LightNodeWrapper(VirtualNodeWrapper):
     
     # create a instance of the light
     self.light = lightType(name)
-    self.lightNodePath = self.attachNewNode(self.light)
+    self.lightNodePath = self.nodePath.attachNewNode(self.light)
     # create the light
     # this should be made selectable
     render.setLight(self.lightNodePath)

@@ -22,10 +22,10 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
   
   def enableEditmode(self):
     BaseWrapper.enableEditmode(self)
-    self.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
+    self.nodePath.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
   def disableEditmode(self):
     BaseWrapper.disableEditmode(self)
-    self.setCollideMask(BitMask32.allOff())
+    self.nodePath.setCollideMask(BitMask32.allOff())
   
   def __init__(self, parent=None, name=None):
     #name = "GeoMipTerrain-"+filepath.split('/')[-1]
@@ -45,7 +45,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
     self.terrainImageFilepath = filepath
     self.terrain.setHeightfield(Filename(filepath))
     self.terrainNode = self.terrain.getRoot()
-    self.terrain.getRoot().reparentTo(self)
+    self.terrain.getRoot().reparentTo(self.nodePath)
     self.terrain.getRoot().setSz(25)
     self.terrain.generate()
   

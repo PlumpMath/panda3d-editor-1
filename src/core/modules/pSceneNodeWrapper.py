@@ -1,3 +1,4 @@
+import traceback
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.pConfigDefs import *
@@ -14,15 +15,15 @@ class SceneNodeWrapper(VirtualNodeWrapper):
   '''
   def onCreateInstance(self, parent, filepath):
     # create instance of this class
-    name='SceneNode'
-    objectInstance = super(SceneNodeWrapper, self).onCreateInstance(parent, name)
+    objectInstance = super(SceneNodeWrapper, self).onCreateInstance(parent, 'SceneNode')
+    #objectInstance = VirtualNodeWrapper.onCreateInstance(parent, name)
     objectInstance.setScene(filepath)
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
   
   def __init__(self, parent, name='SceneNode'):
     self.objectInstance = None
-    VirtualNodeWrapper.__init__(self, parent, name, SCENE_WRAPPER_DUMMYOBJECT) 
+    VirtualNodeWrapper.__init__(self, parent, name, SCENE_WRAPPER_DUMMYOBJECT)
   
   def setScene(self, sceneFilepath):
     # load the scene
@@ -54,6 +55,7 @@ class SceneNodeWrapper(VirtualNodeWrapper):
             # import the module responsible for handling the data
             module = __import__('core.modules.p%s' % wrapperType, globals(), locals(), [wrapperType], -1)
             # load the eggParentData using the module
+            #print "I: EditorClass.loadEggModelsFile: parent", wrapperType, parent 
             object = getattr(module, wrapperType).loadFromEggGroup(eggParentData, parent, filepath)
             # append loaded object to list
             loadedObjects.append([object, eggParentData])
@@ -66,7 +68,7 @@ class SceneNodeWrapper(VirtualNodeWrapper):
             object = parent.attachNewNode('%s-failed' % wrapperType)
           if object is not None:
             # apply the transformation on the object
-            object.setMat(transform)
+            object.nodePath.setMat(transform)
             transform = Mat4.identMat()
             # if it contains additional childrens recurse into them
             for childData in eggParentData.getChildren()[1:]:
@@ -114,9 +116,10 @@ class SceneNodeWrapper(VirtualNodeWrapper):
       self.sceneFilepath = sceneFilepath
       
       # refresh the scenegraphbrowser
-      #messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+      messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
   
   def enableEditmode(self):
+    print "I: SceneNodeWrapper.enableEditmode:"
     VirtualNodeWrapper.enableEditmode(self)
     '''if self.getCurrentOrNextState() == 'WorldEditMode':
       # enable the editing on the objects when editing is enabled
@@ -127,6 +130,12 @@ class SceneNodeWrapper(VirtualNodeWrapper):
           pass # some objects are not part of the scene (like arrows to move etc.)
       # select no model
       modelController.selectModel(None)'''
+    # enable the editing on the objects when editing is enabled
+    for node in modelIdManager.getAllNodes():
+      try:
+        node.enableEditmode()
+      except:
+        pass # some objects are not part of the scene (like arrows to move etc.)
   
   def disableEditmode(self):
     VirtualNodeWrapper.disableEditmode(self)

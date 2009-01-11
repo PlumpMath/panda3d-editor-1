@@ -7,7 +7,7 @@ from pandac.PandaModules import *
 from core.pModelIdManager import modelIdManager
 from core.pCommonPath import relpath
 from core.pConfigDefs import *
-from core.modules.pTreeNode import *
+from core.pTreeNode import *
 
 DEBUG = False
 
@@ -32,9 +32,10 @@ AntialiasEnum = Enum(
   MAuto = AntialiasAttrib.MAuto,
 )
 
-class BaseWrapper(NodePath): # planned to use TreeNode in here
+class BaseWrapper(TreeNode):
   def onCreateInstance(self, parent, name='BaseWrapper'):
     # create instance of this class
+    #print help(self.__init__)
     objectInstance = self(parent, name)
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
@@ -48,14 +49,19 @@ class BaseWrapper(NodePath): # planned to use TreeNode in here
   def __init__(self, parent, name):
     # get a uniq id for this object
     self.id = modelIdManager.getId()
+    self.name = name
     # define a name for this object
-    NodePath.__init__(self, name)
+    TreeNode.__init__(self, name, self)
+    TreeNode.reparentTo(self, parent)
+    self.nodePath = NodePath(name)
     # store this object
     modelIdManager.setObject(self, self.id)
     # reparent this nodePath
     if parent is None:
-      parent = render
-    self.reparentTo(parent)
+      parentNodepath = render
+    else:
+      parentNodepath = parent.nodePath
+    self.nodePath.reparentTo(parentNodepath)
     self.editModeEnabled = False
     
     # model used to show highlighting of this node
@@ -67,48 +73,48 @@ class BaseWrapper(NodePath): # planned to use TreeNode in here
     # hasFunc defines if it's a vital property of the object and must be saved
     # into the comments
     
-    # valueType, getFunction, setFunction, hasFunction, clearFunction, saveToComments
+    # valueType, getFunc vtion, setFunction, hasFunction, clearFunction, saveToComments
     # hasFunction == None -> the value should be saved
     self.mutableParameters = dict()
     self.mutableParameters['color'] = [ Vec4,
-      self.getColor,
-      self.setColor,
-      self.hasColor,
-      self.clearColor ]
+      self.nodePath.getColor,
+      self.nodePath.setColor,
+      self.nodePath.hasColor,
+      self.nodePath.clearColor ]
     self.mutableParameters['colorScale'] = [ Vec4,
-      self.getColorScale,
-      self.setColorScale,
-      self.hasColorScale,
-      self.clearColorScale ]
+      self.nodePath.getColorScale,
+      self.nodePath.setColorScale,
+      self.nodePath.hasColorScale,
+      self.nodePath.clearColorScale ]
     self.mutableParameters['transparency'] = [ TransparencyEnum,
-      self.getTransparency,
-      self.setTransparency,
-      self.hasTransparency,
-      self.clearTransparency ]
+      self.nodePath.getTransparency,
+      self.nodePath.setTransparency,
+      self.nodePath.hasTransparency,
+      self.nodePath.clearTransparency ]
     self.mutableParameters['antialias'] = [ AntialiasEnum,
-      self.getAntialias,
-      self.setAntialias,
-      self.hasAntialias,
-      self.clearAntialias ]
+      self.nodePath.getAntialias,
+      self.nodePath.setAntialias,
+      self.nodePath.hasAntialias,
+      self.nodePath.clearAntialias ]
     # should not be saved into the comments, but available to the gui-editor
     self.mutableParameters['name'] = [ str,
-      self.getName,
-      self.setName,
+      self.nodePath.getName,
+      self.nodePath.setName,
       None,
       None ]
     self.mutableParameters['position'] = [ Vec3,
-      self.getPos,
-      self.setPos,
+      self.nodePath.getPos,
+      self.nodePath.setPos,
       None,
       None ]
     self.mutableParameters['rotation'] = [ Vec3,
-      self.getHpr,
-      self.setHpr,
+      self.nodePath.getHpr,
+      self.nodePath.setHpr,
       None,
       None ]
     self.mutableParameters['scale'] = [ Vec3,
-      self.getScale,
-      self.setScale,
+      self.nodePath.getScale,
+      self.nodePath.setScale,
       None,
       None ]
   
@@ -118,8 +124,8 @@ class BaseWrapper(NodePath): # planned to use TreeNode in here
     edit mode is enabled'''
     if not self.editModeEnabled:
       # make this a editable object
-      self.setTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG, '')
-      self.setTag(EDITABLE_OBJECT_TAG, self.id)
+      self.nodePath.setTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG, '')
+      self.nodePath.setTag(EDITABLE_OBJECT_TAG, self.id)
       self.editModeEnabled = True
   
   def disableEditmode(self):
@@ -127,8 +133,8 @@ class BaseWrapper(NodePath): # planned to use TreeNode in here
     -> performance increase
     edit mode is disabled'''
     if self.editModeEnabled:
-      self.clearTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG)
-      self.clearTag(EDITABLE_OBJECT_TAG)
+      self.nodePath.clearTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG)
+      self.nodePath.clearTag(EDITABLE_OBJECT_TAG)
       self.editModeEnabled = False
   
   def startEdit(self):
@@ -144,8 +150,8 @@ class BaseWrapper(NodePath): # planned to use TreeNode in here
   
   def destroy(self):
     modelIdManager.delObjectId( self.id )
-    self.detachNode()
-    self.removeNode()
+    self.nodePath.detachNode()
+    self.nodePath.removeNode()
   
   def getParameter(self, name):
     varType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[name]
