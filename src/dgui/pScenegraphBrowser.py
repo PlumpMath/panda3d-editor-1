@@ -1,7 +1,71 @@
 from pDirectTree import *
 from direct.showbase.DirectObject import DirectObject
 
-class SceneGraphBrowser(DirectObject):
+class TreeGraphBrowser(DirectObject):
+  def __init__(self, parent, treeWrapperRoot, includeTag,
+               frameSize=(1,1),
+               pos=(0,0,0),
+               button1func=None,
+               button2func=None,
+               button3func=None,):
+    self.browser = DirectTree(parent=parent, pos=pos, frameSize=frameSize)
+    self.treeWrapperRoot = treeWrapperRoot
+    self.includeTag = includeTag
+    self.button1funcCall=button1func
+    self.button2funcCall=button2func
+    self.button3funcCall=button3func
+    self.directTreeDict = dict()
+    self.update()
+  
+  def button1func(self, treeItem):
+    self.button1funcCall(treeItem.sceneNp)
+  def button2func(self, treeItem):
+    self.button2funcCall(treeItem.sceneNp)
+  def button3func(self, treeItem):
+    self.button3funcCall(treeItem.sceneNp)
+  
+  def rec(self, treeWrapperNode=None, treeWrapperParent=None):
+    """Used internally to recursively add the children of a nodepath to the scene graph browser."""
+    name = "("+treeWrapperNode.__class__.__name__+") "+treeWrapperNode.treeName
+    print "I: TreeGraphBrowser.rec:", name, treeWrapperNode
+    #if treeNode.hasTag(self.includeTag) or treeNode == self.treeRoot:
+    if not treeWrapperNode in self.oldDirectTreeDict:
+      directTreeItem = DirectTreeItem(treeWrapperParent, name)
+      directTreeItem.sceneNp = treeWrapperNode
+      directTreeItem.button1Func=self.button1func
+      directTreeItem.button2Func=self.button1func
+      directTreeItem.button3Func=self.button1func
+    else:
+      directTreeItem = self.oldDirectTreeDict[treeWrapperNode]
+      directTreeItem.setParent(treeWrapperParent)
+      directTreeItem.clearChildrens()
+      del self.oldDirectTreeDict[treeWrapperNode] # remove it from the old dict
+    self.directTreeDict[treeWrapperNode] = directTreeItem
+    
+    for c in xrange(treeWrapperNode.getNumChildren()):
+      treeWrapperChild = treeWrapperNode.getChildren(c)
+      self.rec(treeWrapperChild, directTreeItem)
+    return directTreeItem
+  
+  def update(self):
+    # update the scenegraph
+    self.oldDirectTreeDict = self.directTreeDict.copy()
+    self.directTreeDict = dict()
+    directTreeParent = self.rec(self.treeWrapperRoot, None)
+    # destroy the contents of the nodeDict
+    for treeWrapperNode in self.oldDirectTreeDict.keys()[:]:
+      #print "destryoing node", treeNode
+      directTreeItem = self.oldDirectTreeDict[treeWrapperNode]
+      del directTreeItem.sceneNp
+      directTreeItem.destroy()
+      del self.oldDirectTreeDict[directTreeItem]
+    self.browser.treeStructure = directTreeParent
+    self.browser.render()
+    self.browser.update()
+
+SceneGraphBrowser = TreeGraphBrowser
+
+'''class SceneGraphBrowser(DirectObject):
   def __init__(self, parent, treeRoot, includeTag,
                frameSize=(1,1),
                pos=(0,0,0),
@@ -29,7 +93,7 @@ class SceneGraphBrowser(DirectObject):
     name = nodePath.getName()
     if nodePath.hasTag(self.includeTag) or nodePath == self.treeRoot:
       if not nodePath in self.oldNodeDict:
-        treeItem = TreeItem(treeParent, name)
+        treeItem = DirectTreeItem(treeParent, name)
         treeItem.sceneNp = nodePath
         treeItem.button1Func=self.button1func
         treeItem.button2Func=self.button1func
@@ -60,7 +124,7 @@ class SceneGraphBrowser(DirectObject):
       del self.oldNodeDict[treeNode]
     self.browser.treeStructure = treeParent
     self.browser.render()
-    self.browser.update()
+    self.browser.update()'''
 
 if __name__ == '__main__' and True:
   from direct.directbase import DirectStart

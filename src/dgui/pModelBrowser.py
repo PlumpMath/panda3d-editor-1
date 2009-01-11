@@ -28,7 +28,7 @@ class ModelBrowser(DirectObject):
     if type(eggParentData) == EggPolygon:
       return
     name = type(eggParentData).__name__
-    treeItem = TreeItem(treeParent, name)
+    treeItem = DirectTreeItem(treeParent, name)
     treeItem.button1Func = self.button1func
     treeItem.button2Func = self.button2func
     treeItem.button3Func = self.button3func

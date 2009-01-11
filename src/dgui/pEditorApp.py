@@ -110,7 +110,7 @@ class EditorApp(DirectObject, FSM):
     # create SceneGraphBrowser and point it on aspect2d
     self.scenegraphBrowser = SceneGraphBrowser(
                parent=self.scenegraphBrowserWindow, # where to attach SceneGraphBrowser frame
-               treeRoot=render, # display children under this root node
+               treeWrapperRoot=self.editorInstance.treeParent, # display children under this root node
                includeTag=ENABLE_SCENEGRAPHBROWSER_MODEL_TAG,
                button1func=modelController.selectNodePath,
                pos=(0,0,0),

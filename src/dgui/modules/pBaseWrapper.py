@@ -75,7 +75,7 @@ class BaseWrapper(DirectObject):
   def createEditWindow(self):
     if self.buttonsWindow is None:
       ySize = len(self.mutableParameters)
-      title='editWindow-%s' % str(self.object.getName())
+      title='editWindow-%s' % str(self.object.name)
       self.buttonsWindow = DirectSidebar(
         frameSize=(1.1,ySize*.11)
       , align=ALIGN_RIGHT|ALIGN_BOTTOM, opendir=LEFT_OR_UP, orientation=VERTICAL

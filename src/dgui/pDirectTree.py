@@ -1,4 +1,4 @@
-__all__=['TreeItem', 'DirectTree']
+__all__=['DirectTreeItem', 'DirectTree']
 
 from pandac.PandaModules import NodePath, LineSegs, TextNode
 from direct.gui.DirectGui import DirectFrame,DirectButton,DirectScrolledFrame,DGG
@@ -6,7 +6,7 @@ from direct.showbase.DirectObject import DirectObject
 
 EVENT_DIRECTTREE_REFRESH = 'directTree-update'
 
-class TreeItem(object):
+class DirectTreeItem(object):
   ''' a tree structure object, which has a parent and childrens
   '''
   def __init__(self,parent=None,name=''):
@@ -46,13 +46,13 @@ class TreeItem(object):
       self.parent = None
     # add to new parent
     if parent is not None:
-      assert(type(parent) == TreeItem)
+      assert(type(parent) == DirectTreeItem)
       # parent & child are iterators, so we can check "in"
       if parent not in self and self not in parent and self != parent:
         self.parent = parent
         self.parent.addChild(self)
       else:
-        print "W: TreeItem.setParent: already in some list"
+        print "W: DirectTreeItem.setParent: already in some list"
   def destroy(self):
     self.setParent(None)
     self.clearChildrens()
@@ -96,7 +96,7 @@ class DirectTree(DirectObject):
                pos=(0,0,0),
                parent=None,
                frameSize=(1,1),
-               treeStructure=TreeItem(),):
+               treeStructure=DirectTreeItem(),):
     if parent is None:
       parent = aspect2d
     self.treeStructure = treeStructure
@@ -130,7 +130,7 @@ class DirectTree(DirectObject):
     self.accept(EVENT_DIRECTTREE_REFRESH, self.update)
   
   def destroy(self):
-    self.treeStructure = TreeItem()
+    self.treeStructure = DirectTreeItem()
     self.render()
     #del self.treeStructureNodes
   
@@ -273,7 +273,7 @@ if __name__ == '__main__' and False:
     else:
       parent = None
     print "creating", c
-    d[c] = TreeItem(parent, c*20)
+    d[c] = DirectTreeItem(parent, c*20)
   
   if False:
     # testing without gui
@@ -318,7 +318,7 @@ if __name__ == '__main__' and False:
       parent = d[choice(d.keys())]
     else:
       parent = None
-    d[c] = TreeItem(parent, c*20)
+    d[c] = DirectTreeItem(parent, c*20)
   
   from direct.directbase import DirectStart
   
