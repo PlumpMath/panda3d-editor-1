@@ -75,7 +75,7 @@ class PropertyGrid(Grid, DirectObject):
   
   def viewForSelection(self):
     """Similar to viewForNodePath, but this uses the currently selected model."""
-    return self.viewForNodePath(modelController.getSelectedModel())
+    return self.viewForNodePath(modelController.getSelectedObject())
   
   def addProperty(self, propName, propType, value = None):
     """ Adds a new property to the control. """
@@ -98,7 +98,7 @@ class PropertyGrid(Grid, DirectObject):
        self.object.setParameter(name, value)
        #FIXME: If it changed the nodepath name, it should reload the scene graph tree.
        #if prop.setter == NodePath.setName:
-       #  messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+       #  messenger.send(EVENT_SCENEGRAPH_REFRESH)
      except Exception, ex: # Stop the change if the value is invalid.
        evt.Veto()
        raise

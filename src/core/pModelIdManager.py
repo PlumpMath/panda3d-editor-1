@@ -32,6 +32,9 @@ class ModelIdManager:
       return obj
     return None
   
+  def delObject(self, object):
+    self.delObjectId(self.getObjectId(object))
+  
   def delObjectId(self, modelId):
     if self.modelIdDict.has_key( modelId ):
       del self.modelIdDict[modelId]
@@ -44,7 +47,7 @@ class ModelIdManager:
     for objId in objectIds:
       self.delObjectId( objId )
   
-  def getAllNodes(self):
+  def getAllObjects(self):
     return self.modelIdDict.values()
   
   def validityCheck(self, task):

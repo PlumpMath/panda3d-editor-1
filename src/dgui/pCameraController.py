@@ -33,16 +33,16 @@ class CameraController(DirectObject, FSM):
     #taskMgr.remove('movePivotTask')
     taskMgr.add(self.movePivotTask, 'movePivotTask')
     
-    self.cameraHprResets = {'1': Vec3(90,0,0),
-                            '2': Vec3(180,0,0),
-                            '3': Vec3(0,-90,0),
-                            '4': Vec3(-90,0,0),
-                            '5': Vec3(0,0,0),
-                            '6': Vec3(0,90,0),}
+    self.cameraHprResets = {'shift-1': Vec3(90,0,0),
+                            'shift-2': Vec3(180,0,0),
+                            'shift-3': Vec3(0,-90,0),
+                            'shift-4': Vec3(-90,0,0),
+                            'shift-5': Vec3(0,0,0),
+                            'shift-6': Vec3(0,90,0),}
     
     self.request('Disabled')
     
-    self.accept('0', self.toggleLens)
+    self.accept('shift-0', self.toggleLens)
   
   def enable( self ):
     self.request('Default')

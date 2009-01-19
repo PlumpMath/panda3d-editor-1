@@ -9,11 +9,17 @@ EDITOR_MODE_DISABLED = 'pandaEditorDisabledMode'
 EDITOR_MODE_WORLD_EDIT = 'pandaEditorWorldEditMode'
 EDITOR_MODE_OBJECT_EDIT = 'pandaEditorObjectEditMode'
 
-EVENT_SCENEGRAPHBROWSER_REFRESH = 'refreshSceneGraph'
+EVENT_SCENEGRAPH_REFRESH = 'refreshSceneGraph'
+EVENT_SCENEGRAPH_CHANGE_ROOT = 'changeSceneRoot'
+# this event set's the modelcontroller object, it will yield:
+# EVENT_MODELCONTROLLER_SELECTED_OBJECT_CHANGE
+# or EVENT_MODELCONTROLLER_SELECTED_OBJECT_AGAIN
+# send a parameter with this event, must be a wrapper node (also eggWrapper etc.)
+EVENT_MODELCONTROLLER_SELECT_OBJECT = 'modelController.selectObject'
 # this event is sent when a object has been selected
 # (extraArgs contains module class object)
-EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE = 'modelEdit-selectModel-change'
-EVENT_MODELCONTROLLER_SELECT_MODEL_AGAIN = 'modelEdit-selectModel-again'
+EVENT_MODELCONTROLLER_SELECTED_OBJECT_CHANGE = 'modelEdit-selectModel-change'
+EVENT_MODELCONTROLLER_SELECTED_OBJECT_AGAIN = 'modelEdit-selectModel-again'
 # this event is sent when a object has been modified (only sent rarely)
 EVENT_MODELCONTROLLER_FULL_REFRESH = 'refreshModelEdit-full'
 # this event is sent when a object has been modified (can be sent every frame)
@@ -23,6 +29,11 @@ EVENT_WINDOW_FOCUS_CHANGE = 'active-window-changed'
 
 EVENT_MODELCONTROLLER_EDITTOOL_SELECTED = 'modelController-edittool-selected'
 EVENT_MODELCONTROLLER_EDITTOOL_DESELECTED = 'modelController-edittool-deselected'
+
+# pressing the mousebutton while having a 3d model beneath it will change the
+# selected object (or not)
+EVENT_SCENEPICKER_MODELSELECTION_ENABLE='modelController-3d-modelselection-enable'
+EVENT_SCENEPICKER_MODELSELECTION_DISABLE='modelController-3d-modelselection-disable'
 # --- not recommmended to change any of the following ---
 
 VALID_MODEL_FORMATS = ['egg', 'bam', 'egg.pz']
@@ -56,13 +67,15 @@ MODEL_MODIFICATION_TRANSLATE = ['xTranslate','yTranslate','zTranslate','xyTransl
 MODEL_MODIFICATION_ROTATE    = ['xRotate','yRotate','zRotate']
 MODEL_MODIFICATION_SCALE     = ['xScale','yScale','zScale','uniScale']
 MODEL_MODIFICATION_MODES_FUNCTIONS = [MODEL_MODIFICATION_TRANSLATE, MODEL_MODIFICATION_ROTATE, MODEL_MODIFICATION_SCALE]
+MODEL_MODIFICATION_MODE_DISABLED = -1
 MODEL_MODIFICATION_MODE_TRANSLATE_LOCAL = 0
 MODEL_MODIFICATION_MODE_ROTATE_LOCAL = 2
 MODEL_MODIFICATION_MODE_SCALE_LOCAL = 4
 MODEL_MODIFICATION_MODE_TRANSLATE_GLOBAL = 1
 MODEL_MODIFICATION_MODE_ROTATE_GLOBAL = 3
 MODEL_MODIFICATION_MODE_SCALE_GLOBAL = 5
-MODEL_MODIFICATION_MODES =  [ MODEL_MODIFICATION_MODE_TRANSLATE_LOCAL
+MODEL_MODIFICATION_MODES =  [ MODEL_MODIFICATION_MODE_DISABLED
+                            , MODEL_MODIFICATION_MODE_TRANSLATE_LOCAL
                             , MODEL_MODIFICATION_MODE_TRANSLATE_GLOBAL
                             , MODEL_MODIFICATION_MODE_ROTATE_LOCAL
                             , MODEL_MODIFICATION_MODE_ROTATE_GLOBAL

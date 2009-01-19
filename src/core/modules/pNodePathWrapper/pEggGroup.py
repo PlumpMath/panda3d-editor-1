@@ -73,6 +73,7 @@ class ObjectEggGroup(ObjectEggBase):
       None ]
   
   def destroy(self):
+    ObjectEggBase.destroy(self)
     self.eggGroup = None
     self.modelWrapper = None
   

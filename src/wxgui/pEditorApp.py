@@ -301,7 +301,7 @@ class EditorApp(AppShell):
   def onCreateObject(self, e):
     """Invoked when the user hits one of the buttons in the "Create" menu."""
     
-    modelParent = modelController.getSelectedModel() 
+    modelParent = modelController.getSelectedObject() 
     if modelParent == None: modelParent = render
     objectInstance = None
     if e.Id == ID_NODEPATH:
@@ -341,8 +341,8 @@ class EditorApp(AppShell):
     if objectInstance != None:
       objectInstance.reparentTo(modelParent)
       objectInstance.enableEditmode() 
-      modelController.selectModel(objectInstance)
-      messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+      modelController.selectObject(objectInstance)
+      messenger.send(EVENT_SCENEGRAPH_REFRESH)
   
   def onChangeViewports(self, e):
     """Invoked when the user changes viewport layout."""

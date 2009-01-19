@@ -135,14 +135,16 @@ class ObjectEggTexture(ObjectEggBase):
   def __init__(self, parent, modelWrapper, eggTexture):
     ObjectEggBase.__init__(self, parent, modelWrapper, 'EggTexture')
     self.eggTexture = eggTexture
-    self.startEdit()
   
   def destroy(self):
     self.stopEdit()
+    ObjectEggBase.destroy(self)
     self.eggTexture = None
     self.modelWrapper = None
   
   def startEdit(self):
+    ObjectEggBase.startEdit(self)
+    print "I: ObjectEggTexture.startEdit"
     # search for the corresponding nodepath-texture in the egg-file
     eggTextureFilename = self.eggTexture.getFilename()
     texture = None
@@ -159,6 +161,7 @@ class ObjectEggTexture(ObjectEggBase):
       print "I: ObjectEggTexture.startEdit: texture not found", eggTextureFilename
   
   def stopEdit(self):
+    ObjectEggBase.stopEdit(self)
     texturePainter.stopEdit()
     texturePainter.disableEditor()
   

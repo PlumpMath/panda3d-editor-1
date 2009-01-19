@@ -8,6 +8,7 @@ class ObjectEggData(ObjectEggBase):
     self.eggData = eggData
   
   def destroy(self):
+    ObjectEggBase.destroy(self)
     self.eggData = None
     self.modelWrapper = None
   

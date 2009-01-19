@@ -71,6 +71,8 @@ class BaseWrapper(DirectObject):
     self.ignore(EVENT_MODELCONTROLLER_FULL_REFRESH)
     self.ignore(EVENT_MODELCONTROLLER_FAST_REFRESH)
     self.ignoreAll()
+    self.mutableParameters = None
+    self.object = None
   
   def createEditWindow(self):
     if self.buttonsWindow is None:
@@ -148,7 +150,7 @@ class BaseWrapper(DirectObject):
         else:
           print "W: dgui.BaseWrapper.createEditWindow: no mutableparameter for entry"
           print "  -", self.object.__class__.__name__
-          print "  -", paramType, paramName
+          print "  -", paramName
           print "  - in", self.mutableParametersSorting
         self.parameterEntries[paramName] = paramEntry
       self.updateAllEntires()
@@ -237,11 +239,11 @@ class BaseWrapper(DirectObject):
                 pass
           else:
             print "W: dgui.BaseWrapper.updateAllEntires: no parameterEntry for", paramName, self.object.__class__.__name__
-        else:
-          print "W: dgui.BaseWrapper.updateAllEntires: undefined value for", paramName
-      # when the name changed, update the scenegraph
-      if paramName == 'name':
-        messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+#        else:
+#          print "W: dgui.BaseWrapper.updateAllEntires: undefined value for", paramName
+        # when the name changed, update the scenegraph
+        if paramName == 'name':
+          messenger.send(EVENT_SCENEGRAPH_REFRESH)
 
 
 

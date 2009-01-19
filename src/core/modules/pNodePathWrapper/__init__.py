@@ -92,9 +92,9 @@ class NodePathWrapper(BaseWrapper):
       parent = self
       modelFilepath = self.modelFilepath
       node = self
-      print "I: NodePathWrapper.setModel: creating child treeWrappers"
+      #print "I: NodePathWrapper.setModel: creating child treeWrappers"
       getEggDataEditable(parent, node, modelFilepath)
-      self.printTree()
+      #self.printTree()
     
     # if the model loading fails or no path given, use a dummy object
     if self.model is None:
@@ -105,14 +105,13 @@ class NodePathWrapper(BaseWrapper):
   
   def destroy(self):
     # destroy this object
-    self.stopEdit()
-    self.disableEditmode()
+    #self.stopEdit()
+    #self.disableEditmode()
+    BaseWrapper.destroy(self)
     self.model.detachNode()
     self.model.removeNode()
-    BaseWrapper.destroy(self)
   
   def enableEditmode(self):
-    print "I: NodePathWrapper.enableEditmode", self
     if not self.editModeEnabled:
       # edit mode is enabled
       BaseWrapper.enableEditmode(self)

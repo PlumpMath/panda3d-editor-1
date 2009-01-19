@@ -25,6 +25,7 @@ class ObjectEggPolygon(ObjectEggBase):
       print self.eggPolygon.getTexture(1)'''
   
   def destroy(self):
+    ObjectEggBase.destroy(self)
     self.eggPolygon = None
     self.modelWrapper = None
   

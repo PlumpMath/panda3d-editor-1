@@ -2,6 +2,7 @@ import traceback
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.pConfigDefs import *
+from core.modules.pBaseWrapper import *
 
 DEBUG = False
 
@@ -113,37 +114,83 @@ class SceneNodeWrapper(VirtualNodeWrapper):
       for objectInstance, eggData in loadedObjects:
         objectInstance.loadFromData( eggData, filepath )
       
-      self.sceneFilepath = sceneFilepath
-      
       # refresh the scenegraphbrowser
-      messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+      messenger.send(EVENT_SCENEGRAPH_REFRESH)
+    
+    self.sceneFilepath = sceneFilepath
   
-  def enableEditmode(self):
+  def save(self, filepath):
+    def saveRecursiveChildrens(parent, eggParentData, relativeTo):
+      for child in parent.getChildren():
+        # save the childs data
+        hasNodePath = BaseWrapper in child.__class__.__mro__
+        print "saveRecursiveChildrens", type(child)
+        isSceneNode = type(child) == SceneNodeWrapper
+        if hasNodePath: # and not isSceneNode:
+          # editModeEnabled is only true for SceneNodeWrappers, which have not
+          # been referenced (it's the root node). thus the childrens data
+          # should not be included if False
+          #if child.editModeEnabled:
+          modelData = child.getSaveData(relativeTo)
+          eggParentData.addChild(modelData)
+          # if there is data of the model walk the childrens
+          if modelData:
+            # but not if it's a sceneNode
+            # (this would save the scene twice, once as linked scene and
+            # once the models within the scene referenced)
+            if not isSceneNode: 
+              # search childrens
+              saveRecursiveChildrens(child, modelData, relativeTo)
+    
+    # create a eggData to save the data
+    eggData = EggData()
+    eggData.setCoordinateSystem(1)
+    # start reading the childrens of render
+    relativeTo = Filename(filepath).getDirname()
+    relativeTo = str(Filename.fromOsSpecific(relativeTo))
+    saveRecursiveChildrens(self, eggData, relativeTo)
+    # save the egg file
+    eggData.writeEgg(Filename(filepath))
+  
+  def enableEditmode(self, recursive=False):
     print "I: SceneNodeWrapper.enableEditmode:"
     VirtualNodeWrapper.enableEditmode(self)
-    '''if self.getCurrentOrNextState() == 'WorldEditMode':
-      # enable the editing on the objects when editing is enabled
-      for model in modelIdManager.getAllModels():
-        try:
-          model.enableEditmode()
-        except:
-          pass # some objects are not part of the scene (like arrows to move etc.)
-      # select no model
-      modelController.selectModel(None)'''
-    # enable the editing on the objects when editing is enabled
-    for node in modelIdManager.getAllNodes():
-      try:
-        node.enableEditmode()
-      except:
-        pass # some objects are not part of the scene (like arrows to move etc.)
+    
+    if recursive:
+      def recurse(parent):
+        for child in parent.getChildren():
+          if type(child) != SceneNodeWrapper:
+            child.enableEditmode()
+            recurse(child)
+          else:
+            child.enableEditmode(False) # also enable sceneNodes, but not recursive
+            print "I: SceneNodeWrapper.enableEditmode.recurse: not enabling editmode on", child
+      recurse(self)
   
-  def disableEditmode(self):
+  def disableEditmode(self, recursive=False):
     VirtualNodeWrapper.disableEditmode(self)
+    
+    if recursive:
+      def recurse(parent):
+        for child in parent.getChildren():
+          if type(child) != SceneNodeWrapper:
+            recurse(child)
+            child.disableEditmode()
+          else:
+            child.disableEditmode(False) # also disable sceneNodes, but not recursive
+            print "I: SceneNodeWrapper.enableEditmode.recurse: not enabling editmode on", child
+      recurse(self)
   
-  def destroy(self):
-    VirtualNodeWrapper.destroy(self)
+  def destroy(self, recursive=True):
     # destroy the scene
-    self.sceneFilepath
+    #if recursive:
+    def recurse(parent):
+      for child in parent.getChildren()[:]: # accessing it directly causes it to miss childrens
+        recurse(child)
+        child.destroy()
+    recurse(self)
+    
+    VirtualNodeWrapper.destroy(self)
   
   def getSaveData(self, relativeTo):
     objectInstance = VirtualNodeWrapper.getSaveData(self, relativeTo)

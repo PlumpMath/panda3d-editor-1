@@ -20,6 +20,8 @@ from core.pModelController import modelController
 EDITOR_DGUI_TOGGLE_BUTTON = 'tab'
 EDITOR_DGUI_DISABLE_BUTTON = 'f11'
 
+DGUI_SCENEGRAPHBROWSER_ACTIVE = True
+
 DEBUG = False
 
 import types
@@ -101,23 +103,24 @@ class EditorApp(DirectObject, FSM):
   
   def enterWorldEditMode(self):
     cameraController.enable()
-    self.scenegraphBrowserWindow = DirectSidebar(
-      frameSize=(1., 1.5)
-    , pos=Vec3(0,0,0.05)
-    , align=ALIGN_LEFT|ALIGN_BOTTOM
-    , orientation=VERTICAL
-    , text='scenegraph')
-    # create SceneGraphBrowser and point it on aspect2d
-    self.scenegraphBrowser = SceneGraphBrowser(
-               parent=self.scenegraphBrowserWindow, # where to attach SceneGraphBrowser frame
-               treeWrapperRoot=self.editorInstance.treeParent, # display children under this root node
-               includeTag=ENABLE_SCENEGRAPHBROWSER_MODEL_TAG,
-               button1func=modelController.selectNodePath,
-               pos=(0,0,0),
-               frameSize=(1,1.5)
-               )
-    self.scenegraphBrowser.accept(EVENT_SCENEGRAPHBROWSER_REFRESH,self.scenegraphBrowser.update)
-    self.accept( 'r', messenger.send, [EVENT_SCENEGRAPHBROWSER_REFRESH] )
+    if DGUI_SCENEGRAPHBROWSER_ACTIVE:
+      self.scenegraphBrowserWindow = DirectSidebar(
+        frameSize=(1., 1.5)
+      , pos=Vec3(0,0,0.05)
+      , align=ALIGN_LEFT|ALIGN_BOTTOM
+      , orientation=VERTICAL
+      , text='scenegraph')
+      # create SceneGraphBrowser and point it on aspect2d
+      self.scenegraphBrowser = SceneGraphBrowser(
+                 parent=self.scenegraphBrowserWindow, # where to attach SceneGraphBrowser frame
+                 treeWrapperRoot=self.editorInstance.treeParent, # display children under this root node
+                 includeTag=ENABLE_SCENEGRAPHBROWSER_MODEL_TAG,
+                 button1func=modelController.selectObject,
+                 pos=(0,0,0),
+                 frameSize=(1,1.5)
+                 )
+      self.scenegraphBrowser.accept(EVENT_SCENEGRAPH_REFRESH,self.scenegraphBrowser.update)
+      self.accept( 'r', messenger.send, [EVENT_SCENEGRAPH_REFRESH] )
     
     sceneButtonDefinitions = [ 
       ['load', self.loadEggModelsFile, []]
@@ -168,9 +171,9 @@ class EditorApp(DirectObject, FSM):
     
     self.editorObjectGuiInstance = None
     self.lastSelectedObject = None
-    self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.createObjectEditor)
     
-    self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.modelSelected)
+    self.accept(EVENT_MODELCONTROLLER_SELECTED_OBJECT_CHANGE, self.createObjectEditor)
+    self.accept(EVENT_MODELCONTROLLER_SELECTED_OBJECT_CHANGE, self.modelSelected)
   
   def exitWorldEditMode(self):
     # hide the text
@@ -181,8 +184,9 @@ class EditorApp(DirectObject, FSM):
     if self.editorObjectGuiInstance is not None:
       self.editorObjectGuiInstance.stopEdit()
     
-    self.scenegraphBrowserWindow.destroy()
-    self.scenegraphBrowserWindow.detachNode()
+    if DGUI_SCENEGRAPHBROWSER_ACTIVE:
+      self.scenegraphBrowserWindow.destroy()
+      self.scenegraphBrowserWindow.detachNode()
     
     self.sceneButtons.destroy()
     self.sceneButtons.detachNode()
@@ -203,13 +207,13 @@ class EditorApp(DirectObject, FSM):
     pass
   
   def duplicateModelWrapper(self):
-    originalModel = modelController.getSelectedModel()
+    originalModel = modelController.getSelectedObject()
     objectInstance = originalModel.makeInstance(originalModel)
     if objectInstance is not None:
       objectInstance.enableEditmode()
     #objectInstance.loadFromData( originalModel.getSaveData('.') )
-    messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
-    modelController.selectModel( objectInstance )
+    messenger.send( EVENT_SCENEGRAPH_REFRESH )
+    modelController.selectObject( objectInstance )
   
   def setObjectEditwindowToggled(self, state):
     ''' saves the state of the object related window, so you dont have to
@@ -229,18 +233,18 @@ class EditorApp(DirectObject, FSM):
   
   def modelSelected(self, model):
     #try:
-      if self.lastSelectedObject != modelController.getSelectedModel():
+      if self.lastSelectedObject != modelController.getSelectedObject():
         # selected model has been changed
         if self.editorObjectGuiInstance is not None:
           # destroy gui instance of old object
           self.editorObjectGuiInstance.stopEdit()
         
         # save the object as the new object
-        self.lastSelectedObject = modelController.getSelectedModel()
+        self.lastSelectedObject = modelController.getSelectedObject()
         
-        if modelController.getSelectedModel() is not None:
+        if modelController.getSelectedObject() is not None:
           # create gui instance of new object
-          objType = modelController.getSelectedModel().__class__
+          objType = modelController.getSelectedObject().__class__
           # the codenode inherits from the real class we use...
           # but we need the name of the internal class, 
           bases = list()
@@ -250,13 +254,14 @@ class EditorApp(DirectObject, FSM):
             objType = 'CodeNodeWrapper'
           else:
             objType = objType.__name__
+#          print "I: importing", "dgui.modules.p%s" % objType
           module = __import__("dgui.modules.p%s" % objType, globals(), locals(), [objType], -1)
           try:
-            self.editorObjectGuiInstance = getattr(module, objType)(modelController.getSelectedModel(), self)
+            self.editorObjectGuiInstance = getattr(module, objType)(modelController.getSelectedObject(), self)
+            self.editorObjectGuiInstance.startEdit()
           except TypeError:
-            print "E: dgui.EditorApp.modelSelected: object", objType, modelController.getSelectedModel()
+            print "E: dgui.EditorApp.modelSelected: object", objType, modelController.getSelectedObject()
             traceback.print_exc()
-          self.editorObjectGuiInstance.startEdit()
         else:
           self.editorObjectGuiInstance = None
       else:
@@ -298,23 +303,23 @@ class EditorApp(DirectObject, FSM):
   def onCreateFilebrowserModelWrapper(self, objectType, filepath):
     if filepath != None and filepath != '' and filepath != ' ':
       filepath = Filename.fromOsSpecific(filepath).getFullpath()
-      modelParent = modelController.getSelectedModel()
+      modelParent = modelController.getSelectedObject()
       module = __import__("core.modules.p%s" % objectType, globals(), locals(), [objectType], -1)
       objectInstance = getattr(module, objectType).onCreateInstance(modelParent, filepath)
       if objectInstance is not None:
         objectInstance.enableEditmode()
-      messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
-      modelController.selectModel( objectInstance )
+      messenger.send( EVENT_SCENEGRAPH_REFRESH )
+      modelController.selectObject(objectInstance)
   
   def createModelWrapper(self, type):
     # create the actual wrapper of the object
     module = __import__("core.modules.p%s" % type, globals(), locals(), [type], -1)
-    modelParent = modelController.getSelectedModel()
+    modelParent = modelController.getSelectedObject()
     objectInstance = getattr(module, type).onCreateInstance(modelParent)
     if objectInstance is not None:
       objectInstance.enableEditmode()
-    messenger.send( EVENT_SCENEGRAPHBROWSER_REFRESH )
-    modelController.selectModel( objectInstance )
+    messenger.send( EVENT_SCENEGRAPH_REFRESH )
+    modelController.selectObject( objectInstance )
   
   def createInterface( self, buttonDefinitions, title, align, pos ):
     buttons = list()

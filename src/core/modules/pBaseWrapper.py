@@ -49,7 +49,7 @@ class BaseWrapper(TreeNode):
   def __init__(self, parent, name):
     # get a uniq id for this object
     self.id = modelIdManager.getId()
-    self.name = name
+    self.name = name # is duplicate should be removed and treeName in TreeNode used instead, also pEggBase has this duplicate
     # define a name for this object
     TreeNode.__init__(self, name, self)
     TreeNode.reparentTo(self, parent)
@@ -118,6 +118,9 @@ class BaseWrapper(TreeNode):
       None,
       None ]
   
+  def __del__(self):
+    pass
+  
   def enableEditmode(self):
     ''' enables the edit methods of this object
     makes it pickable etc.
@@ -149,13 +152,15 @@ class BaseWrapper(TreeNode):
       print "E: core.BaseWrapper.stopEdit: object is not in editmode", self
   
   def destroy(self):
-    modelIdManager.delObjectId( self.id )
+    self.stopEdit()
+    self.disableEditmode()
     self.nodePath.detachNode()
     self.nodePath.removeNode()
+    TreeNode.detachNode(self)
+    modelIdManager.delObjectId( self.id )
   
   def getParameter(self, name):
     varType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[name]
-    #getFunc = getattr(self, getFuncName)
     # store the parameters
     if hasFunc != None and not hasFunc():
       return None
@@ -172,9 +177,9 @@ class BaseWrapper(TreeNode):
       for n, v in varType.items():
         if v == val:
           return n
-      print "E: core.BaseWrapper.getParameters: invalid value %s for enum %s" % (val, varType.__name__)
+      print "E: core.BaseWrapper.getParameter: invalid value %s for enum %s" % (val, varType.__name__)
     else:
-      print "E: core.BaseWrapper.getParameters: unknown varType %s for %s" % (varType.__name__, name)
+      print "E: core.BaseWrapper.getParameter: unknown varType %s for %s" % (varType.__name__, name)
   
   def getParameters(self):
     # get the data
@@ -258,9 +263,9 @@ class BaseWrapper(TreeNode):
   ''' --- load & save to files --- '''
   def getSaveData(self, relativeTo):
     # the given name of this object
-    name = self.getName()
+    name = self.name #nodepath.getName()
     # convert the matrix, very ugly right now
-    om = self.getMat()
+    om = self.nodePath.getMat()
     nm = Mat4D()
     for x in xrange(4):
       for y in xrange(4):
@@ -297,8 +302,8 @@ class BaseWrapper(TreeNode):
   def makeInstance(self, originalInstance):
     ''' create a copy of this instance
     '''
-    newInstance = self(originalInstance.getParent(), originalInstance.getName())
-    newInstance.setMat(originalInstance.getMat())
+    newInstance = self(originalInstance.getParent(), originalInstance.name+"-copy")
+    newInstance.nodePath.setMat(originalInstance.nodePath.getMat())
     newInstance.setParameters(originalInstance.getParameters())
     return newInstance
   makeInstance = classmethod(makeInstance)

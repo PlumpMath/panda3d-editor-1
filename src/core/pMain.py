@@ -12,6 +12,8 @@ from direct.fsm.FSM import FSM
 
 #from editorObjects import *
 from core.pModelController import modelController
+from core.pScenePicker import *
+from core.pModelModificator import *
 #from core.pCameraController import cameraController
 from core.pModelIdManager import modelIdManager
 from core.pConfigDefs import *
@@ -22,6 +24,7 @@ from core.pSoundManager import soundManager
 from core.pObjectEditor import objectEditor
 from core.modules import *
 from core.pTreeNode import *
+from core.modules.pSceneNodeWrapper import *
 
 DEBUG = False
 
@@ -36,27 +39,23 @@ class EditorClass(DirectObject, FSM):
     
     self.request('DisabledMode')
     
-    self.treeParent = TreeParentNode(parentNodePath)
+    #self.treeParent = TreeParentNode(parentNodePath)
+    self.treeParent = SceneNodeWrapper.onCreateInstance(None, 'default.egg')
   
   def enterDisabledMode(self):
     pass
   def exitDisabledMode(self):
-    for node in modelIdManager.getAllNodes():
-      try:    node.enableEditmode()
-      except: pass # some objects are not wrappers (like arrows to move etc.)
+    self.treeParent.enableEditmode(True)
   
   def enterPlayMode(self):
     soundManager.enable()
     # disable edit mode on all nodes
-    for model in modelIdManager.getAllModels():
-      if model.hasTag(EDITABLE_OBJECT_TAG):
-        model.disableEditmode()
+    self.treeParent.disableEditmode()
   def exitPlayMode(self):
-    for model in modelIdManager.getAllModels():
-      try:    model.enableEditmode()
-      except: pass # some objects are not wrappers (like arrows to move etc.)
+    self.treeParent.enableEditmode(True)
   
   def enterWorldEditMode(self):
+    print "I: core.EditorClass.enterWorldEditMode:"
     soundManager.enable()
     
     self.sceneHelperModels = NodePath('editor-helper-models')
@@ -67,27 +66,28 @@ class EditorClass(DirectObject, FSM):
     axis = loader.loadModel( 'zup-axis.egg' )
     axis.reparentTo( self.sceneHelperModels )
     
+    scenePicker.toggleEditmode(True)
+    #print "I: core.EditorClass.enterWorldEditMode:", modelModificator.__class__.__name__
+    modelModificator.toggleEditmode(True)
+    
     # a grid model
     gridNp = DirectGrid(parent=self.sceneHelperModels)
     
     # refresh the scenegraphbrowser
-    messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+    #messenger.send(EVENT_SCENEGRAPH_REFRESH)
+    messenger.send(EVENT_SCENEGRAPH_CHANGE_ROOT, [self.treeParent])
     
-    modelController.toggleEditmode(True)
+    messenger.send(EVENT_MODELCONTROLLER_SELECT_OBJECT, [None])
+    messenger.send(EVENT_SCENEGRAPH_REFRESH)
   
   def exitWorldEditMode(self):
     # save the selected model to the texturePainter
-    objectEditor.setEditObject(modelController.getSelectedModel())
+    objectEditor.setEditObject(modelController.getSelectedObject())
     # drop what we have selected
-    modelController.selectModel(None)
+    modelController.selectObject(None)
     # disable the selecting of nodes
-    modelController.toggleEditmode(False)
-  
-  def enterObjectEditMode(self):
-    objectEditor.enableEditor()
-  
-  def exitObjectEditMode(self):
-    objectEditor.disableEditor()
+    scenePicker.toggleEditmode(False)
+    modelModificator.toggleEditmode(False)
   
   def toggle(self, state=None):
     if state is None:
@@ -121,73 +121,76 @@ class EditorClass(DirectObject, FSM):
   
   def saveEggModelsFile(self, filepath):
     # walk the render tree and save the egg-links
-    
-    def saveRecursiveChildrens(parent, eggParentData, relativeTo):
-      for child in parent.getChildren():
-        # save the childs data
-        modelData = None
-        if child.hasTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG):
-          objectId = child.getTag(EDITABLE_OBJECT_TAG)
-          object = modelIdManager.getObject(objectId)
-          modelData = object.getSaveData(relativeTo)
-          eggParentData.addChild(modelData)
-        # if there is data of the model walk the childrens
-        if modelData:
-          # search childrens
-          saveRecursiveChildrens(child, modelData, relativeTo)
-    
-    # create a eggData to save the data
-    eggData = EggData()
-    eggData.setCoordinateSystem(1)
-    # start reading the childrens of render
-    relativeTo = Filename(filepath).getDirname()
-    relativeTo = str(Filename.fromOsSpecific(relativeTo))
-    saveRecursiveChildrens(render, eggData, relativeTo)
-    # save the egg file
-    eggData.writeEgg(Filename(filepath))
+    self.treeParent.save(filepath)
   
   def loadEggModelsFile(self, filepath):
     # read the eggData
     
     if filepath != None and filepath != '' and filepath != ' ':
-      self.destroyAllModels()
+      self.destroyScene()
       
       filetype = os.path.splitext(filepath)
-      self.parentWrapper = SceneNodeWrapper.onCreateInstance(self.treeParent, filepath)
-      
-      #print "I: EditorClass.loadEggModelsFile: TESTING tree"
-      #self.treeParent.printTree()
-      #self.parentWrapper.printTree()
-      #print "I: done"
+      self.treeParent = SceneNodeWrapper.onCreateInstance(None, filepath)
       
       if self.getCurrentOrNextState() == 'WorldEditMode':
-        # enable the editing on the objects when editing is enabled
-        for node in modelIdManager.getAllNodes():
-          try:
-            node.enableEditmode()
-          except:
-            pass # some objects are not part of the scene (like arrows to move etc.)
-        # select no model
-        modelController.selectModel(None)
+        self.treeParent.enableEditmode(True)
       
       # refresh the scenegraphbrowser
-      messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+      messenger.send(EVENT_SCENEGRAPH_CHANGE_ROOT, [self.treeParent])
+      
+      if self.getCurrentOrNextState() == 'WorldEditMode':
+        # select no model -> will select sceneRoot
+        modelController.selectObject(None)
   
   def destroyModel(self):
-    selectedObject = modelController.getSelectedModel()
-    modelController.selectModel(None)
+    selectedObject = modelController.getSelectedObject()
     if selectedObject is not None:
+      if selectedObject == self.treeParent:
+        print "W: core.EditorClass: should not destroy root object"
+        return
+      modelController.selectObject(None)
+      
+      MEMLEAK_CHECK = False
+      if MEMLEAK_CHECK:
+        tmp = [selectedObject]
+      
+      # delete recursively
+      for object in selectedObject.getRecChildren():
+        if MEMLEAK_CHECK:
+          tmp.append(object)
+        object.destroy()
+        del object
+      
       selectedObject.destroy()
       del selectedObject
-    
-    # refresh the scenegraphbrowser
-    messenger.send(EVENT_SCENEGRAPHBROWSER_REFRESH)
+      
+      # refresh the scenegraphbrowser
+      messenger.send(EVENT_SCENEGRAPH_REFRESH)
+      
+      if MEMLEAK_CHECK:
+        import gc
+        gc.collect()
+        gc.collect()
+        for t in tmp:
+          print "W: EditorClass.destroyModel: MEMLEAK_CHECK"
+          print "  - type:          ", t.__class__.__name__
+          print "  - instance:      ", t
+          print "  - num references:", len(gc.get_referrers(t))
+          for ref in gc.get_referrers(t):
+            print "    -", ref
   
-  def destroyAllModels(self):
-    # delete all loaded models
-    modelController.selectModel(None) 
-    for node in modelIdManager.getAllNodes():
-      if type(node) != NodePath:
-        if node.nodePath.hasTag(EDITABLE_OBJECT_TAG):
-          node.destroy()
-          del node
+  def destroyScene(self):
+    # delete the whole scene
+    messenger.send(EVENT_SCENEGRAPH_CHANGE_ROOT, [None])
+    messenger.send(EVENT_MODELCONTROLLER_SELECT_OBJECT, [None])
+    print "destroyScene:childs", self.treeParent.getChildren()
+    self.treeParent.destroy()
+    del self.treeParent
+    
+    print "D: core.EditorApp.destroyScene: found obj in modelIdManager"
+    for obj in modelIdManager.getAllObjects():
+      if type(obj) != NodePath:
+        print "  -", obj
+        #if node.nodePath.hasTag(EDITABLE_OBJECT_TAG):
+          #node.destroy()
+          #del node

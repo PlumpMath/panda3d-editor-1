@@ -8,6 +8,7 @@ class ObjectEggVertexPool(ObjectEggBase):
     self.eggVertexPool = eggVertexPool
   
   def destroy(self):
+    ObjectEggBase.destroy(self)
     self.eggVertexPool = None
     self.modelWrapper = None
   

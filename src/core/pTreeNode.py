@@ -12,12 +12,10 @@ class TreeNode(object):
     self.treeData = treeData
   
   def reparentTo(self, treeParent):
-    #print "I: TreeNode.reparentTo:", self.treeName, treeParent
     self.detachNode()
-    if treeParent not in self:
+    if treeParent not in self.getRecChildren():
       self.treeParent = treeParent
       if self.treeParent:
-        #print type(self.parent)
         self.treeParent.treeChildren.append(self)
     else:
       print "W: TreeNode.reparentTo: cannot reparent to TreeNode in children"
@@ -26,8 +24,23 @@ class TreeNode(object):
   
   def detachNode(self):
     if self.treeParent:
-      self.treeParent.treeChildren.remove(self)
+      if self in self.treeParent.treeChildren:
+        self.treeParent.treeChildren.remove(self)
     self.treeParent = None
+    self.treeData = None
+    del self.treeChildren
+    self.treeChildren = list()
+  
+  def getParent(self):
+    return self.treeParent
+  
+  def getRecChildren(self):
+    l = list()
+    for child in self.treeChildren:
+#      print child.treeName
+      l.append(child)
+      l.extend(child.getRecChildren())
+    return l
   
   def getChildren(self, index=None):
     ''' if index is defined, return a specific children
@@ -42,15 +55,12 @@ class TreeNode(object):
   def getNumChildren(self):
     return len(self.treeChildren)
   
-  def __iter__(self):
-    ''' iterate over self and all childrens '''
+  '''def __iter__(self):
+    # iterate over self and all childrens
     yield self
     for treeChild in self.treeChildren:
       for childIter in treeChild:
-        yield childIter
-  
-  #def __repr__(self):
-  #  return "'%s'/'%s'" % (str(self.name), str(self.data))
+        yield childIter'''
   
   def printTree(self, depth=0):
     print " "*depth+" -"+str(self.treeName)
@@ -63,8 +73,13 @@ class TreeParentNode(TreeNode):
   is used by the Main to parent all nodes under this one '''
   def __init__(self, parentNodepath):
     TreeNode.__init__(self, 'root', None)
+    self.name = 'root'
+    self.mutableParameters = dict()
     self.nodePath = parentNodepath
-#treeParent = TreeParentNode()
+  def startEdit(self):
+    pass
+  def stopEdit(self):
+    pass
 
 
 
@@ -74,10 +89,20 @@ if __name__ == '__main__':
   c = TreeNode('c', 2)
   b.reparentTo(a)
   c.reparentTo(b)
+  print "a.getRecChildren()"
+  for x in a.getRecChildren():
+    print "  -", x.treeName
   
   # this must fail
   a.reparentTo(c)
   
-  print [obj for obj in a]
+  print [obj for obj in a.getRecChildren()]
   
+  b.detachNode()
   
+  #x = obj[1]
+  
+  import gc
+  gc.collect()
+  for c in gc.get_referrers(b):
+    print "  -", c

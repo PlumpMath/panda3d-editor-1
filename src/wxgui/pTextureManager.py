@@ -392,5 +392,5 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
   
   def viewForSelection(self):
     """Similar to viewForNodePath, but this uses the currently selected model."""
-    return self.viewForNodePath(modelController.getSelectedModel())
+    return self.viewForNodePath(modelController.getSelectedObject())
 

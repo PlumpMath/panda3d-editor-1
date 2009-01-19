@@ -15,15 +15,16 @@ class DirectTreeItem(object):
     self.parent=None
     self.setParent(parent)
     self.open=True
+    self.highlighted=False
     self.button1Func=None
     self.button2Func=None
     self.button3Func=None
-  def toggleClose(self, state=None):
+  def setOpen(self, newState=None):
     ''' close this node, hiding it's children
     '''
-    if state is None:
-      state = not self.open
-    self.open = state
+    if newState is None:
+      newState = not self.open
+    self.open = newState
     messenger.send(EVENT_DIRECTTREE_REFRESH)
   def getShow(self):
     ''' calculate if this node should be shown
@@ -48,7 +49,7 @@ class DirectTreeItem(object):
     if parent is not None:
       assert(type(parent) == DirectTreeItem)
       # parent & child are iterators, so we can check "in"
-      if parent not in self and self not in parent and self != parent:
+      if parent not in self.getRec() and self not in parent.getRec() and self != parent:
         self.parent = parent
         self.parent.addChild(self)
       else:
@@ -76,11 +77,22 @@ class DirectTreeItem(object):
     print " "*self.getDepth()+["- ","+ "][self.open]+self.name, self.getShow() #, self.isParentOpen()
     for c in self.childrens:
       c.printChildren()
-  def __iter__(self):
+  def getRec(self):
+    l = [self]
+    for child in self.childrens:
+      l.extend(child.getRec())
+    return l
+  def getRecChildren(self):
+    l = list()
+    for child in self.childrens:
+      l.append(child)
+      l.extend(child.getRecChildren())
+    return l
+  '''def __iter__(self):
     yield self
     for a in self.childrens:
       for b in a:
-        yield b
+        yield b'''
   def button1press(self, *args):
     if self.button1Func:
       self.button1Func(self)
@@ -101,6 +113,8 @@ class DirectTree(DirectObject):
       parent = aspect2d
     self.treeStructure = treeStructure
     self.treeStructureNodes = dict()
+    
+    self.highlightedNodes = list()
     
     self.frameWidth = frameSize[0] #0.8
     self.frameHeight = frameSize[1] #1.5
@@ -161,7 +175,7 @@ class DirectTree(DirectObject):
   def render(self):
     ''' traverse the tree and update the visuals according to it
     '''
-    for treeItem in self.treeStructure:
+    for treeItem in self.treeStructure.getRec():
       # create nodes that have no visual elements
       if not treeItem in self.treeStructureNodes:
         treeNode = self.childrenCanvas.attachNewNode('')
@@ -187,7 +201,7 @@ class DirectTree(DirectObject):
               frameColor=(1,1,1,1), frameSize=(-.4,.4,-.4,.4),
               pos=(-.5*self.itemIndent/self.itemScale,0,.25),
               text='', text_pos=(-.1,-.22), text_scale=(1.6,1), text_fg=(0,0,0,1),
-              enableEdit=0, command=treeItem.toggleClose, sortOrder=1000,
+              enableEdit=0, command=treeItem.setOpen, sortOrder=1000,
             )
         
 
@@ -196,7 +210,7 @@ class DirectTree(DirectObject):
     # destroy nodes no more used
     for treeItem in self.treeStructureNodes.keys()[:]:
       #treeItem = self.treeStructureNodes[treeName]
-      if treeItem not in self.treeStructure:
+      if treeItem not in self.treeStructure.getRec():
         treeNode, nodeButton, treeButton, hor, vert = self.treeStructureNodes[treeItem]
         #nodeButton['text']=''
         nodeButton.unbind(DGG.B1PRESS)
@@ -224,11 +238,19 @@ class DirectTree(DirectObject):
     self.childrenFrame['canvasSize'] = (0, self.frameWidth-self.itemScale*2, 0, frameHeight)
     self.childrenCanvas.setZ(frameHeight-1)
   
+  def highlight(self, selectedTreeNodes):
+    for treeNode in self.highlightedNodes:
+      treeNode.highlighted = False
+    self.highlightedNodes = selectedTreeNodes
+    for treeNode in self.highlightedNodes:
+      treeNode.highlighted = True
+    self.update()
+  
   def update(self):
     ''' update the tree, updating the positions and hidden status of childrens
     '''
     idx = 0
-    for treeItem in self.treeStructure:
+    for treeItem in self.treeStructure.getRec():
       # show or hide the items
       treeNode, nodeButton, treeButton, hor, vert = self.treeStructureNodes[treeItem]
       if treeItem.getShow():
@@ -244,8 +266,15 @@ class DirectTree(DirectObject):
         hor.hide()
         vert.hide()
       
+      if treeItem.highlighted:
+        nodeButton['text_fg'] = (1,0,0,1)
+      else:
+        nodeButton['text_fg'] = (0,0,0,1)
+      
+      # update the vertical position of the node
       treeNode.setPos(treeItem.getDepth()*self.itemIndent,0,1-idx*self.verticalSpacing)
       
+      # if the tree element has a treebutton (if it has childrens), update the +/-
       if treeButton:
         # update the text for the open/close button
         tag = ['+','-'][treeItem.open]
@@ -254,7 +283,7 @@ class DirectTree(DirectObject):
       # calculate length to the last children with the same depth as this treeitem
       # this gives the length of the vertical line
       c = -1; i = 0; treeItemDepth = treeItem.getDepth()
-      for recItem in treeItem:
+      for recItem in treeItem.getRec():
         if recItem.getShow():
           c+=1
         if recItem.getDepth() == treeItemDepth+1:
