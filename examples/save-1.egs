@@ -286,9 +286,28 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'antialias': 'MAuto', 'transparency': 'MDual'}"
   }
   <File> ExtRef {
     "models/smiley.egg.pz"
+  }
+}
+<Instance> SceneNode {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      0 0 13.6667 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    SceneNodeWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    jumpg.egs
   }
 }
