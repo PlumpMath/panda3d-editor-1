@@ -49,7 +49,6 @@ class BaseWrapper(TreeNode):
   def __init__(self, parent, name):
     # get a uniq id for this object
     self.id = modelIdManager.getId()
-    self.name = name # is duplicate should be removed and treeName in TreeNode used instead, also pEggBase has this duplicate
     # define a name for this object
     TreeNode.__init__(self, name, self)
     TreeNode.reparentTo(self, parent)
@@ -62,7 +61,6 @@ class BaseWrapper(TreeNode):
     else:
       parentNodepath = parent.nodePath
     self.nodePath.reparentTo(parentNodepath)
-    self.editModeEnabled = False
     
     # model used to show highlighting of this node
     self.highlightModel = None
@@ -119,47 +117,48 @@ class BaseWrapper(TreeNode):
       None ]
   
   def __del__(self):
+    print "I: BaseWrapper.__del__:", self.__class__.__name__
     pass
   
-  def enableEditmode(self):
+  def setEditmodeEnabled(self, recurseException=[]):
     ''' enables the edit methods of this object
     makes it pickable etc.
     edit mode is enabled'''
-    if not self.editModeEnabled:
+    if not self.isEditmodeEnabled():
       # make this a editable object
       self.nodePath.setTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG, '')
       self.nodePath.setTag(EDITABLE_OBJECT_TAG, self.id)
-      self.editModeEnabled = True
+      TreeNode.setEditmodeEnabled(self, recurseException)
   
-  def disableEditmode(self):
+  def setEditmodeDisabled(self, recurseException=[]):
     ''' disables the edit methods of this object
     -> performance increase
     edit mode is disabled'''
-    if self.editModeEnabled:
+    if self.isEditmodeEnabled():
       self.nodePath.clearTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG)
       self.nodePath.clearTag(EDITABLE_OBJECT_TAG)
-      self.editModeEnabled = False
+      TreeNode.setEditmodeDisabled(self, recurseException)
   
   def startEdit(self):
     # the object is selected to be edited
     # creates a directFrame to edit this object
-    if not self.editModeEnabled:
+    if not self.isEditmodeEnabled():
       print "E: core.BaseWrapper.startEdit: object is not in editmode", self
   
   def stopEdit(self):
     # the object is deselected from being edited
-    if not self.editModeEnabled:
+    if not self.isEditmodeEnabled():
       print "E: core.BaseWrapper.stopEdit: object is not in editmode", self
   
   def destroy(self):
     self.stopEdit()
-    self.disableEditmode()
+    self.setEditmodeDisabled()
     self.nodePath.detachNode()
     self.nodePath.removeNode()
     TreeNode.detachNode(self)
     modelIdManager.delObjectId( self.id )
   
-  def getParameter(self, name):
+  '''def getParameter(self, name):
     varType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[name]
     # store the parameters
     if hasFunc != None and not hasFunc():
@@ -191,9 +190,9 @@ class BaseWrapper(TreeNode):
     return parameters
   
   def setParameter(self, name, value):
-    ''' name: name of the parameter
-    value: value of the parameter, if parameter is a Vec or Point, give a tuple or list
-    '''
+    # name: name of the parameter
+    # value: value of the parameter, if parameter is a Vec or Point, give a tuple or list
+    #
     varType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[name]
     try:
       if clearFunc != None and (value == None or (isinstance(value, str) and value.lower() == "none")):
@@ -202,12 +201,6 @@ class BaseWrapper(TreeNode):
         # It's already the correct type
         setFunc(value)
       elif isinstance(varType, Enum):
-        '''if n in varType.keys():
-          v = varType[n]
-          setFunc(v)
-        else:
-          print "W: core.BaseWrapper.setParameter: invalid value %s for enum %s" % (value, varType.__name__)
-        '''
         for n, v in varType.items():
           if n == value:
             setFunc(v)
@@ -232,7 +225,7 @@ class BaseWrapper(TreeNode):
   
   def setParameters(self, parameters):
     for name, value in parameters.items():
-      self.setParameter(name, value)
+      self.setParameter(name, value)'''
   
   ''' --- external reference saving / loading ---
   these are used by if a wrapper uses a external file
@@ -263,7 +256,7 @@ class BaseWrapper(TreeNode):
   ''' --- load & save to files --- '''
   def getSaveData(self, relativeTo):
     # the given name of this object
-    name = self.name #nodepath.getName()
+    name = self.getName()
     # convert the matrix, very ugly right now
     om = self.nodePath.getMat()
     nm = Mat4D()

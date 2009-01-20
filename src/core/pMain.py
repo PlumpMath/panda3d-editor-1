@@ -25,6 +25,7 @@ from core.pObjectEditor import objectEditor
 from core.modules import *
 from core.pTreeNode import *
 from core.modules.pSceneNodeWrapper import *
+from core.modules.pNodePathWrapper import *
 
 DEBUG = False
 
@@ -45,14 +46,14 @@ class EditorClass(DirectObject, FSM):
   def enterDisabledMode(self):
     pass
   def exitDisabledMode(self):
-    self.treeParent.enableEditmode(True)
+    self.treeParent.setEditmodeEnabled([SceneNodeWrapper])
   
   def enterPlayMode(self):
     soundManager.enable()
     # disable edit mode on all nodes
-    self.treeParent.disableEditmode()
+    self.treeParent.setEditmodeDisabled([SceneNodeWrapper])
   def exitPlayMode(self):
-    self.treeParent.enableEditmode(True)
+    self.treeParent.setEditmodeEnabled([SceneNodeWrapper])
   
   def enterWorldEditMode(self):
     print "I: core.EditorClass.enterWorldEditMode:"
@@ -124,23 +125,30 @@ class EditorClass(DirectObject, FSM):
     self.treeParent.save(filepath)
   
   def loadEggModelsFile(self, filepath):
-    # read the eggData
     
-    if filepath != None and filepath != '' and filepath != ' ':
+    filebase, filetype = os.path.splitext(filepath)
+    if filetype == '.egg':
+      print "EditorClass.loadEggModelsFile: NodePath"
       self.destroyScene()
-      
-      filetype = os.path.splitext(filepath)
+      self.treeParent = NodePathWrapper.onCreateInstance(None, filepath)
+      if self.getCurrentOrNextState() == 'WorldEditMode':
+        self.treeParent.setEditmodeEnabled([NodePathWrapper])
+    elif filetype == '.egs':
+      print "EditorClass.loadEggModelsFile: SceneNode"
+      self.destroyScene()
       self.treeParent = SceneNodeWrapper.onCreateInstance(None, filepath)
-      
       if self.getCurrentOrNextState() == 'WorldEditMode':
-        self.treeParent.enableEditmode(True)
-      
-      # refresh the scenegraphbrowser
-      messenger.send(EVENT_SCENEGRAPH_CHANGE_ROOT, [self.treeParent])
-      
-      if self.getCurrentOrNextState() == 'WorldEditMode':
-        # select no model -> will select sceneRoot
-        modelController.selectObject(None)
+        self.treeParent.setEditmodeEnabled([SceneNodeWrapper])
+    else:
+      print "EditorClass.loadEggModelsFile: Unknown", filetype
+      return
+    
+    # refresh the scenegraphbrowser
+    messenger.send(EVENT_SCENEGRAPH_CHANGE_ROOT, [self.treeParent])
+    
+    if self.getCurrentOrNextState() == 'WorldEditMode':
+      # select no model -> will select sceneRoot
+      modelController.selectObject(None)
   
   def destroyModel(self):
     selectedObject = modelController.getSelectedObject()

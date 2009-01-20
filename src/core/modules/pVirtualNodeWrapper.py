@@ -17,31 +17,31 @@ class VirtualNodeWrapper(BaseWrapper):
   def destroy( self ):
     # destroy this object
     self.stopEdit()
-    self.disableEditmode()
+    self.setEditmodeDisabled()
     #modelIdManager.delObjectId( self.id )
     BaseWrapper.destroy( self )
   
-  def enableEditmode( self ):
+  def setEditmodeEnabled(self, recurseException=[]):
     ''' enables the edit methods of this object
     makes it pickable etc.'''
-    if not self.editModeEnabled: # variable will be changed by basewrapper
+    if not self.isEditmodeEnabled(): # variable will be changed by basewrapper
       # load a dummy model
-      self.virtualModel = loader.loadModel( self.virtualModelpath )
+      self.virtualModel = loader.loadModel(self.virtualModelpath)
       # set the model invisible in the scenegraphbrowser
       self.virtualModel.setLightOff()
       # make the model visible
-      self.virtualModel.reparentTo( self.nodePath )
+      self.virtualModel.reparentTo(self.nodePath)
       # enable picking of the object
-      self.nodePath.setCollideMask( DEFAULT_EDITOR_COLLIDEMASK )
+      self.nodePath.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
       # edit mode is enabled
-      BaseWrapper.enableEditmode( self )
+      BaseWrapper.setEditmodeEnabled(self, recurseException)
   
-  def disableEditmode( self ):
+  def setEditmodeDisabled(self, recurseException=[]):
     ''' disables the edit methods of this object
      -> performance increase'''
-    if self.editModeEnabled:
+    if self.isEditmodeEnabled():
       # edit mode is disabled
-      BaseWrapper.disableEditmode( self )
+      BaseWrapper.setEditmodeDisabled(self, recurseException)
       # remove the dummy model
       self.virtualModel.removeNode()
       self.virtualModel.detachNode()
@@ -51,11 +51,11 @@ class VirtualNodeWrapper(BaseWrapper):
   def startEdit( self ):
     # the object is selected to be edited
     # creates a directFrame to edit this object
-    if self.editModeEnabled:
+    if self.isEditmodeEnabled():
       self.virtualModel.showBounds()
     BaseWrapper.startEdit(self)
   def stopEdit( self ):
     # the object is deselected from being edited
-    if self.editModeEnabled:
+    if self.isEditmodeEnabled():
       self.virtualModel.hideBounds()
     BaseWrapper.stopEdit(self)

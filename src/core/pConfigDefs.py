@@ -126,3 +126,7 @@ MAX_CAMERA_DISTANCE = 1000
 # in here because most classes import this file anyway
 class Enum(dict):
   __name__ = "Enum"
+
+# What shall we use for multiple choice stuff (0x01 | 0x02 ...)
+class Bitmask(dict):
+  __name__ = "Bitmask"

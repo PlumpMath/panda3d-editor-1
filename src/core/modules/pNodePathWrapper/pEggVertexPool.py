@@ -11,11 +11,3 @@ class ObjectEggVertexPool(ObjectEggBase):
     ObjectEggBase.destroy(self)
     self.eggVertexPool = None
     self.modelWrapper = None
-  
-  def setParameters(self, parameters):
-    pass
-  
-  def getParameters(self):
-    parameters = dict()
-    return parameters
-  

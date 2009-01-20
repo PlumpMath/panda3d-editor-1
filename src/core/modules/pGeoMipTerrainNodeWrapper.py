@@ -20,11 +20,11 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
   
-  def enableEditmode(self):
-    BaseWrapper.enableEditmode(self)
+  def setEditmodeEnabled(self, recurseException=[]):
+    BaseWrapper.setEditmodeEnabled(self, recurseException)
     self.nodePath.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
-  def disableEditmode(self):
-    BaseWrapper.disableEditmode(self)
+  def setEditmodeDisabled(self, recurseException=[]):
+    BaseWrapper.setEditmodeDisabled(self, recurseException)
     self.nodePath.setCollideMask(BitMask32.allOff())
   
   def __init__(self, parent=None, name=None):

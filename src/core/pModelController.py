@@ -44,7 +44,7 @@ class ModelController(DirectObject):
       messenger.send(EVENT_MODELCONTROLLER_SELECTED_OBJECT_CHANGE, [newObject])
     else:
       # only select the object if it's editMode is enabled
-      if newObject.editModeEnabled:
+      if newObject.isEditmodeEnabled():
         if newObject == self.__selectedModel:
           # the current model has been clicked again
           messenger.send(EVENT_MODELCONTROLLER_SELECTED_OBJECT_AGAIN, [newObject])

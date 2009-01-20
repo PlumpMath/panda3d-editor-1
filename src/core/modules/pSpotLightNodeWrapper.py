@@ -56,10 +56,10 @@ class SpotLightNodeWrapper(LightNodeWrapper):
     # the object is selected to be edited
     # creates a directFrame to edit this object
     LightNodeWrapper.startEdit(self)
-    if self.editModeEnabled:
+    if self.isEditmodeEnabled():
       self.light.showFrustum()
   def stopEdit(self):
     # the object is deselected from being edited
-    if self.editModeEnabled:
+    if self.isEditmodeEnabled():
       self.light.hideFrustum()
     LightNodeWrapper.stopEdit(self)

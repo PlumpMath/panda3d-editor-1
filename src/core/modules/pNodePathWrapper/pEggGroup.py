@@ -1,13 +1,13 @@
-__all__ = ['ObjectEggGroup', 'EggGroup_CollideFlags',
-           'EggGroup_CollisionSolidType', 'EggGroup_DCSType',
-           'EggGroup_BillboardType']
+__all__ = ['ObjectEggGroup', 'EggGroup_CollideFlags_Bitmask',
+           'EggGroup_CollisionSolidType_Enum', 'EggGroup_DCSType_Enum',
+           'EggGroup_BillboardType_Enum']
 
 from pandac.PandaModules import *
 
-from core.pConfigDefs import *
 from core.modules.pNodePathWrapper.pEggBase import *
+from core.pConfigDefs import *
 
-EggGroup_CollideFlags = Enum(
+EggGroup_CollideFlags_Bitmask = Bitmask(
   CFNone = EggGroup.CFNone,
   CFDescend = EggGroup.CFDescend,
   CFEvent = EggGroup.CFEvent,
@@ -19,7 +19,7 @@ EggGroup_CollideFlags = Enum(
   CFIntangible = EggGroup.CFIntangible,
 )
 
-EggGroup_CollisionSolidType = Enum(
+EggGroup_CollisionSolidType_Enum = Enum(
   CSTNone = EggGroup.CSTNone,
   CSTPlane = EggGroup.CSTPlane,
   CSTPolygon = EggGroup.CSTPolygon,
@@ -30,7 +30,7 @@ EggGroup_CollisionSolidType = Enum(
   CSTFloorMesh = EggGroup.CSTFloorMesh,
 )
 
-EggGroup_DCSType = Enum(
+EggGroup_DCSType_Enum = Enum(
   DCUnspecified = EggGroup.DCUnspecified,
   DCNone = EggGroup.DCNone,
   DCLocal = EggGroup.DCLocal,
@@ -38,7 +38,7 @@ EggGroup_DCSType = Enum(
   DCDefault = EggGroup.DCDefault,
 )
 
-EggGroup_BillboardType = Enum(
+EggGroup_BillboardType_Enum = Enum(
   BTNone = EggGroup.BTNone,
   BTAxis = EggGroup.BTAxis,
   BTPointCameraRelative = EggGroup.BTPointCameraRelative,
@@ -51,22 +51,22 @@ class ObjectEggGroup(ObjectEggBase):
     # we need to work on the external eggGroup
     self.eggGroup = eggGroup
     # store the types of mutable parameters
-    self.mutableParameters['collision_solid_type'] = [ EggGroup_CollisionSolidType,
+    self.mutableParameters['collision_solid_type'] = [ EggGroup_CollisionSolidType_Enum,
       self.eggGroup.getCsType,
       self.eggGroup.setCsType,
       None,
       None ]
-    self.mutableParameters['collide_flags'] = [ EggGroup_CollideFlags,
+    self.mutableParameters['collide_flags'] = [ EggGroup_CollideFlags_Bitmask,
       self.eggGroup.getCollideFlags,
       self.eggGroup.setCollideFlags,
       None,
       None ]
-    self.mutableParameters['dcs_type'] = [ EggGroup_DCSType,
+    self.mutableParameters['dcs_type'] = [ EggGroup_DCSType_Enum,
       self.eggGroup.getDcsType,
       self.eggGroup.setDcsType,
       self.eggGroup.hasDcsType,
       None ]
-    self.mutableParameters['billaboard_type'] = [ EggGroup_BillboardType,
+    self.mutableParameters['billaboard_type'] = [ EggGroup_BillboardType_Enum,
       self.eggGroup.getBillboardType,
       self.eggGroup.setBillboardType,
       None,
@@ -77,6 +77,7 @@ class ObjectEggGroup(ObjectEggBase):
     self.eggGroup = None
     self.modelWrapper = None
   
+  '''
   def getParameters(self):
     parameters = dict()
     for name, [valueType, getFunc, setFunc, hasFunc, clearFunc] in self.mutableParameters.items():
@@ -89,4 +90,4 @@ class ObjectEggGroup(ObjectEggBase):
     for name, value in parameters.items():
       if name in self.mutableParameters:
         [valueType, getFunc, setFunc, hasFunc, clearFunc] = self.mutableParameters[name]
-        setFunc(parameters[name])
+        setFunc(parameters[name])'''

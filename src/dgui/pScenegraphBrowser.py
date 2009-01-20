@@ -32,6 +32,7 @@ class TreeGraphBrowser(DirectObject):
       if directTreeNode.parent:
         parentOpen(directTreeNode.parent)
       directTreeNode.open = True
+    
     if self.treeWrapperRoot:
       if treeNode and treeNode in self.directTreeDict:
         directTreeItem = self.directTreeDict[treeNode]
@@ -41,7 +42,7 @@ class TreeGraphBrowser(DirectObject):
         self.browser.highlight([])
   
   def button1func(self, treeItem):
-    self.browser.highlight([treeItem])
+    #self.browser.highlight([treeItem])
     self.button1funcCall(treeItem.sceneNp)
   def button2func(self, treeItem):
     self.button2funcCall(treeItem.sceneNp)

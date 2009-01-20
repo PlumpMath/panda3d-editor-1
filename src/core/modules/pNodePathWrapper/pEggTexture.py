@@ -164,11 +164,3 @@ class ObjectEggTexture(ObjectEggBase):
     ObjectEggBase.stopEdit(self)
     texturePainter.stopEdit()
     texturePainter.disableEditor()
-  
-  def setParameters(self, parameters):
-    pass
-  
-  def getParameters(self):
-    parameters = dict()
-    return parameters
-  

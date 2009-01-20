@@ -130,7 +130,6 @@ class SceneNodeWrapper(VirtualNodeWrapper):
           # editModeEnabled is only true for SceneNodeWrappers, which have not
           # been referenced (it's the root node). thus the childrens data
           # should not be included if False
-          #if child.editModeEnabled:
           modelData = child.getSaveData(relativeTo)
           eggParentData.addChild(modelData)
           # if there is data of the model walk the childrens
@@ -152,34 +151,12 @@ class SceneNodeWrapper(VirtualNodeWrapper):
     # save the egg file
     eggData.writeEgg(Filename(filepath))
   
-  def enableEditmode(self, recursive=False):
+  def setEditmodeEnabled(self, recurseException=[]):
     print "I: SceneNodeWrapper.enableEditmode:"
-    VirtualNodeWrapper.enableEditmode(self)
-    
-    if recursive:
-      def recurse(parent):
-        for child in parent.getChildren():
-          if type(child) != SceneNodeWrapper:
-            child.enableEditmode()
-            recurse(child)
-          else:
-            child.enableEditmode(False) # also enable sceneNodes, but not recursive
-            print "I: SceneNodeWrapper.enableEditmode.recurse: not enabling editmode on", child
-      recurse(self)
+    VirtualNodeWrapper.setEditmodeEnabled(self, recurseException)
   
-  def disableEditmode(self, recursive=False):
-    VirtualNodeWrapper.disableEditmode(self)
-    
-    if recursive:
-      def recurse(parent):
-        for child in parent.getChildren():
-          if type(child) != SceneNodeWrapper:
-            recurse(child)
-            child.disableEditmode()
-          else:
-            child.disableEditmode(False) # also disable sceneNodes, but not recursive
-            print "I: SceneNodeWrapper.enableEditmode.recurse: not enabling editmode on", child
-      recurse(self)
+  def setEditmodeDisabled(self, recurseException=[]):
+    VirtualNodeWrapper.setEditmodeDisabled(self, recurseException)
   
   def destroy(self, recursive=True):
     # destroy the scene

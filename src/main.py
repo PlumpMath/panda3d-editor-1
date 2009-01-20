@@ -35,7 +35,7 @@ if __name__ == "__main__":
   # Third phase: load up the core of the editor.
   from core.pMain import EditorClass
   editor = EditorClass(render)
-  editor.loadEggModelsFile("examples/save-1.egg")
+  editor.loadEggModelsFile("examples/save-1.egs")
   
   # Fourth phase: load one of the two interface layers.
   if USE_GUI == "dgui":

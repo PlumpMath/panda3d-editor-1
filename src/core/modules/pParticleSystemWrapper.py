@@ -16,7 +16,7 @@ DEBUG = False
 class ParticleSystemWrapper(VirtualNodeWrapper):
   def onCreateInstance(self, parent, filepath):
     # create instance of this class
-    objectInstance = super(VirtualNodeWrapper, self).onCreateInstance(parent, filepath)
+    objectInstance = super(VirtualNodeWrapper, self).onCreateInstance(parent, "ParticleSystem")
     objectInstance.setParticleConfig(filepath)
     #objectInstance.setTransparency(True)
     return objectInstance

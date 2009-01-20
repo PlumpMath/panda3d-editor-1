@@ -28,11 +28,3 @@ class ObjectEggPolygon(ObjectEggBase):
     ObjectEggBase.destroy(self)
     self.eggPolygon = None
     self.modelWrapper = None
-  
-  def setParameters(self, parameters):
-    pass
-  
-  def getParameters(self):
-    parameters = dict()
-    return parameters
-  
