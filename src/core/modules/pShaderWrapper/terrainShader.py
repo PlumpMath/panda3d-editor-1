@@ -24,22 +24,11 @@ class VTextureMapMode:
     else:
       raise ValueError, "Invalid value for TextureMapMode!"
 
-class VTerrain(GeoMipTerrain):
+class ShaderNode:
   """Represents a terrain mesh."""
-  def __init__(self, terrain):
-    """Initiates the terrain, though does not generate the terrain or apply textures yet."""
-    
-    # Load the heightfield
-    self.HeightField = PNMImage(terrain)
-    self.SizeX = self.HeightField.getXSize()
-    self.SizeY = self.HeightField.getYSize()
-    
-    # Setup PGMM stuff
-    GeoMipTerrain.__init__(self, "VTerrain")
-    self.Root = self.getRoot()
-    self.Root.reparentTo(render)
-    self.setHeightfield(self.HeightField)
-    #self.Root.setCollideMask(self.Bitmask)
+  def __init__(self, parent):
+    self.Root = NodePath('shaderNode')
+    self.Root.reparentTo(parent)
     
     """This dictionary requires some explanation.
     Items in this dict should be like (AlphaMapPath, channel) : TexPath
@@ -113,10 +102,10 @@ class VTerrain(GeoMipTerrain):
   def Initialize(self):
     """Initializes the terrain (generates it and calls Texture()) and
     adds the task to regenerate it."""
-    taskMgr.remove("VTerrain") # To be sure
-    self.generate()
+    #taskMgr.remove("VTerrain") # To be sure
+    #self.generate()
     self.Texture()
-    taskMgr.add(self.Update, "VTerrain")
+    #taskMgr.add(self.Update, "VTerrain")
   
   def Texture(self):
     """Applies textures and if needed shaders to the terrain.
@@ -229,6 +218,9 @@ class VTerrain(GeoMipTerrain):
     Cg.Fragment += "o_color.a = 1.0;"
     self.Root.setShader(Cg.Make())
   
+  def destroy(self):
+    self.Root.clearShader()
+  
   '''def Destroy(self):
     """Deletes the terrain. Makes it unusable."""
     taskMgr.remove("VTerrain")
@@ -290,14 +282,23 @@ class VTerrain(GeoMipTerrain):
 if __name__ == '__main__':
   from direct.directbase import DirectStart
   from pandac.PandaModules import *
-  a = VTerrain("height.png")
-  tex0 = 'terrain-mix.png'
-  tex1 = 'grass.png'
-  tex2 = 'dirt.png'
-  tex3 = 'stone.png'
+  n = NodePath('s')
+  n.reparentTo(render)
+  a = ShaderNode(n)
+  tex0 = 'examples/terrain-mix.png'
+  tex1 = 'examples/grass.png'
+  tex2 = 'examples/dirt.png'
+  tex3 = 'examples/stone.png'
   #a.SetTextureMap(tex0)
   a.AddAlphaMap(tex1, tex0, alphamapchannel = "r", texscale = 5)
   a.AddAlphaMap(tex2, tex0, alphamapchannel = "g", texscale = 5)
   a.AddAlphaMap(tex3, tex0, alphamapchannel = "b", texscale = 50)
+  terrain = GeoMipTerrain('test')
+  terrain.setHeightfield(Filename('examples/height.png'))
+  terrainNode = terrain.getRoot()
+  terrain.getRoot().reparentTo(n)
+  terrain.getRoot().setSz(25)
+  terrain.generate()
   a.Initialize()
+
   run()

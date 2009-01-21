@@ -3,6 +3,7 @@ import traceback, posixpath
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.pConfigDefs import *
 from core.modules.pBaseWrapper import *
+from core.modules.pShaderWrapper import *
 
 DEBUG = False
 
@@ -66,11 +67,15 @@ class SceneNodeWrapper(VirtualNodeWrapper):
             print "W: --- start of invalid data ---"
             print eggParentData
             print "W: --- end of invalid data ---"
-            object = parent.attachNewNode('%s-failed' % wrapperType)
+            #object = parent.attachNewNode('%s-failed' % wrapperType)
+            object = None
+          
           if object is not None:
-            # apply the transformation on the object
-            object.nodePath.setMat(transform)
-            transform = Mat4.identMat()
+            hasNodePath = BaseWrapper in object.__class__.__mro__
+            if hasNodePath:
+              # apply the transformation on the object
+              object.nodePath.setMat(transform)
+              transform = Mat4.identMat()
             # if it contains additional childrens recurse into them
             for childData in eggParentData.getChildren()[1:]:
               # search the children
@@ -126,11 +131,10 @@ class SceneNodeWrapper(VirtualNodeWrapper):
     def saveRecursiveChildrens(parent, eggParentData, relativeTo):
       for child in parent.getChildren():
         # save the childs data
-        hasNodePath = BaseWrapper in child.__class__.__mro__
-        print "saveRecursiveChildrens", type(child)
+        hasNodePath = BaseWrapper in child.__class__.__mro__ or type(child) == ShaderWrapper
+        #print "saveRecursiveChildrens", type(child)
         isSceneNode = type(child) == SceneNodeWrapper
         if hasNodePath:
-          print "hasNodePath", hasNodePath, child.__class__.__name__
           # editModeEnabled is only true for SceneNodeWrappers, which have not
           # been referenced (it's the root node). thus the childrens data
           # should not be included if False

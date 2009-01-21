@@ -173,6 +173,15 @@ class BaseWrapper(DirectObject):
               entry.setPos((xPos+0.02 - entry.getBounds()[0] * .04, 0, yPos))
               yPos -= 0.06
             items = paramType.keys()
+          elif paramType.__name__ == "Trigger":
+            button = DirectButton(
+                scale=.04,
+                pos = (xPos+0.55, 0, yPos),
+                parent = editWindowFrame,
+                command=self.setEntry,
+                extraArgs=[paramName],
+                text=paramName,)
+            yPos -= 0.06
           elif paramType.__name__ == "Filepath":
             paramEntry = DirectEntry(
                 scale=.04,
@@ -253,9 +262,11 @@ class BaseWrapper(DirectObject):
     
     self.buttonsWindow = None
   
-  def setEntry(self, paramName, paramValue, *args):
+  def setEntry(self, paramName, *args):
     if self.buttonsWindow:
       if self.parameterEntries.has_key(paramName):
+        if len(args) > 0:
+          paramValue = args[0]
         paramType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[paramName]
         #self.object.setParameters( {paramName: paramValue} )
         try:
@@ -263,9 +274,13 @@ class BaseWrapper(DirectObject):
             paramValue = paramType(paramValue)
           elif paramType.__name__ == "Enum":
             pass # doesnt need conversion
+          elif paramType.__name__ == "Filename":
+            pass # dont know, but looks like it would work fine this way
+          elif paramType.__name__ == "Trigger":
+            pass # there is nothing to convert
+            paramValue = 0 # we need a paramvalue for the following set function
           elif paramType.__name__ == "Bitmask":
-            pass # doesnt need conversion ???
-            paramIndex=args[0]
+            paramIndex=args[1]
             currentValue = getFunc()
             # add the value (or)
             if paramValue: paramValue = currentValue | paramType[paramIndex]
@@ -275,6 +290,8 @@ class BaseWrapper(DirectObject):
             paramValue = str2type(paramValue, tuple)
           elif paramType == bool:
             pass
+          else:
+            print "W: dgui.BaseWrapper.setEntry: unknown conversion", paramName
         except ValueError:
           print "E: dgui.BaseWrapper.setEntry: error"
           traceback.print_exc()
@@ -319,6 +336,8 @@ class BaseWrapper(DirectObject):
               elif paramType.__name__ == "Filepath":
                 #entry = paramEntry
                 paramEntry.enterText(currentValue)
+              elif paramType.__name__ == "Trigger":
+                pass # nothing needs to happen
               else:
                 if paramType in [str]:
                   valueString = currentValue
