@@ -69,9 +69,12 @@ class TexturePainter(DirectObject):
     self.brush = PNMBrush.makeSpot(VBase4D(1, 0, 0, 1), 7, True)
     
     self.enabled = True
+    self.paintModelSetup = False
   
   def setBrush(self, color, size):
     self.brush = PNMBrush.makeSpot(color, size, True)
+    if self.paintModelSetup:
+      self.painter.setPen(self.brush)
   
   def windowEvent(self, win):
     # the window has been changed
@@ -117,45 +120,59 @@ class TexturePainter(DirectObject):
     self.paintTexture = texture
     self.accept("mouse1", self.startPaint)
     self.accept("mouse1-up", self.stopPaint)
+    self.setupPaintModel()
   
   def stopEdit(self):
+    self.destroyPaintModel()
     self.ignore("mouse1")
     self.ignore("mouse1-up")
   
-  def startPaint(self):
-    if self.enabled and self.origModel is not None:
-      
-      if self.paintModel != None:
-        self.stopEdit()
-      
-      # load the working texture (this must load the real texure of the object)
-      self.workTex = self.paintTexture #loader.loadTexture('models/maps/smiley.rgb')
-      
-      # copy the image from the texture to the working layer
-      self.workLayer = PNMImage()
-      self.painter = PNMPainter(self.workLayer)
-      self.painter.setPen(self.brush)
-      self.workTex.store(self.workLayer)
-      
-      self.paintModel = self.origModel.copyTo(self.backgroundRender) #loader.loadModel('models/smiley.egg')
-      self.paintModel.clearTexture()
-      self.paintModel.clearShader()
-      if self.paintModel:
-        #tester.reparentTo(self.backgroundRender)
-        self.paintModel.setMat(render, self.origModel.getMat(render))
-        textureSize = (self.paintTexture.getXSize(), self.paintTexture.getYSize())
-        createPickingImage( textureSize )
-        self.paintModel.setTexture(loader.loadTexture("textures/index-%i-%i.png" % (textureSize[0], textureSize[1])),1)
-        base.graphicsEngine.renderFrame()
+  def setupPaintModel(self):
+    if not self.paintModelSetup:
+      if self.enabled and self.origModel is not None:
+        if self.paintModel != None:
+          self.stopEdit()
         
-        self.pickTex.store(self.pickLayer)
+        # load the working texture (this must load the real texure of the object)
+        self.workTex = self.paintTexture #loader.loadTexture('models/maps/smiley.rgb')
         
-        self.textureSize = textureSize
+        # copy the image from the texture to the working layer
+        self.workLayer = PNMImage()
+        self.painter = PNMPainter(self.workLayer)
+        self.workTex.store(self.workLayer)
+        
+        self.paintModel = self.origModel.copyTo(self.backgroundRender) #loader.loadModel('models/smiley.egg')
+        self.paintModel.clearTexture()
+        self.paintModel.clearShader()
+        if self.paintModel:
+          #tester.reparentTo(self.backgroundRender)
+          self.paintModel.setMat(render, self.origModel.getMat(render))
+          textureSize = (self.paintTexture.getXSize(), self.paintTexture.getYSize())
+          createPickingImage( textureSize )
+          self.paintModel.setTexture(loader.loadTexture("textures/index-%i-%i.png" % (textureSize[0], textureSize[1])),1)
+          base.graphicsEngine.renderFrame()
+          
+          self.pickTex.store(self.pickLayer)
+          
+          self.textureSize = textureSize
+        else:
+          print "W: TexturePainter.startEdit: error copying model", model, texture
+        self.paintModelSetup = True
       else:
-        print "W: TexturePainter.startEdit: error copying model", model, texture
-    else:
-      print "W: TexturePainter.startEdit: paint mode not enabled!"
-    
+        print "W: TexturePainter.startEdit: paint mode not enabled!"
+  
+  def destroyPaintModel(self):
+    if self.paintModelSetup:
+      if self.paintModel:
+        self.paintModel.detachNode()
+        self.paintModel = None
+      self.workLayer = None
+      self.painter = None
+      self.paintModelSetup = False
+
+  
+  def startPaint(self):
+    self.setupPaintModel()
     # could also be in the paintTask
     # update the camera according to the active camera
     self.backcam.reparentTo(self.backgroundRender)
@@ -206,11 +223,6 @@ class TexturePainter(DirectObject):
   
   def stopPaint(self):
     taskMgr.remove('paintTask')
-    if self.paintModel:
-      self.paintModel.detachNode()
-      self.paintModel = None
-    self.workLayer = None
-    self.painter = None
 
 
 texturePainter = TexturePainter()
