@@ -13,3 +13,5 @@ from pCodeNodeWrapper import *
 from pParticleSystemWrapper import *
 from pSoundNodeWrapper import *
 from pSceneNodeWrapper import *
+
+from pShaderWrapper import *

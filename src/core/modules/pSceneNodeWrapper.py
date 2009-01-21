@@ -1,4 +1,4 @@
-import traceback
+import traceback, posixpath
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.pConfigDefs import *
@@ -17,7 +17,7 @@ class SceneNodeWrapper(VirtualNodeWrapper):
   def onCreateInstance(self, parent, filepath):
     # create instance of this class
     objectInstance = super(SceneNodeWrapper, self).onCreateInstance(parent, 'SceneNode')
-    #objectInstance = VirtualNodeWrapper.onCreateInstance(parent, name)
+    print "I: SceneNodeWrapper.onCreateInstance:", filepath
     objectInstance.setScene(filepath)
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
@@ -101,9 +101,7 @@ class SceneNodeWrapper(VirtualNodeWrapper):
       
       # the absolute path of the file we load, referenced files are relative
       # to this path
-      
       filepath = p3filename.getDirname()
-      #filepath = str(Filename.fromOsSpecific(filepath))
       
       # add the path to the model-path
       from pandac.PandaModules import getModelPath
@@ -112,11 +110,16 @@ class SceneNodeWrapper(VirtualNodeWrapper):
       parent, loadedObjects = loadRecursiveChildrens(eggData, self, Mat4.identMat(), filepath, list())
       
       for objectInstance, eggData in loadedObjects:
-        objectInstance.loadFromData( eggData, filepath )
+        objectInstance.loadFromData(eggData, filepath)
       
       # refresh the scenegraphbrowser
       messenger.send(EVENT_SCENEGRAPH_REFRESH)
     
+    self.relativePath = posixpath.dirname(posixpath.abspath(sceneFilepath))
+    #print "I: pSceneNodeWrapper.setScene:"
+    #print "  -", sceneFilepath
+    #print "  -", posixpath.abspath(sceneFilepath)
+    #print "  -", posixpath.dirname(posixpath.abspath(sceneFilepath))
     self.sceneFilepath = sceneFilepath
   
   def save(self, filepath):
@@ -126,7 +129,8 @@ class SceneNodeWrapper(VirtualNodeWrapper):
         hasNodePath = BaseWrapper in child.__class__.__mro__
         print "saveRecursiveChildrens", type(child)
         isSceneNode = type(child) == SceneNodeWrapper
-        if hasNodePath: # and not isSceneNode:
+        if hasNodePath:
+          print "hasNodePath", hasNodePath, child.__class__.__name__
           # editModeEnabled is only true for SceneNodeWrappers, which have not
           # been referenced (it's the root node). thus the childrens data
           # should not be included if False
@@ -152,7 +156,6 @@ class SceneNodeWrapper(VirtualNodeWrapper):
     eggData.writeEgg(Filename(filepath))
   
   def setEditmodeEnabled(self, recurseException=[]):
-    print "I: SceneNodeWrapper.enableEditmode:"
     VirtualNodeWrapper.setEditmodeEnabled(self, recurseException)
   
   def setEditmodeDisabled(self, recurseException=[]):

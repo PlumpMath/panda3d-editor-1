@@ -145,6 +145,7 @@ class EditorApp(DirectObject, FSM):
     , ['directionallight', self.createModelWrapper, ['DirectionalLightNodeWrapper']]
     , ['ambientlight', self.createModelWrapper, ['AmbientLightNodeWrapper']]
     , ['pointlight', self.createModelWrapper, ['PointLightNodeWrapper']]
+    , ['shader', self.createModelWrapper, ['ShaderWrapper']]
     ]
     self.lightButtons = self.createInterface(lightButtonDefinitions, 'lights', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.45,0,0))
     editButtonDefinitions = [
@@ -210,7 +211,7 @@ class EditorApp(DirectObject, FSM):
     originalModel = modelController.getSelectedObject()
     objectInstance = originalModel.makeInstance(originalModel)
     if objectInstance is not None:
-      objectInstance.enableEditmode()
+      objectInstance.setEditmodeEnabled([])
     #objectInstance.loadFromData( originalModel.getSaveData('.') )
     messenger.send( EVENT_SCENEGRAPH_REFRESH )
     modelController.selectObject( objectInstance )
@@ -232,44 +233,39 @@ class EditorApp(DirectObject, FSM):
       render.setShaderOff()
   
   def modelSelected(self, model):
-    #try:
-      if self.lastSelectedObject != modelController.getSelectedObject():
-        # selected model has been changed
-        if self.editorObjectGuiInstance is not None:
-          # destroy gui instance of old object
-          self.editorObjectGuiInstance.stopEdit()
-        
-        # save the object as the new object
-        self.lastSelectedObject = modelController.getSelectedObject()
-        
-        if modelController.getSelectedObject() is not None:
-          # create gui instance of new object
-          objType = modelController.getSelectedObject().__class__
-          # the codenode inherits from the real class we use...
-          # but we need the name of the internal class, 
-          bases = list()
-          for base in objType.__bases__:
-            bases.append(base.__name__)
-          if 'CodeNodeWrapper' in bases:
-            objType = 'CodeNodeWrapper'
-          else:
-            objType = objType.__name__
-#          print "I: importing", "dgui.modules.p%s" % objType
-          module = __import__("dgui.modules.p%s" % objType, globals(), locals(), [objType], -1)
-          try:
-            self.editorObjectGuiInstance = getattr(module, objType)(modelController.getSelectedObject(), self)
-            self.editorObjectGuiInstance.startEdit()
-          except TypeError:
-            print "E: dgui.EditorApp.modelSelected: object", objType, modelController.getSelectedObject()
-            traceback.print_exc()
+    if self.lastSelectedObject != modelController.getSelectedObject():
+      # selected model has been changed
+      if self.editorObjectGuiInstance is not None:
+        # destroy gui instance of old object
+        self.editorObjectGuiInstance.stopEdit()
+      
+      # save the object as the new object
+      self.lastSelectedObject = modelController.getSelectedObject()
+      
+      if modelController.getSelectedObject() is not None:
+        # create gui instance of new object
+        objType = modelController.getSelectedObject().__class__
+        # the codenode inherits from the real class we use...
+        # but we need the name of the internal class, 
+        bases = list()
+        for base in objType.__bases__:
+          bases.append(base.__name__)
+        if 'CodeNodeWrapper' in bases:
+          objType = 'CodeNodeWrapper'
         else:
-          self.editorObjectGuiInstance = None
+          objType = objType.__name__
+        module = __import__("dgui.modules.p%s" % objType, globals(), locals(), [objType], -1)
+        try:
+          self.editorObjectGuiInstance = getattr(module, objType)(modelController.getSelectedObject(), self)
+          self.editorObjectGuiInstance.startEdit()
+        except TypeError:
+          print "E: dgui.EditorApp.modelSelected: object", objType, modelController.getSelectedObject()
+          traceback.print_exc()
       else:
-        # the same object is selected again
-        pass
-    #except:
-    #  print "E: EditorApp.modelSelected: object", model
-    #  traceback.print_exc()
+        self.editorObjectGuiInstance = None
+    else:
+      # the same object is selected again
+      pass
   
   def saveEggModelsFile(self):
     FG.openFileBrowser()
@@ -307,8 +303,8 @@ class EditorApp(DirectObject, FSM):
       module = __import__("core.modules.p%s" % objectType, globals(), locals(), [objectType], -1)
       objectInstance = getattr(module, objectType).onCreateInstance(modelParent, filepath)
       if objectInstance is not None:
-        objectInstance.enableEditmode()
-      messenger.send( EVENT_SCENEGRAPH_REFRESH )
+        objectInstance.setEditmodeEnabled([])
+      messenger.send(EVENT_SCENEGRAPH_REFRESH)
       modelController.selectObject(objectInstance)
   
   def createModelWrapper(self, type):
@@ -317,9 +313,9 @@ class EditorApp(DirectObject, FSM):
     modelParent = modelController.getSelectedObject()
     objectInstance = getattr(module, type).onCreateInstance(modelParent)
     if objectInstance is not None:
-      objectInstance.enableEditmode()
-    messenger.send( EVENT_SCENEGRAPH_REFRESH )
-    modelController.selectObject( objectInstance )
+      objectInstance.setEditmodeEnabled([])
+    messenger.send(EVENT_SCENEGRAPH_REFRESH)
+    modelController.selectObject(objectInstance)
   
   def createInterface( self, buttonDefinitions, title, align, pos ):
     buttons = list()

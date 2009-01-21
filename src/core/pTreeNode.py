@@ -6,8 +6,43 @@ from pandac.PandaModules import *
 
 from core.pConfigDefs import *
 
+# name of the egg-tag where parameters are saved into
+BASEWRAPPER_DATA_TAG = 'parameters'
+
+'''
+- TreeNode
+  - BaseWrapper
+    - VirtualNodeWrapper
+      - LightNodeWrapper
+        - AmbientLightNodeWrapper
+        - PointLightNodeWrapper
+        - SpotLightNodeWrapper
+        - DirectionalLightNodeWrapper
+      - CodeNodeWrapper
+      - ParticleSystemWrapper
+      - SceneNodeWrapper
+      - SoundNodeWrapper
+    - GeoMipTerrainNodeWrapper
+  - ShaderWrapper
+  - ObjectEggBase
+    - ObjectEggGroup
+    - ObjectEggData
+    - ObjectEggPolygon
+    - ObjectEggTexture
+    - ObjectVertexPool
+'''
+
+
 class TreeNode(object):
-  ''' a treenode is a node in the structure that defines what can be changed
+  ''' a treenode is a node in the structure
+  features:
+  - it only has the name parameter
+  functionality's:
+  - it stores parents and children (the structure of the tree)
+  - it saves if a object is editable (editmode enabled/disabled)
+  - functions for setting/getting parameters of a wrapper
+  - saving and loading of the data
+  - making instances of objects
   '''
   def __init__(self, treeName='parent', treeData=None):
     self.treeParent = None
@@ -15,6 +50,12 @@ class TreeNode(object):
     self.treeName = treeName
     self.treeData = treeData
     self.editmodeStatus = False
+    self.mutableParameters = dict()
+    self.mutableParameters['name'] = [ str,
+      self.getName,
+      self.setName,
+      None,
+      None ]
   
   def reparentTo(self, treeParent):
     self.detachNode()
@@ -42,7 +83,6 @@ class TreeNode(object):
   def getRecChildren(self):
     l = list()
     for child in self.treeChildren:
-#      print child.treeName
       l.append(child)
       l.extend(child.getRecChildren())
     return l
@@ -60,17 +100,11 @@ class TreeNode(object):
   def getNumChildren(self):
     return len(self.treeChildren)
   
-  '''def __iter__(self):
-    # iterate over self and all childrens
-    yield self
-    for treeChild in self.treeChildren:
-      for childIter in treeChild:
-        yield childIter'''
-  
   def printTree(self, depth=0):
     print " "*depth+" -"+str(self.treeName)
     for treeChild in self.treeChildren:
       treeChild.printTree(depth+1)
+  
   
   def getName(self):
     return self.treeName
@@ -79,6 +113,7 @@ class TreeNode(object):
     self.treeName = name
   
   
+  # --- EDIT MODE OF THE OBJECT ---
   def setEditmodeEnabled(self, recurseException=[]):
     self.editmodeStatus = True
     
@@ -103,6 +138,24 @@ class TreeNode(object):
     return self.editmodeStatus
   
   
+  def startEdit(self):
+    # the object is selected to be edited
+    # creates a directFrame to edit this object
+    if not self.isEditmodeEnabled():
+      print "E: core.BaseWrapper.startEdit: object is not in editmode", self
+  
+  def stopEdit(self):
+    # the object is deselected from being edited
+    if not self.isEditmodeEnabled():
+      print "E: core.BaseWrapper.stopEdit: object is not in editmode", self
+  
+  def destroy(self):
+    self.stopEdit()
+    self.setEditmodeDisabled()
+    TreeNode.detachNode(self)
+  
+  
+  # --- PARAMETER LOADING AND SAVING ---
   def getParameter(self, name):
     varType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[name]
     # store the parameters
@@ -123,6 +176,8 @@ class TreeNode(object):
           return n
       print "E: core.TreeNode.getParameter: invalid value %s for enum %s" % (val, varType.__name__)
     elif isinstance(varType, Bitmask):
+      return val
+    elif varType.__name__ == 'Filepath': #elif isinstance(varType, Filepath):
       return val
     else:
       print "E: core.TreeNode.getParameter: unknown varType %s for %s" % (varType.__name__, name)
@@ -157,6 +212,8 @@ class TreeNode(object):
         print "W: core.TreeNode.setParameter: invalid value %s for enum %s" % (value, varType.__name__)
       elif isinstance(varType, Bitmask):
         setFunc(value)
+      elif varType.__name__ == 'Filepath': #isinstance(varType, Filepath):
+        setFunc(value)
       else:
         if isinstance(value, str) or isinstance(value, unicode):
           try:
@@ -179,18 +236,45 @@ class TreeNode(object):
       self.setParameter(name, value)
 
 
-'''class TreeParentNode(TreeNode):
-  #the parent node of all tree objects
-  #is used by the Main to parent all nodes under this one
-  def __init__(self, parentNodepath):
-    TreeNode.__init__(self, 'root', None)
-    self.name = 'root'
-    self.mutableParameters = dict()
-    self.nodePath = parentNodepath
-  def startEdit(self):
-    pass
-  def stopEdit(self):
-    pass'''
+  # --- LOADING & SAVING TO FILES ---
+  def getSaveData(self, relativeTo):
+    # the given name of this object
+    name = self.getName()
+    # the matrix we define must be applied to the nodes in "local space"
+    instance = EggGroup(name)
+    # define the type of this object
+    className = self.__class__.__name__
+    instance.setTag(MODEL_WRAPPER_TYPE_TAG, className)
+    
+    # get all data to store in the eggfile
+    parameters = self.getParameters()
+    if len(parameters) > 0:
+      # dont store those values into the parameters
+      for paramName in ['name', 'position', 'scale', 'rotation']:
+        if paramName in parameters:
+          del parameters[paramName]
+      # add the data to the egg-file
+      comment = EggComment(BASEWRAPPER_DATA_TAG, str(parameters))
+      instance.addChild(comment)
+    return instance
+  
+  def loadFromData(self, eggGroup, filepath):
+    data = dict()
+    for child in eggGroup.getChildren():
+      if type(child) == EggComment:
+        if child.getName() == BASEWRAPPER_DATA_TAG:
+          data = eval(child.getComment())
+    self.setParameters(data)
+  
+  
+  def makeInstance(self, originalInstance):
+    ''' create a copy of this instance
+    '''
+    newInstance = self(originalInstance.getParent(), originalInstance.name+"-copy")
+    newInstance.nodePath.setMat(originalInstance.nodePath.getMat())
+    newInstance.setParameters(originalInstance.getParameters())
+    return newInstance
+  makeInstance = classmethod(makeInstance)
 
 
 

@@ -65,6 +65,9 @@ class NodePathWrapper(BaseWrapper):
     self.model = None
     # content must be loaded using setModel
     # (done by onCreateInstance and loadFromEggGroup)
+    
+    # subnodes of this node
+    self.eggTreeParent = None
   
   def setModel(self, modelFilepath):
     # if there is already a model defined, remove it
@@ -89,13 +92,8 @@ class NodePathWrapper(BaseWrapper):
       # load the model
       self.model = loader.loadModel(filepath)
       
-      # create the children treeNodes of the nodepath
-      parent = self
-      modelFilepath = self.modelFilepath
-      node = self
-      #print "I: NodePathWrapper.setModel: creating child treeWrappers"
-      self.eggTreeParent = getEggDataEditable(parent, node, modelFilepath)
-      #self.printTree()
+      if self.isEditmodeEnabled():
+        self.enableSubNodes()
     
     # if the model loading fails or no path given, use a dummy object
     if self.model is None:
@@ -103,6 +101,20 @@ class NodePathWrapper(BaseWrapper):
       self.model = loader.loadModel(MODEL_NOT_FOUND_MODEL)
     # make the model visible
     self.model.reparentTo(self.nodePath)
+  
+  def enableSubNodes(self):
+    # create the children treeNodes of the nodepath
+    if self.eggTreeParent is None:
+      print "I: NodePathWrapper.enableSubNodes: creating child nodes"
+      parent = self
+      modelFilepath = self.modelFilepath
+      node = self
+      self.eggTreeParent = getEggDataEditable(parent, node, modelFilepath)
+  
+  def disableSubNodes(self):
+    if self.eggTreeParent is not None:
+      print "I: NodePathWrapper.disableSubNodes: destroying child nodes"
+      self.eggTreeParent.destroy()
   
   def save(self, filepath):
     print "I: NodePathWrapper.save:", filepath
@@ -120,12 +132,14 @@ class NodePathWrapper(BaseWrapper):
     # if it was inactive before
     if not self.isEditmodeEnabled():
       self.nodePath.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
+      self.enableSubNodes()
     BaseWrapper.setEditmodeEnabled(self, recurseException)
   
   def setEditmodeDisabled(self, recurseException=[]):
     # if it was active before
     if self.isEditmodeEnabled():
       self.nodePath.setCollideMask(BitMask32.allOff())
+      self.disableSubNodes()
     BaseWrapper.setEditmodeDisabled(self, recurseException)
   
   def startEdit(self):
@@ -141,6 +155,7 @@ class NodePathWrapper(BaseWrapper):
       self.highlightModel.setTextureOff(1000)
       self.highlightModel.clearColorScale()
       self.highlightModel.setColor(HIGHLIGHT_COLOR[0], HIGHLIGHT_COLOR[1], HIGHLIGHT_COLOR[2], 1000)
+      
   
   def stopEdit(self):
     # the object is deselected from being edited

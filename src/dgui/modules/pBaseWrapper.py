@@ -1,9 +1,13 @@
-import traceback
+import traceback, posixpath
+
+from core.pCommonPath import relpath
 
 from pandac.PandaModules import *
 from direct.gui.DirectGui import *
 from direct.gui.DirectCheckBox import DirectCheckBox
 from direct.showbase.DirectObject import DirectObject
+
+from dgui.filebrowser import FG
 
 from dgui.directWindow.src.directWindow import DirectWindow
 from dgui.directSidebar import *
@@ -165,11 +169,44 @@ class BaseWrapper(DirectObject):
                   command=self.setEntryCommand,
                   extraArgs=[paramName, k],
                   )
-              print "bounds", entry.getBounds()
               paramEntry[k] = entry
               entry.setPos((xPos+0.02 - entry.getBounds()[0] * .04, 0, yPos))
               yPos -= 0.06
             items = paramType.keys()
+          elif paramType.__name__ == "Filepath":
+            paramEntry = DirectEntry(
+                scale=.04,
+                pos = (xPos, 0, yPos),
+                parent = editWindowFrame,
+                command=self.setEntryCommand,
+                extraArgs=[paramName],
+                initialText="",
+                numLines = 1,
+                focus=0,
+                width=12,
+                focusOutCommand=self.setEntryFocusOut,
+                focusOutExtraArgs=[paramName],
+                text_align = TextNode.ALeft,
+                frameSize=(-.3,12.3,-.3,0.9),)
+            
+            def setPathCallback(entry, filepath):
+              entry.set(filepath)
+              # call the commandfunc, to store the value
+              entry.commandFunc(None)
+              # the path is modified internally, reloading the values fixes the entry
+              self.updateAllEntires()
+            def setPath(entry):
+              FG.openFileBrowser()
+              FG.accept('selectionMade', setPathCallback, [entry])
+            button = DirectButton(
+                scale=.04,
+                pos = (xPos+0.55, 0, yPos),
+                parent = editWindowFrame,
+                command=setPath,
+                extraArgs=[paramEntry],
+                text="load",)
+#            paramEntry = [entry, button]
+            yPos -= 0.06
           else:
             print "W: dgui.BaseWrapper.createEditWindow: unknown entry type"
             print "  -", self.object.__class__.__name__
@@ -226,7 +263,6 @@ class BaseWrapper(DirectObject):
             paramValue = paramType(paramValue)
           elif paramType.__name__ == "Enum":
             pass # doesnt need conversion
-            print "changed Enum", paramName, paramValue, args
           elif paramType.__name__ == "Bitmask":
             pass # doesnt need conversion ???
             paramIndex=args[0]
@@ -280,6 +316,9 @@ class BaseWrapper(DirectObject):
                   valueActive = bool(paramType[valueName] & currentValue)
                   valueEntry["indicatorValue"] = valueActive
                   valueEntry.setIndicatorValue()
+              elif paramType.__name__ == "Filepath":
+                #entry = paramEntry
+                paramEntry.enterText(currentValue)
               else:
                 if paramType in [str]:
                   valueString = currentValue
@@ -298,8 +337,6 @@ class BaseWrapper(DirectObject):
                   pass
             else:
               print "W: dgui.BaseWrapper.updateAllEntires: no parameterEntry for", paramName, self.object.__class__.__name__
-  #        else:
-  #          print "W: dgui.BaseWrapper.updateAllEntires: undefined value for", paramName
           # when the name changed, update the scenegraph
           if paramName == 'name':
             messenger.send(EVENT_SCENEGRAPH_REFRESH)

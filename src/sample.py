@@ -10,12 +10,12 @@ if __name__ == '__main__':
   from core.pMain import *
   
   editor = EditorClass(render)
-  editor.loadEggModelsFile("examples/save-1.egg")
+  editor.loadEggModelsFile("examples/save-1.egs")
   
   #print dir(editor)
   #print objectEditor
   #print dir(modelIdManager)
-  print modelIdManager.getAllModels()
+  print modelIdManager.getAllObjects()
   #print modelController
   
   run()

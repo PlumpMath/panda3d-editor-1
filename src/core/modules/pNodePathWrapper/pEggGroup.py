@@ -76,18 +76,3 @@ class ObjectEggGroup(ObjectEggBase):
     ObjectEggBase.destroy(self)
     self.eggGroup = None
     self.modelWrapper = None
-  
-  '''
-  def getParameters(self):
-    parameters = dict()
-    for name, [valueType, getFunc, setFunc, hasFunc, clearFunc] in self.mutableParameters.items():
-      parameters[name] = getFunc()
-    print "I: ObjectEggGroup.getData:", parameters
-    return parameters
-  
-  def setParameters(self, parameters):
-    print "I: ObjectEggGroup.setData:", parameters
-    for name, value in parameters.items():
-      if name in self.mutableParameters:
-        [valueType, getFunc, setFunc, hasFunc, clearFunc] = self.mutableParameters[name]
-        setFunc(parameters[name])'''

@@ -138,7 +138,7 @@ class EditorClass(DirectObject, FSM):
       self.destroyScene()
       self.treeParent = SceneNodeWrapper.onCreateInstance(None, filepath)
       if self.getCurrentOrNextState() == 'WorldEditMode':
-        self.treeParent.setEditmodeEnabled([SceneNodeWrapper])
+        self.treeParent.setEditmodeEnabled([SceneNodeWrapper, NodePathWrapper])
     else:
       print "EditorClass.loadEggModelsFile: Unknown", filetype
       return

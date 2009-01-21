@@ -28,8 +28,6 @@ if __name__ == "__main__":
   elif USE_GUI == "wxgui":
     WindowManager.startBase(showDefaultWindow = False, allowMultipleWindows = True)
   else:
-    # mouse not working with this
-    #WindowManager.startBase(showDefaultWindow = True, allowMultipleWindows = False)
     from direct.directbase import DirectStart
   
   # Third phase: load up the core of the editor.

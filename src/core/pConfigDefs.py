@@ -130,3 +130,6 @@ class Enum(dict):
 # What shall we use for multiple choice stuff (0x01 | 0x02 ...)
 class Bitmask(dict):
   __name__ = "Bitmask"
+
+class Filepath(str):
+  __name__ = "Filepath"
