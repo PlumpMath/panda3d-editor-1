@@ -8,8 +8,7 @@ from core.pConfigDefs import *
 class ObjectEggBase(TreeNode):
   def __init__(self, parent, modelWrapper, name='EggBase'):
     self.modelWrapper = modelWrapper
-    self.mutableParameters = dict()
-    TreeNode.__init__(self, name, self)
+    TreeNode.__init__(self, name)
     TreeNode.reparentTo(self, parent)
   
   def setEditmodeEnabled(self, recurseException=[]):
@@ -27,4 +26,4 @@ class ObjectEggBase(TreeNode):
     messenger.send(EVENT_SCENEPICKER_MODELSELECTION_ENABLE)
   
   def destroy(self):
-    TreeNode.detachNode(self)
+    TreeNode.destroy(self)

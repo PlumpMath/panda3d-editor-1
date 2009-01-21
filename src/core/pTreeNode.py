@@ -44,11 +44,11 @@ class TreeNode(object):
   - saving and loading of the data
   - making instances of objects
   '''
-  def __init__(self, treeName='parent', treeData=None):
+  def __init__(self, treeName='parent'): #, treeData=None):
     self.treeParent = None
     self.treeChildren = list()
     self.treeName = treeName
-    self.treeData = treeData
+    #self.treeData = treeData
     self.editmodeStatus = False
     self.mutableParameters = dict()
     self.mutableParameters['name'] = [ str,
@@ -73,7 +73,7 @@ class TreeNode(object):
       if self in self.treeParent.treeChildren:
         self.treeParent.treeChildren.remove(self)
     self.treeParent = None
-    self.treeData = None
+    #self.treeData = None
     del self.treeChildren
     self.treeChildren = list()
   

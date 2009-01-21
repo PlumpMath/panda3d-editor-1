@@ -133,13 +133,16 @@ class TexturePainter(DirectObject):
         if self.paintModel != None:
           self.stopEdit()
         
-        # load the working texture (this must load the real texure of the object)
-        self.workTex = self.paintTexture #loader.loadTexture('models/maps/smiley.rgb')
+        if type(self.paintTexture) == Texture:
+          # load the working texture (this must load the real texure of the object)
+          self.workTex = self.paintTexture #loader.loadTexture('models/maps/smiley.rgb')
+          # copy the image from the texture to the working layer
+          self.workLayer = PNMImage()
+          self.workTex.store(self.workLayer)
+        else:
+          self.workLayer = self.paintTexture
         
-        # copy the image from the texture to the working layer
-        self.workLayer = PNMImage()
         self.painter = PNMPainter(self.workLayer)
-        self.workTex.store(self.workLayer)
         
         self.paintModel = self.origModel.copyTo(self.backgroundRender) #loader.loadModel('models/smiley.egg')
         self.paintModel.clearTexture()
@@ -212,11 +215,17 @@ class TexturePainter(DirectObject):
       x = r + ((b%16)*256)
       y = g + ((b//16)*256)
       
+      print "before", self.workLayer.getGray(x,y)
+      
+      print "painting at", x, y
       # render a spot into the texture
       self.painter.drawPoint(x, y)
       
+      print "after", self.workLayer.getGray(x,y)
+      
       # display the modified texture
-      self.workTex.load(self.workLayer)
+      if type(self.paintTexture) == Texture:
+        self.workTex.load(self.workLayer)
     else:
       print "W: TexturePainter.paint: paint mode not enabled!"
     return task.cont

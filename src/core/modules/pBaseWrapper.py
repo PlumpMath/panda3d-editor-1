@@ -57,7 +57,7 @@ class BaseWrapper(TreeNode):
     # get a uniq id for this object
     self.id = modelIdManager.getId()
     # define a name for this object
-    TreeNode.__init__(self, name, self)
+    TreeNode.__init__(self, name)
     TreeNode.reparentTo(self, parent)
     self.nodePath = NodePath(name)
     # store this object

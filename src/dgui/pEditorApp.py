@@ -156,7 +156,7 @@ class EditorApp(DirectObject, FSM):
     
     # some help text nodes
     self.helpText = list()
-    self.helpText.append( addTitle("Panda3D: Simple scene editor") )
+    #self.helpText.append( addTitle("Panda3D: Simple scene editor") )
     helpTexts = [ "LeftMouse: select object to move, select again to rotate, select again to scale"
                 , "MittleMouse: press & drag to rotate camera, turn to zoom (or page_up/down)"
                 , "RightMouse: press & drag to move camera pivot"
