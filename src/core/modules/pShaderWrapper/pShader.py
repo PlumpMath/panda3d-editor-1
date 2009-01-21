@@ -1,12 +1,13 @@
-__all__ = ["VShader", "VShaderProgram"]
+__all__ = ["ShaderWriter", "ShaderProgram"]
 """
-Useful for automating shader generation.
+Original version written by pro-rsoft
+with permission to use it in the editor
 """
 
 import re
 from pandac.PandaModules import Shader, Texture, TextureStage
 
-class VShaderProgram:
+class ShaderProgram:
   """Represents a single shader program, eg. Vertex or Fragment."""
   def __init__(self, name):
     """Parameter name is the name of the function, e.g. vshader or fshader."""
@@ -144,7 +145,7 @@ class VShaderProgram:
   
   def __iadd__(self, code):
     """Appends shader code to the shader body."""
-    if isinstance(code, VShaderProgram):
+    if isinstance(code, ShaderProgram):
       code = code.Body
     assert isinstance(code, str)
     code = code.strip().split("\n")
@@ -155,11 +156,11 @@ class VShaderProgram:
         self.Body += "\n" + line.strip()
     return self
 
-class VShader:
+class ShaderWriter:
   """A Shader with both Vertex and Fragment programs."""
   def __init__(self):
-    self.Vertex = VShaderProgram("vshader")
-    self.Fragment = VShaderProgram("fshader")
+    self.Vertex = ShaderProgram("vshader")
+    self.Fragment = ShaderProgram("fshader")
   
   def Write(self):
     """Returns the shader code as string."""

@@ -5,7 +5,7 @@ with permission to use it in the editor
 """
 
 from pandac.PandaModules import PNMImage, GeoMipTerrain, NodePath, Texture, TextureStage
-from vShader import VShader
+from pShader import ShaderWriter
 
 class VTextureMapMode:
   Multiply = 0
@@ -129,7 +129,7 @@ class ShaderNode:
   def _textureDetailed(self):
     """Internal function which textures the terrain using detail maps and detail textures, and applies shaders."""
     # Create a VShader to form a shader
-    Cg = VShader()
+    Cg = ShaderWriter()
     # Vertex program
     Cg.Vertex.AddInputs("vtx_position", "vtx_texcoord0", "mat_modelproj")
     Cg.Vertex.AddOutputs("l_texcoord0", "l_position")

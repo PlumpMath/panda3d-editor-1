@@ -15,4 +15,5 @@ class Config:
   def loadConfig(self):
     loadPrcFileData("editor-startup", "window-type none") # Sic, this gets done in pWindow.py
     loadPrcFileData("editor-startup", "model-path %s" % DATADIR)
+    loadPrcFileData("editor-startup", "basic-shaders-only #f")
 
