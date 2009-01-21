@@ -60,7 +60,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
   
   def getSaveData(self, relativeTo):
     objectInstance = BaseWrapper.getSaveData(self, relativeTo)
-    self.setExternalReference(self.terrainImageFilepath, relativeTo, objectInstance)
+    self.setExternalReference(self.geoMipTerrainHeightfield.heightfield, relativeTo, objectInstance)
     return objectInstance
   
   def loadFromData(self, eggGroup, filepath):

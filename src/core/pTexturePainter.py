@@ -5,6 +5,14 @@ PNMBrush, VBase3D
 
 from core.pWindow import WindowManager
 from core.pMouseHandler import mouseHandler
+from core.pConfigDefs import *
+
+PNMBrush_BrushEffect_Enum = Enum(
+  BESet = PNMBrush.BESet,
+  BEBlend = PNMBrush.BEBlend,
+  BEDarken = PNMBrush.BEDarken,
+  BELighten = PNMBrush.BELighten,
+)
 
 def createPickingImage(size):
   ''' create a picking image with uniq colors for each point in the image
@@ -31,6 +39,7 @@ class TexturePainter(DirectObject):
     self.origModel = None
     self.accept("window-event", self.windowEvent)
     self.enabled = False
+    self.paintModelSetup = False
   
   def selectPaintModel(self, selectModel):
     self.origModel = selectModel
@@ -66,13 +75,13 @@ class TexturePainter(DirectObject):
     base.bufferViewer.setCardSize(1.0, 0.0)
     
     self.painter = None
-    self.brush = PNMBrush.makeSpot(VBase4D(1, 0, 0, 1), 7, True)
+    self.brush = PNMBrush.makeSpot(VBase4D(1, 0, 0, 1), 7, True, PNMBrush.BESet)
     
     self.enabled = True
     self.paintModelSetup = False
   
-  def setBrush(self, color, size):
-    self.brush = PNMBrush.makeSpot(color, size, True)
+  def setBrush(self, color, size, brushEffect):
+    self.brush = PNMBrush.makeSpot(color, size, True, brushEffect)
     if self.paintModelSetup:
       self.painter.setPen(self.brush)
   
@@ -172,7 +181,7 @@ class TexturePainter(DirectObject):
       self.workLayer = None
       self.painter = None
       self.paintModelSetup = False
-
+  
   
   def startPaint(self):
     self.setupPaintModel()
@@ -215,13 +224,8 @@ class TexturePainter(DirectObject):
       x = r + ((b%16)*256)
       y = g + ((b//16)*256)
       
-      print "before", self.workLayer.getGray(x,y)
-      
-      print "painting at", x, y
       # render a spot into the texture
       self.painter.drawPoint(x, y)
-      
-      print "after", self.workLayer.getGray(x,y)
       
       # display the modified texture
       if type(self.paintTexture) == Texture:

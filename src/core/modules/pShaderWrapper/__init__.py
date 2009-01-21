@@ -9,7 +9,7 @@ from core.pCommonPath import relpath
 from core.pConfigDefs import *
 #from core.pTreeNode import *
 from core.modules.pBaseWrapper import *
-from core.pTexturePainter import texturePainter
+from core.pTexturePainter import texturePainter, PNMBrush_BrushEffect_Enum
 
 from terrainShader import ShaderNode
 
@@ -24,7 +24,7 @@ class ShaderWrapper(BaseWrapper):
   '''def loadFromEggGroup(self, eggGroup, parent, filepath):
     name = eggGroup.getName()
     objectInstance = self(parent, name)
-    objectInstance.updateShader()
+    objectInstance.setUpdateShader()
     return objectInstance
   loadFromEggGroup = classmethod(loadFromEggGroup)'''
   
@@ -92,6 +92,11 @@ class ShaderWrapper(BaseWrapper):
       self.setPaintSize,
       None,
       None]
+    self.mutableParameters['paintEffect'] = [ PNMBrush_BrushEffect_Enum,
+      self.getpaintEffect,
+      self.setpaintEffect,
+      None,
+      None]
     
     self.tex1Path = Filepath('')
     self.tex2Path = Filepath('')
@@ -102,6 +107,7 @@ class ShaderWrapper(BaseWrapper):
     self.tex4Scale = 1
     self.paintColor = Vec4(1,1,1,1)
     self.paintSize = 7
+    self.paintEffect = PNMBrush.BESet
     
     self.relativePath = None
     self.shader = None
@@ -175,12 +181,11 @@ class ShaderWrapper(BaseWrapper):
   def startPaint(self):
     if not self.paintActive:
       print "I: ShaderWrapper.startPaint"
-      texturePainter.selectPaintModel(self.nodePath)
       texturePainter.enableEditor()
       self.paintTex = self.shader.loadedMaps[posixpath.join(self.relativePath, self.tex1Path)]
       texturePainter.startEdit(self.paintTex)
       col = VBase4D(self.paintColor[0], self.paintColor[1], self.paintColor[2], self.paintColor[3])
-      texturePainter.setBrush(col, self.paintSize)
+      texturePainter.setBrush(col, self.paintSize, self.paintEffect)
       self.paintActive = True
   
   def stopEdit(self):
@@ -262,11 +267,18 @@ class ShaderWrapper(BaseWrapper):
   def setPaintColor(self, color):
     self.paintColor = color
     col = VBase4D(self.paintColor[0], self.paintColor[1], self.paintColor[2], self.paintColor[3])
-    texturePainter.setBrush(col, self.paintSize)
+    texturePainter.setBrush(col, self.paintSize, self.paintEffect)
   
   def getPaintSize(self):
     return self.paintSize
   def setPaintSize(self, size):
     self.paintSize=size
     col = VBase4D(self.paintColor[0], self.paintColor[1], self.paintColor[2], self.paintColor[3])
-    texturePainter.setBrush(col, self.paintSize)
+    texturePainter.setBrush(col, self.paintSize, self.paintEffect)
+  
+  def getpaintEffect(self):
+    return self.paintEffect
+  def setpaintEffect(self, paintEffect):
+    self.paintEffect= paintEffect
+    col = VBase4D(self.paintColor[0], self.paintColor[1], self.paintColor[2], self.paintColor[3])
+    texturePainter.setBrush(col, self.paintSize, self.paintEffect)
