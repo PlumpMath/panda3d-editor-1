@@ -1,6 +1,7 @@
 __all__ = ["VTerrain", "VTextureMapMode"]
 """
-Contains stuff necessary to render terrains.
+Original version written by pro-rsoft
+with permission to use it in the editor
 """
 
 from pandac.PandaModules import PNMImage, GeoMipTerrain, NodePath, Texture, TextureStage
@@ -27,8 +28,8 @@ class VTextureMapMode:
 class ShaderNode:
   """Represents a terrain mesh."""
   def __init__(self, parent):
-    self.Root = NodePath('shaderNode')
-    self.Root.reparentTo(parent)
+    self.Root = parent
+    #self.Root.reparentTo(parent)
     
     """This dictionary requires some explanation.
     Items in this dict should be like (AlphaMapPath, channel) : TexPath

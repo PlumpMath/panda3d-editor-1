@@ -75,7 +75,8 @@ class ShaderWrapper(BaseWrapper):
     self.shader = None
   
   def updateShader(self):
-    self.shader.destroy()
+    if self.shader:
+      self.shader.destroy()
     self.shader = ShaderNode(self.nodePath)
     
     if self.relativePath is None:
