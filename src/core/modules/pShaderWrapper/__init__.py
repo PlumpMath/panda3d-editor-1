@@ -174,22 +174,32 @@ class ShaderWrapper(BaseWrapper):
   
   def startPaint(self):
     if not self.paintActive:
+      print "I: ShaderWrapper.startPaint"
       texturePainter.selectPaintModel(self.nodePath)
       texturePainter.enableEditor()
-      paintTex = self.shader.loadedMaps[posixpath.join(self.relativePath, self.tex1Path)]
-      texturePainter.startEdit(paintTex)
+      self.paintTex = self.shader.loadedMaps[posixpath.join(self.relativePath, self.tex1Path)]
+      texturePainter.startEdit(self.paintTex)
+      col = VBase4D(self.paintColor[0], self.paintColor[1], self.paintColor[2], self.paintColor[3])
+      texturePainter.setBrush(col, self.paintSize)
       self.paintActive = True
   
   def stopEdit(self):
     # the object is deselected from being edited
     print "I: ShaderWrapper.stopEdit:", self.isEditmodeEnabled()
+    self.stopPaint()
     messenger.send(EVENT_SCENEPICKER_MODELSELECTION_ENABLE)
   
   def stopPaint(self):
     if self.paintActive:
+      print "I: ShaderWrapper.stopPaint"
       texturePainter.stopEdit()
       texturePainter.disableEditor()
       self.paintActive = False
+      # saving the texture
+      saveTex = PNMImage()
+      self.paintTex.store(saveTex)
+      savePath = posixpath.join(self.relativePath, self.tex1Path)
+      saveTex.write(Filename(savePath))
   
   def destroy(self):
     self.stopEdit()
