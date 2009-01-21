@@ -70,6 +70,9 @@ class TexturePainter(DirectObject):
     
     self.enabled = True
   
+  def setBrush(self, color, size):
+    self.brush = PNMBrush.makeSpot(color, size, True)
+  
   def windowEvent(self, win):
     # the window has been changed
     if self.enabled:
@@ -135,6 +138,8 @@ class TexturePainter(DirectObject):
       self.workTex.store(self.workLayer)
       
       self.paintModel = self.origModel.copyTo(self.backgroundRender) #loader.loadModel('models/smiley.egg')
+      self.paintModel.clearTexture()
+      self.paintModel.clearShader()
       if self.paintModel:
         #tester.reparentTo(self.backgroundRender)
         self.paintModel.setMat(render, self.origModel.getMat(render))

@@ -18,7 +18,6 @@ class CodeNodeWrapper(VirtualNodeWrapper):
   
   def __init__(self, parent, name='CodeNode'):
     self.objectInstance = None
-    #name = filepath.split('/')[-1]
     VirtualNodeWrapper.__init__(self, parent, name, CODE_WRAPPER_DUMMYOBJECT) 
   
   def setScript(self, filepath):

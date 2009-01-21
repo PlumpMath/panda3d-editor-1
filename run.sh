@@ -6,4 +6,4 @@ path=`(cd $path; pwd)`
 path=`readlink -m $path`
 cd $path
 
-python src/main.py $*
+python src/main.py -d $*

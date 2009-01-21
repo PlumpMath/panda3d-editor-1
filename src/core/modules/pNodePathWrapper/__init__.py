@@ -45,7 +45,7 @@ def getEggDataEditable(parent, objectNode, modelFilepath):
     return ret
   
   eggData = EggData()
-  eggData.read(modelFilepath)
+  eggData.read(Filename(modelFilepath))
   return recurse(parent, objectNode, eggData)
 
 class NodePathWrapper(BaseWrapper):

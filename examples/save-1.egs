@@ -292,3 +292,57 @@
     "models/smiley.egg.pz"
   }
 }
+<Instance> SceneNode {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      0 0 13.6667 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    SceneNodeWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    jumpg.egs
+  }
+}
+<Instance> ShaderWrapper {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      0 0 0 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    ShaderWrapper
+  }
+  <Comment> parameters {
+    "{'detailmap3': 'grass.png', 'mixmap': 'terrain-mix.png', 'detailmap1': 'dirt.png', 'detailmap2': 'stone.png'}"
+  }
+  <Instance> height.png {
+    <Transform> {
+      <Matrix4> {
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 6.4375 1
+      }
+    }
+    <Tag> modelWrapperTypeTag {
+      GeoMipTerrainNodeWrapper
+    }
+    <Comment> parameters {
+      "{'minlevel': 0}"
+    }
+    <File> ExtRef {
+      height.png
+    }
+  }
+}

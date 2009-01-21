@@ -1,3 +1,3 @@
 @echo off
-python src\main.py %*
+python src\main.py -d %*
 pause

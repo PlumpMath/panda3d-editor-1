@@ -49,7 +49,7 @@ class ShaderNode:
     self.LightMap = None
     self.TextureMap = None
     self.TextureMapMode = VTextureMapMode.Multiply
-    self.__loadedMaps = {}
+    self.loadedMaps = {}
   
   def SetTextureMap(self, texmap):
     """Sets the texture map."""
@@ -57,9 +57,9 @@ class ShaderNode:
     if isinstance(texmap, Texture):
       self.TextureMap = texmap
     else:
-      if not self.__loadedMaps.has_key(texmap):
-        self.__loadedMaps[texmap] = loader.loadTexture(texmap)
-      self.TextureMap = self.__loadedMaps[texmap]
+      if not self.loadedMaps.has_key(texmap):
+        self.loadedMaps[texmap] = loader.loadTexture(texmap)
+      self.TextureMap = self.loadedMaps[texmap]
   
   def SetLightMap(self, texmap):
     """Sets the lightmap."""
@@ -67,9 +67,9 @@ class ShaderNode:
     if isinstance(texmap, Texture):
       self.LightMap = texmap
     else:
-      if not self.__loadedMaps.has_key(texmap):
-        self.__loadedMaps[texmap] = loader.loadTexture(texmap)
-      self.LightMap = self.__loadedMaps[texmap]
+      if not self.loadedMaps.has_key(texmap):
+        self.loadedMaps[texmap] = loader.loadTexture(texmap)
+      self.LightMap = self.loadedMaps[texmap]
   
   def SetTextureLightMap(self, texmap):
     """Sets the combined texture and light map. The light map is stored
@@ -79,9 +79,9 @@ class ShaderNode:
     if isinstance(texmap, Texture):
       self.TextureLightMap = texmap
     else:
-      if not self.__loadedMaps.has_key(texmap):
-        self.__loadedMaps[texmap] = loader.loadTexture(texmap)
-      self.TextureLightMap = self.__loadedMaps[texmap]
+      if not self.loadedMaps.has_key(texmap):
+        self.loadedMaps[texmap] = loader.loadTexture(texmap)
+      self.TextureLightMap = self.loadedMaps[texmap]
   
   def AddAlphaMap(self, detailtex, alphamap, alphamapchannel = "r", texscale = (1.0, 1.0)):
     """Adds an alpha map to the AlphaMaps dictionary. Alternatively, you
@@ -95,18 +95,15 @@ class ShaderNode:
       texscale = (texscale[0], texscale[0])
     if texscale == 1 or texscale == (1, 1):
       texscale = None
-    if not self.__loadedMaps.has_key(alphamap):
-      self.__loadedMaps[alphamap] = loader.loadTexture(alphamap)
-    alphamap = self.__loadedMaps[alphamap]
+    if not self.loadedMaps.has_key(alphamap):
+      self.loadedMaps[alphamap] = loader.loadTexture(alphamap)
+    alphamap = self.loadedMaps[alphamap]
     self.AlphaMaps[(alphamap, alphamapchannel)] = (loader.loadTexture(detailtex), texscale)
   
   def Initialize(self):
     """Initializes the terrain (generates it and calls Texture()) and
     adds the task to regenerate it."""
-    #taskMgr.remove("VTerrain") # To be sure
-    #self.generate()
     self.Texture()
-    #taskMgr.add(self.Update, "VTerrain")
   
   def Texture(self):
     """Applies textures and if needed shaders to the terrain.
@@ -119,14 +116,6 @@ class ShaderNode:
     # Does it have a detail map?
     if len(self.AlphaMaps) > 0 and base.win.getGsg().getSupportsBasicShaders():
       self._textureDetailed()
-    #elif self.TextureLightMap != None:
-    #  #FIXME:BROKEN
-    #  ts = TextureStage("TextureLightMap")
-    #  ts.setSort(1)
-    #  ts.setCombineRgb(TextureStage.CMModulate,
-    #    TextureStage.CSTexture, TextureStage.COSrcColor,
-    #    TextureStage.CSTexture, TextureStage.COSrcAlpha)
-    #  self.Root.setTexture(self.TextureLightMap, 1)
     elif self.TextureMap != None:
       self.Root.setTexture(self.TextureMap, 1)
       if self.LightMap != None:
@@ -221,64 +210,7 @@ class ShaderNode:
   
   def destroy(self):
     self.Root.clearShader()
-  
-  '''def Destroy(self):
-    """Deletes the terrain. Makes it unusable."""
-    taskMgr.remove("VTerrain")
-    self.Root.removeNode()
-    del self.Terrain
-    del self.Root
-    self.IsGenerated = False
-    self.IsTextured = False
-  
-  def Update(self, task = None, stopTask = False, forced = False):
-    if not self.getBruteforce():
-      self.update()
-    if task != None:
-      if stopTask:
-        return task.done
-      else:
-        return task.cont
-  
-  def SetPos(self):
-    """Returns a Point3 indicating where the center of the terrain is."""
-    return self.GetCenter()
-  
-  def GetNormal(self, p1, p2 = None):
-    if p2 == None:
-      if isinstance(p1, NodePath):
-        x = p1.getX(self.Root)
-        y = p1.getY(self.Root)
-      else:
-        x = p1.getX()
-        y = p1.getY()
-    else:
-      x = p1
-      y = p2
-    normal = GeoMipTerrain.getNormal(self, int(x), int(y))
-    normal.setZ(normal.getZ() / float(vikings.map["terrain"]["height"]))
-    normal.normalize()
-    return normal
-  
-  def GetElevation(self, p1, p2 = None):
-    if p2 == None:
-      if isinstance(p1, NodePath):
-        x = p1.getX(self.Root)
-        y = p1.getY(self.Root)
-      else:
-        x = p1.getX()
-        y = p1.getY()
-    else:
-      x = p1
-      y = p2
-    if x < 0 or x > self.SizeX or y < 0 or y > self.SizeY:
-      return None
-    else:
-      return GeoMipTerrain.getElevation(self, int(x), int(y))
-  
-  def GetCenter(self):
-    """Returns a Point3 indicating where the center of the terrain is."""
-    return Point3(.5 * self.SizeX, .5 * self.SizeY, self.getElevation(.5 * self.SizeX, .5 * self.SizeY))'''
+    self.Root.clearTexture()
 
 if __name__ == '__main__':
   from direct.directbase import DirectStart
