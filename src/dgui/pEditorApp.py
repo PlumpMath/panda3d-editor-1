@@ -2,6 +2,8 @@
 from direct.showbase.DirectObject import DirectObject
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.DirectButton import DirectButton
+from direct.gui.DirectGui import *
+from direct.gui.DirectCheckBox import DirectCheckBox
 from direct.gui.DirectScrolledList import DirectScrolledList
 from direct.fsm.FSM import FSM
 from pandac.PandaModules import *
@@ -14,6 +16,7 @@ from dgui.directSidebar import *
 
 from core.pConfigDefs import *
 from core.pModelController import modelController
+from core.pTexturePainter import texturePainter, PNMBrush_BrushEffect_Enum
 # doesnt work, because the editor may be started before panda
 #from core.modules import *
 
@@ -175,6 +178,167 @@ class EditorApp(DirectObject, FSM):
     
     self.accept(EVENT_MODELCONTROLLER_SELECTED_OBJECT_CHANGE, self.createObjectEditor)
     self.accept(EVENT_MODELCONTROLLER_SELECTED_OBJECT_CHANGE, self.modelSelected)
+    
+    self.accept(EVENT_TEXTUREPAINTER_STARTEDIT, self.showTexturepainterTools)
+  
+  def showTexturepainterTools(self):
+    print "I: dgui.EditorApp.showTexturepainterTools"
+    def updateBrush(*args):
+      # original values
+      color, size, smooth, effect = texturePainter.getBrushSettings()
+      
+      # read entries
+      try:
+        colorStr = self.texturePainterTools['color'].get()
+        colorList = colorStr.strip('(').strip(')').split(',')
+        color = VBase4D(float(colorList[0]),
+                        float(colorList[1]),
+                        float(colorList[2]),
+                        float(colorList[3]))
+      except:
+        color = VBase4D(1,1,1,1)
+      
+      try:
+        size = int(self.texturePainterTools['size'].get())
+      except:
+        size = 10
+      
+      smooth = self.texturePainterTools['smooth']["indicatorValue"]
+      
+      effectName = self.texturePainterTools['effect'].get()
+      effect = PNMBrush_BrushEffect_Enum[effectName]
+      
+      # write
+      texturePainter.setBrushSettings(color, size, smooth, effect)
+      
+      # reread
+      color, size, smooth, effect = texturePainter.getBrushSettings()
+      
+      # show
+      self.texturePainterTools['color'].enterText(str(color).strip('VBase4D(').strip(')'))
+      self.texturePainterTools['size'].enterText(str(size))
+      self.texturePainterTools['smooth']["indicatorValue"] = smooth
+      self.texturePainterTools['smooth'].setIndicatorValue()
+      #self.texturePainterTools['smooth']["indicatorValue"] = smooth # dont update, TODO
+    
+    editWindowFrame = DirectFrame()
+    self.texturePainterTools = dict()
+    yPos = -0.02
+    xPos = 0.47
+    # --- TITLE ---
+    paramLabel = DirectLabel(
+        text = 'color',
+        parent = editWindowFrame,
+        scale=.04,
+        pos = (0.1, 0, yPos),
+        text_align = TextNode.ALeft
+    )
+    # color
+    paramEntry = DirectEntry(
+        scale=.04,
+        pos = (xPos, 0, yPos),
+        parent = editWindowFrame,
+        command=updateBrush,
+        extraArgs=['color'],
+        initialText="(1,1,1,1)",
+        numLines = 1,
+        focus=0,
+        width=12,
+        focusOutCommand=updateBrush,
+        focusOutExtraArgs=['color'],
+        text_align = TextNode.ALeft,
+        frameSize=(-.3,12.3,-.3,0.9),)
+    self.texturePainterTools['color'] = paramEntry
+    yPos -= 0.06
+    # --- TITLE ---
+    paramLabel = DirectLabel(
+        text = 'size',
+        parent = editWindowFrame,
+        scale=.04,
+        pos = (0.1, 0, yPos),
+        text_align = TextNode.ALeft
+    )
+    # size
+    paramEntry = DirectEntry(
+        scale=.04,
+        pos = (xPos, 0, yPos),
+        parent = editWindowFrame,
+        command=updateBrush,
+        extraArgs=['size'],
+        initialText="10",
+        numLines = 1,
+        focus=0,
+        width=12,
+        focusOutCommand=updateBrush,
+        focusOutExtraArgs=['size'],
+        text_align = TextNode.ALeft,
+        frameSize=(-.3,12.3,-.3,0.9),)
+    self.texturePainterTools['size'] = paramEntry
+    yPos -= 0.06
+    # --- TITLE ---
+    paramLabel = DirectLabel(
+        text = 'smooth',
+        parent = editWindowFrame,
+        scale=.04,
+        pos = (0.1, 0, yPos),
+        text_align = TextNode.ALeft
+    )
+    # smooth
+    paramEntry = DirectCheckButton(
+        scale=.04,
+        pos = (xPos+0.05, 0, yPos),
+        parent = editWindowFrame,
+        command=updateBrush,
+        extraArgs=['smooth'],
+        )
+    self.texturePainterTools['smooth'] = paramEntry
+    yPos -= 0.06
+    # --- TITLE ---
+    paramLabel = DirectLabel(
+        text = 'mode',
+        parent = editWindowFrame,
+        scale=.04,
+        pos = (0.1, 0, yPos),
+        text_align = TextNode.ALeft
+    )
+    # effect
+    items = PNMBrush_BrushEffect_Enum.keys()
+    # select the default item 0, this must be done because it
+    # may be undefined, and thus updateAll will not set it
+    for k, v in PNMBrush_BrushEffect_Enum.items():
+      if v == PNMBrush.BEBlend:
+        i = k
+    initialitem = items.index(i)
+    paramEntry = DirectOptionMenu(
+        pos = (xPos, 0, yPos),
+        scale=.04,
+        parent = editWindowFrame,
+        command=updateBrush,
+        extraArgs=['effect'],
+        items=items,
+        initialitem=initialitem,
+        highlightColor=(0.65,0.65,0.65,1),)
+    self.texturePainterTools['effect'] = paramEntry
+    yPos -= 0.06
+    
+    # window
+    self.texturePainterWindow = DirectSidebar(
+      frameSize=(1.1,-yPos+0.04)
+      #frameSize=(0.8,0.4), pos=(-.05,0,-0.1), align=ALIGN_RIGHT|ALIGN_TOP, orientation=VERTICAL
+    , pos=Vec3(0,0,-0.8)
+    , align=ALIGN_RIGHT|ALIGN_TOP
+    , opendir=LEFT_OR_UP
+    , orientation=VERTICAL
+    , text='painting')
+    editWindowFrame.reparentTo(self.texturePainterWindow)
+    editWindowFrame.setZ(-yPos-0.02)
+    
+    updateBrush()
+    
+    self.accept(EVENT_TEXTUREPAINTER_STOPEDIT, self.destroyTexturepainterTools)
+  
+  def destroyTexturepainterTools(self):
+    self.texturePainterWindow.destroy()
   
   def exitWorldEditMode(self):
     # hide the text

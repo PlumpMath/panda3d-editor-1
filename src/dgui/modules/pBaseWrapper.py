@@ -18,6 +18,10 @@ from core.modules.pNodePathWrapper.pEggGroup import EggGroup_CollideFlags_Bitmas
 EggGroup_CollisionSolidType_Enum, EggGroup_DCSType_Enum, \
 EggGroup_BillboardType_Enum
 
+
+DEBUG = False
+
+
 def strListToFloat(l):
   o = list()
   for i in l:
@@ -217,18 +221,20 @@ class BaseWrapper(DirectObject):
 #            paramEntry = [entry, button]
             yPos -= 0.06
           else:
-            print "W: dgui.BaseWrapper.createEditWindow: unknown entry type"
-            print "  -", self.object.__class__.__name__
-            print "  -", paramType.__name__
-            print "  -", paramType, paramName
-            #print "  -", getFunc, setFunc, hasFunc, clearFunc
-            print Enum
+            if DEBUG:
+              print "W: dgui.BaseWrapper.createEditWindow: unknown entry type"
+              print "  -", self.object.__class__.__name__
+              print "  -", paramType.__name__
+              print "  -", paramType, paramName
+              #print "  -", getFunc, setFunc, hasFunc, clearFunc
+              print Enum
             paramEntry = None
         else:
-          print "W: dgui.BaseWrapper.createEditWindow: no mutableparameter for entry"
-          print "  -", self.object.__class__.__name__
-          print "  -", paramName
-          print "  - in", self.mutableParametersSorting
+          if DEBUG:
+            print "W: dgui.BaseWrapper.createEditWindow: no mutableparameter for entry"
+            print "  -", self.object.__class__.__name__
+            print "  -", paramName
+            print "  - in", self.mutableParametersSorting
           paramEntry = None
         self.parameterEntries[paramName] = paramEntry
       
