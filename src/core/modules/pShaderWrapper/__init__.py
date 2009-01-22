@@ -77,37 +77,31 @@ class ShaderWrapper(BaseWrapper):
       self.setTex4Scale,
       None,
       None ]
+    self.mutableParameters['detailmap4'] = [ Filepath,
+      self.getTex5,
+      self.setTex5,
+      None,
+      self.clearTex4 ]
+    self.mutableParameters['tex4scale'] = [ float,
+      self.getTex5Scale,
+      self.setTex5Scale,
+      None,
+      None ]
     self.mutableParameters['update'] = [ Trigger,
       self.getUpdateShader,
       self.setUpdateShader,
       None,
       None ]
-    self.mutableParameters['paintColor'] = [ Vec4,
-      self.getPaintColor,
-      self.setPaintColor,
-      None,
-      None]
-    self.mutableParameters['paintSize'] = [ float,
-      self.getPaintSize,
-      self.setPaintSize,
-      None,
-      None]
-    self.mutableParameters['paintEffect'] = [ PNMBrush_BrushEffect_Enum,
-      self.getpaintEffect,
-      self.setpaintEffect,
-      None,
-      None]
     
     self.tex1Path = Filepath('')
     self.tex2Path = Filepath('')
     self.tex3Path = Filepath('')
     self.tex4Path = Filepath('')
+    self.tex5Path = Filepath('')
     self.tex2Scale = 1
     self.tex3Scale = 1
     self.tex4Scale = 1
-    self.paintColor = Vec4(1,1,1,1)
-    self.paintSize = 7
-    self.paintEffect = PNMBrush.BESet
+    self.tex5Scale = 1
     
     self.relativePath = None
     self.shader = None
@@ -154,6 +148,10 @@ class ShaderWrapper(BaseWrapper):
           tex4Path = posixpath.join(self.relativePath, self.tex4Path)
           print "  - tex4", tex4Path, self.tex4Scale
           self.shader.AddAlphaMap(tex4Path, tex1Path, alphamapchannel = "b", texscale = self.tex4Scale)
+        if self.tex5Path:
+          tex5Path = posixpath.join(self.relativePath, self.tex5Path)
+          print "  - tex5", tex5Path, self.tex5Scale
+          self.shader.AddAlphaMap(tex5Path, tex1Path, alphamapchannel = "a", texscale = self.tex5Scale)
         self.shader.Initialize()
       
       if self.isEditmodeEnabled():
@@ -181,11 +179,10 @@ class ShaderWrapper(BaseWrapper):
   def startPaint(self):
     if not self.paintActive:
       print "I: ShaderWrapper.startPaint"
-      texturePainter.enableEditor()
       self.paintTex = self.shader.loadedMaps[posixpath.join(self.relativePath, self.tex1Path)]
-      texturePainter.startEdit(self.paintTex)
-      col = VBase4D(self.paintColor[0], self.paintColor[1], self.paintColor[2], self.paintColor[3])
-      texturePainter.setBrush(col, self.paintSize, self.paintEffect)
+      #texturePainter.startEdit(self.paintTex)
+      texturePainter.enableEditor(self.nodePath, self.paintTex)
+      texturePainter.startEdit()
       self.paintActive = True
   
   def stopEdit(self):
@@ -211,9 +208,20 @@ class ShaderWrapper(BaseWrapper):
     self.setEditmodeDisabled()
     BaseWrapper.destroy(self)
   
+  def makeInstance(self, originalInstance):
+    ''' create a copy of this instance
+    '''
+    newInstance = self(originalInstance.getParent(), originalInstance.getName()+"-copy")
+    newInstance.nodePath.setMat(originalInstance.nodePath.getMat())
+    newInstance.setParameters(originalInstance.getParameters())
+    newInstance.setUpdateShader()
+    return newInstance
+  makeInstance = classmethod(makeInstance)
+  
   def setTex1(self, texPath):
-    if texPath[0] == '/':
-      texPath = relpath(self.relativePath, posixpath.abspath(texPath))
+    if texPath:
+      if texPath[0] == '/':
+        texPath = relpath(self.relativePath, posixpath.abspath(texPath))
     self.tex1Path = Filepath(texPath)
   def getTex1(self):
     return self.tex1Path
@@ -221,8 +229,9 @@ class ShaderWrapper(BaseWrapper):
     self.tex1Path = None
   
   def setTex2(self, texPath):
-    if texPath[0] == '/':
-      texPath = relpath(self.relativePath, posixpath.abspath(texPath))
+    if texPath:
+      if texPath[0] == '/':
+        texPath = relpath(self.relativePath, posixpath.abspath(texPath))
     self.tex2Path = Filepath(texPath)
   def getTex2(self):
     return self.tex2Path
@@ -230,8 +239,9 @@ class ShaderWrapper(BaseWrapper):
     self.tex2Path = None
   
   def setTex3(self, texPath):
-    if texPath[0] == '/':
-      texPath = relpath(self.relativePath, posixpath.abspath(texPath))
+    if texPath:
+      if texPath[0] == '/':
+        texPath = relpath(self.relativePath, posixpath.abspath(texPath))
     self.tex3Path = Filepath(texPath)
   def getTex3(self):
     return self.tex3Path
@@ -239,13 +249,24 @@ class ShaderWrapper(BaseWrapper):
     self.tex3Path = None
   
   def setTex4(self, texPath):
-    if texPath[0] == '/':
-      texPath = relpath(self.relativePath, posixpath.abspath(texPath))
+    if texPath:
+      if texPath[0] == '/':
+        texPath = relpath(self.relativePath, posixpath.abspath(texPath))
     self.tex4Path = Filepath(texPath)
   def getTex4(self):
     return self.tex4Path
   def clearTex4(self):
     self.tex4Path = None
+  
+  def setTex5(self, texPath):
+    if texPath:
+      if texPath[0] == '/':
+        texPath = relpath(self.relativePath, posixpath.abspath(texPath))
+    self.tex5Path = Filepath(texPath)
+  def getTex5(self):
+    return self.tex5Path
+  def clearTex5(self):
+    self.tex5Path = None
   
   def getTex2Scale(self):
     return self.tex2Scale
@@ -262,23 +283,7 @@ class ShaderWrapper(BaseWrapper):
   def setTex4Scale(self, scale):
     self.tex4Scale = scale
   
-  def getPaintColor(self):
-    return self.paintColor
-  def setPaintColor(self, color):
-    self.paintColor = color
-    col = VBase4D(self.paintColor[0], self.paintColor[1], self.paintColor[2], self.paintColor[3])
-    texturePainter.setBrush(col, self.paintSize, self.paintEffect)
-  
-  def getPaintSize(self):
-    return self.paintSize
-  def setPaintSize(self, size):
-    self.paintSize=size
-    col = VBase4D(self.paintColor[0], self.paintColor[1], self.paintColor[2], self.paintColor[3])
-    texturePainter.setBrush(col, self.paintSize, self.paintEffect)
-  
-  def getpaintEffect(self):
-    return self.paintEffect
-  def setpaintEffect(self, paintEffect):
-    self.paintEffect= paintEffect
-    col = VBase4D(self.paintColor[0], self.paintColor[1], self.paintColor[2], self.paintColor[3])
-    texturePainter.setBrush(col, self.paintSize, self.paintEffect)
+  def getTex5Scale(self):
+    return self.tex5Scale
+  def setTex5Scale(self, scale):
+    self.tex5Scale = scale

@@ -26,6 +26,8 @@ from core.modules import *
 from core.pTreeNode import *
 from core.modules.pSceneNodeWrapper import *
 from core.modules.pNodePathWrapper import *
+# just to initialize the painter
+from core.pTexturePainter import texturePainter
 
 DEBUG = False
 

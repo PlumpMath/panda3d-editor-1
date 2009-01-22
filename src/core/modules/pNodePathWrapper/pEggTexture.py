@@ -154,9 +154,9 @@ class ObjectEggTexture(ObjectEggBase):
         texture = texLayer.texture
     if texture:
       #print "I: ObjectEggTexture.startEdit: editing texture", texture
-      texturePainter.selectPaintModel(self.modelWrapper.model)
-      texturePainter.enableEditor()
-      texturePainter.startEdit(texture)
+      #texturePainter.selectPaintModel()
+      texturePainter.enableEditor(self.modelWrapper.model, texture)
+      texturePainter.startEdit()
     else:
       print "I: ObjectEggTexture.startEdit: texture not found", eggTextureFilename
   

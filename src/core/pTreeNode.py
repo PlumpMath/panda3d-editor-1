@@ -199,41 +199,42 @@ class TreeNode(object):
     ''' name: name of the parameter
     value: value of the parameter, if parameter is a Vec or Point, give a tuple or list
     '''
-    varType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[name]
-    try:
-      if clearFunc != None and (value == None or (isinstance(value, str) and value.lower() == "none")):
-        clearFunc()
-      elif isinstance(varType, type) and isinstance(value, varType):
-        # It's already the correct type
-        setFunc(value)
-      elif isinstance(varType, Enum):
-        for n, v in varType.items():
-          if n == value:
-            setFunc(v)
-            return
-        print "W: core.TreeNode.setParameter: invalid value %s for enum %s" % (value, varType.__name__)
-      elif isinstance(varType, Bitmask):
-        setFunc(value)
-      elif varType.__name__ == 'Filepath': #isinstance(varType, Filepath):
-        setFunc(value)
-      elif varType.__name__ == 'Trigger':
-        setFunc()
-      else:
-        if isinstance(value, str) or isinstance(value, unicode):
-          try:
-            value = tuple([float(i) for i in value.replace("(", "").replace(")", "").replace(" ", "").split(",")])
-          except:
-            print "E: core.BaseWrapper.setParameter: error converting string" % name, value
-        if varType in [Vec4, Point4, VBase4, Point3, Vec3, VBase3, Point2, Vec2, VBase2]:
-          setFunc(varType(*value))
-        elif varType in [float, int, str, bool]:
-          setFunc(varType(value))
+    if name in self.mutableParameters:
+      varType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[name]
+      try:
+        if clearFunc != None and (value == None or (isinstance(value, str) and value.lower() == "none")):
+          clearFunc()
+        elif isinstance(varType, type) and isinstance(value, varType):
+          # It's already the correct type
+          setFunc(value)
+        elif isinstance(varType, Enum):
+          for n, v in varType.items():
+            if n == value:
+              setFunc(v)
+              return
+          print "W: core.TreeNode.setParameter: invalid value %s for enum %s" % (value, varType.__name__)
+        elif isinstance(varType, Bitmask):
+          setFunc(value)
+        elif varType.__name__ == 'Filepath': #isinstance(varType, Filepath):
+          setFunc(value)
+        elif varType.__name__ == 'Trigger':
+          setFunc()
         else:
-          print "E: core.TreeNode.setParameter: unknown varType %s for %s" % (varType.__name__, name)
-    except TypeError:
-      # this must be catched as it's a user input
-      print "E: core.TreeNode.setParameter: error handling %s in data:" % name, value
-      traceback.print_exc()
+          if isinstance(value, str) or isinstance(value, unicode):
+            try:
+              value = tuple([float(i) for i in value.replace("(", "").replace(")", "").replace(" ", "").split(",")])
+            except:
+              print "E: core.BaseWrapper.setParameter: error converting string" % name, value
+          if varType in [Vec4, Point4, VBase4, Point3, Vec3, VBase3, Point2, Vec2, VBase2]:
+            setFunc(varType(*value))
+          elif varType in [float, int, str, bool]:
+            setFunc(varType(value))
+          else:
+            print "E: core.TreeNode.setParameter: unknown varType %s for %s" % (varType.__name__, name)
+      except TypeError:
+        # this must be catched as it's a user input
+        print "E: core.TreeNode.setParameter: error handling %s in data:" % name, value
+        traceback.print_exc()
   
   def setParameters(self, parameters):
     for name, value in parameters.items():
@@ -274,7 +275,7 @@ class TreeNode(object):
   def makeInstance(self, originalInstance):
     ''' create a copy of this instance
     '''
-    newInstance = self(originalInstance.getParent(), originalInstance.name+"-copy")
+    newInstance = self(originalInstance.getParent(), originalInstance.getName()+"-copy")
     newInstance.nodePath.setMat(originalInstance.nodePath.getMat())
     newInstance.setParameters(originalInstance.getParameters())
     return newInstance
