@@ -99,22 +99,23 @@ class ScenePicker(DirectObject):
     self.updatePickerRay()
   
   def mouseButtonPress(self):
-    if self.editmodeEnabled:
-      pickedObjects = self.getMouseOverNodesList()
-#      print "I: ModelController.mouseButtonPress: found", len(pickedObjects)
-      if len(pickedObjects) > 0:
-        editModel = self.getMouseOverObjectModel(pickedObjects[0])
-        editTool = self.getMouseOverObjectTool(pickedObjects)
-        if editTool:
-          messenger.send(EVENT_MODELCONTROLLER_EDITTOOL_SELECTED, [editTool])
-        elif editModel:
-          if self.__3dModelSelectionActive:
+    if self.__3dModelSelectionActive:
+      if self.editmodeEnabled:
+        pickedObjects = self.getMouseOverNodesList()
+  #      print "I: ModelController.mouseButtonPress: found", len(pickedObjects)
+        if len(pickedObjects) > 0:
+          editModel = self.getMouseOverObjectModel(pickedObjects[0])
+          editTool = self.getMouseOverObjectTool(pickedObjects)
+          if editTool:
+            messenger.send(EVENT_MODELCONTROLLER_EDITTOOL_SELECTED, [editTool])
+          elif editModel:
+            #if self.__3dModelSelectionActive:
             modelId = modelIdManager.getObjectId(editModel)
             object = modelIdManager.getObject(modelId)
             messenger.send(EVENT_MODELCONTROLLER_SELECT_OBJECT, [object])
-      else:
-        # no object was clicked on
-        messenger.send(EVENT_MODELCONTROLLER_SELECT_OBJECT, [None])
+        else:
+          # no object was clicked on
+          messenger.send(EVENT_MODELCONTROLLER_SELECT_OBJECT, [None])
   
   def createCollisionPicker(self):
     self.editorCollTraverser    = CollisionTraverser()

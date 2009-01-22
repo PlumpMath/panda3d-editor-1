@@ -11,34 +11,6 @@ SHADER = """//Cg
 
 void vshader(in  varying float4 vtx_position : POSITION,
              in  varying float2 vtx_texcoord0 : TEXCOORD0,
-             in  varying float3 vtx_normal : NORMAL,
-             in  uniform sampler2D k_heightmap,
-             in  uniform float4x4 mat_modelproj,
-             out varying float4 l_position : POSITION,
-             out float l_bright,
-             out float3 l_col, )
-{
-// THE ONLY IMPORTANT LINE:
-  vtx_position.z = tex2D(k_heightmap, vtx_texcoord0).r;
-// THAT WAS THE ONLY IMPORTANT LINE
-  l_position=mul(mat_modelproj, vtx_position);
-  l_bright = vtx_position.z;
-  l_col = vtx_normal;
-}
-
-void fshader(in float l_bright,
-             in float4 l_position : POSITION,
-             in float3 l_col,
-             out float4 o_color:COLOR)
-{
-  o_color = float4(l_col);
-  o_color.z = l_bright;
-} """
-
-SHADER = """//Cg
-
-void vshader(in  varying float4 vtx_position : POSITION,
-             in  varying float2 vtx_texcoord0 : TEXCOORD0,
              in  varying float3 vtx_normal,
              in  uniform sampler2D k_heightmap,
              in  uniform float4x4 mat_modelproj,
@@ -56,6 +28,34 @@ void vshader(in  varying float4 vtx_position : POSITION,
   vtx_position.z = a;
 // THAT WAS THE ONLY IMPORTANT LINE
   l_position=mul(mat_modelproj, vtx_position);
+}
+
+void fshader(in float4 l_bright,
+             in float4 l_position : POSITION,
+             out float4 o_color:COLOR)
+{
+  o_color = l_bright;
+} """
+
+BACKGROUND_SHADER = """//Cg
+
+void vshader(in  varying float4 vtx_position : POSITION,
+             in  varying float2 vtx_texcoord0 : TEXCOORD0,
+             in  varying float3 vtx_normal,
+             in  uniform sampler2D k_heightmap,
+             in  uniform sampler2D tex_0,
+             in  uniform float4x4 mat_modelproj,
+             in  uniform float4x4 mat_projection,
+             out varying float4 l_position : POSITION,
+             out varying float4 l_bright)
+{
+  float a = tex2D(k_heightmap, vtx_texcoord0);
+// THE ONLY IMPORTANT LINE:
+  vtx_position.z = a;
+// THAT WAS THE ONLY IMPORTANT LINE
+  l_position=mul(mat_modelproj, vtx_position);
+// coloring
+  l_bright = tex2D(tex_0, vtx_texcoord0);
 }
 
 void fshader(in float4 l_bright,
@@ -102,22 +102,24 @@ class GeoMipTerrainHeightfield(TreeNode):
       self.geoMipTerrain.terrainNode.setShaderInput("heightmap", self.paintTexture)
       self.geoMipTerrain.terrainNode.setShader(Shader.make(SHADER))
       # also apply the shader on the paint-model, hmm how to keep the texture?
-      #texturePainter.paintEffectl.setShaderInput("heightmap", self.paintTexture)
-      #texturePainter.paintEffectl.setShader(Shader.make(SHADER))
+      texturePainter.paintModel.setShaderInput("heightmap", self.paintTexture)
+      texturePainter.paintModel.setShader(Shader.make(BACKGROUND_SHADER))
     
     self.lastUpdateTime = 0
     taskMgr.add(self.updateTask, 'geoMipUpdateTask')
   
   def updateTask(self, task):
     # update 5 times a second
-    if self.renderMode == 0:
-      if task.time > self.lastUpdateTime + 0.5:
-        print "I: GeoMipTerrainHeightfield.updateTask: updating terrain", task.time
-        self.geoMipTerrain.terrain.generate()
-        self.lastUpdateTime = task.time
-    elif self.renderMode == 1:
+    if task.time > self.lastUpdateTime + 0.5:
+      self.lastUpdateTime = task.time
+      if self.renderMode == 0:
+          print "I: GeoMipTerrainHeightfield.updateTask: updating terrain", task.time
+          self.geoMipTerrain.terrain.generate()
+      elif self.renderMode == 1:
+        texturePainter.paintModel.setShader(Shader.make(BACKGROUND_SHADER))
+        texturePainter.paintModel.setShaderInput("heightmap", self.paintTexture)
+    if self.renderMode == 1:
       self.paintTexture.load(self.geoMipTerrain.terrain.heightfield())
-      pass
     return task.cont
   
   def stopEdit(self):

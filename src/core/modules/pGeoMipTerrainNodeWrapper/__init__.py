@@ -26,6 +26,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
     BaseWrapper.setEditmodeEnabled(self, recurseException)
     self.nodePath.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
   def setEditmodeDisabled(self, recurseException=[]):
+    print "I: GeoMipTerrainNodeWrapper.setEditmodeDisabled"
     BaseWrapper.setEditmodeDisabled(self, recurseException)
     self.nodePath.setCollideMask(BitMask32.allOff())
   

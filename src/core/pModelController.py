@@ -28,20 +28,14 @@ class ModelController(DirectObject):
   def setDefault(self, defaultObject):
     self.defaultObject = defaultObject
   
-  def selectObject(self, object):
-    if object is None:
-      object = self.defaultObject
-    self.__selectObject(object)
-  
-  def getSelectedObject(self):
-    return self.__selectedModel
-  
-  def __selectObject(self, newObject=None):
+  def selectObject(self, newObject=None):
+    if newObject is None:
+      newObject = self.defaultObject
     if newObject is None:
       # no object has been selected
-      self.__deselectModel()
-      #print "W: ModelController.selectObject: selected None object, this should rarely happen"
-      messenger.send(EVENT_MODELCONTROLLER_SELECTED_OBJECT_CHANGE, [newObject])
+      #self.__deselectModel()
+      print "E: ModelController.selectObject: newObject is None"
+      #messenger.send(EVENT_MODELCONTROLLER_SELECTED_OBJECT_CHANGE, [newObject])
     else:
       # only select the object if it's editMode is enabled
       if newObject.isEditmodeEnabled():
@@ -56,6 +50,9 @@ class ModelController(DirectObject):
           messenger.send(EVENT_MODELCONTROLLER_SELECTED_OBJECT_CHANGE, [newObject])
       else:
         print "W: ModelController.selectObject: object not in editmode", newObject
+  
+  def getSelectedObject(self):
+    return self.__selectedModel
   
   def __deselectModel(self):
     if self.__selectedModel:
