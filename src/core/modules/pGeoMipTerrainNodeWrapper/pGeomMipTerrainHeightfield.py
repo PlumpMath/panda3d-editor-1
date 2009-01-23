@@ -69,19 +69,21 @@ void fshader(in float4 l_bright,
 COMPILED_BACKGROUND_SHADER = Shader.make(BACKGROUND_SHADER)
 
 class GeoMipTerrainHeightfield(TreeNode):
+  ''' this node handles the height texture of the geomipterrain
+  '''
   def __init__(self, parent=None, geoMipTerrain=None, name='heightfield'):
     self.geoMipTerrain = geoMipTerrain
     self.heightfield = ''
     TreeNode.__init__(self, name)
     TreeNode.reparentTo(self, parent)
+    
     self.mutableParameters['heightfield'] = [ Filepath,
       self.getHeightfield,
       self.setHeightfield,
       None,
       None ]
-    
     self.renderMode = 1
-    self.mutableParameters['renderMode'] = [ int,
+    self.mutableParameters['paint mode (shader)'] = [ int,
       self.getRenderMode,
       self.setRenderMode,
       None,
@@ -97,6 +99,7 @@ class GeoMipTerrainHeightfield(TreeNode):
       if self.renderMode == 0:
         # update terrain height using geoMip.generate
         texturePainter.enableEditor(self.geoMipTerrain.terrainNode, self.geoMipTerrain.terrain.heightfield())
+        texturePainter.startEdit()
       if self.renderMode == 1:
         # rendering using a shader
         self.paintImage = self.geoMipTerrain.terrain.heightfield()

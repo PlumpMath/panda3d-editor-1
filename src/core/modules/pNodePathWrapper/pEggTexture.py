@@ -15,7 +15,13 @@ def getTextureLayers(nodePath):
   def getStages(gnode, state, texStages): #, textures):
     for i in range(gnode.getNumGeoms()):
       gstate = state.compose(gnode.getGeomState(i))
-      attrib = gstate.getAttrib(TextureAttrib.getClassSlot())
+      if hasattr(TextureAttrib, 'getClassSlot'): # 1.6 uses getClassSlot
+        attrib = gstate.getAttrib(TextureAttrib.getClassSlot())
+      elif hasattr(TextureAttrib, 'getClassType'): # 1.5.4 uses getClassType
+        attrib = gstate.getAttrib(TextureAttrib.getClassType())
+      else:
+        print "E: getTextureLayers.getStages: cannot read attrib"
+        return texStages
       if attrib != None:
         for j in range(attrib.getNumOnStages()):
           texStage = attrib.getOnStage(j)
@@ -25,10 +31,19 @@ def getTextureLayers(nodePath):
     return texStages
   
   def rec(parent, state, texStages):
-    for child in parent.getChildren():
-      texStages = rec(child, state, texStages)
-      if child.node().isGeomNode():
-        texStages = getStages(child.node(), state, texStages)
+    print "I: getTextureLayers.rec:", type(parent)
+    # in 1.5.4 the parent type nodepathcollection has no getChildren
+    # type(parent) allways yields nodepath, so i must use try/except
+    try:
+      for child in parent.getChildren():
+        texStages = rec(child, state, texStages)
+        if child.node().isGeomNode():
+          texStages = getStages(child.node(), state, texStages)
+    except:
+      for child in parent.getChildrenAsList():
+        texStages = rec(child, state, texStages)
+        if child.node().isGeomNode():
+          texStages = getStages(child.node(), state, texStages)
     return texStages
   
   texStages = rec(nodePath, nodePath.getNetState(), [])
@@ -208,24 +223,30 @@ class ObjectEggTexture(ObjectEggBase):
     self.modelWrapper = None
   
   def startEdit(self):
-    ObjectEggBase.startEdit(self)
-    print "I: ObjectEggTexture.startEdit"
-    # search for the corresponding nodepath-texture in the egg-file
-    eggTextureFilename = self.eggTexture.getFilename()
-    texture = None
-    for texLayer in getTextureLayers(self.modelWrapper.model):
-      if str(eggTextureFilename) in str(texLayer.texture.getFullpath()):
-        #print "I: ObjectEggTexture.startEdit: modifying texture", str(eggTextureFilename), str(texLayer.texture.getFullpath())
-        texture = texLayer.texture
-    if texture:
-      #print "I: ObjectEggTexture.startEdit: editing texture", texture
-      #texturePainter.selectPaintModel()
-      texturePainter.enableEditor(self.modelWrapper.model, texture)
-      texturePainter.startEdit()
+    if ObjectEggBase.isEditmodeEnabled(self):
+      ObjectEggBase.startEdit(self)
+      print "I: ObjectEggTexture.startEdit"
+      # search for the corresponding nodepath-texture in the egg-file
+      eggTextureFilename = self.eggTexture.getFilename()
+      texture = None
+      for texLayer in getTextureLayers(self.modelWrapper.model):
+        if str(eggTextureFilename) in str(texLayer.texture.getFullpath()):
+          #print "I: ObjectEggTexture.startEdit: modifying texture", str(eggTextureFilename), str(texLayer.texture.getFullpath())
+          texture = texLayer.texture
+      if texture:
+        #print "I: ObjectEggTexture.startEdit: editing texture", texture
+        #texturePainter.selectPaintModel()
+        texturePainter.enableEditor(self.modelWrapper.model, texture)
+        texturePainter.startEdit()
+      else:
+        print "I: ObjectEggTexture.startEdit: texture not found", eggTextureFilename
     else:
-      print "I: ObjectEggTexture.startEdit: texture not found", eggTextureFilename
+      print "W: ObjectEggTexture.startEdit: editmode not enabled"
   
   def stopEdit(self):
-    ObjectEggBase.stopEdit(self)
-    texturePainter.stopEdit()
-    texturePainter.disableEditor()
+    if ObjectEggBase.isEditmodeEnabled(self):
+      ObjectEggBase.stopEdit(self)
+      texturePainter.stopEdit()
+      texturePainter.disableEditor()
+    else:
+      print "W: ObjectEggTexture.stopEdit: editmode not enabled"

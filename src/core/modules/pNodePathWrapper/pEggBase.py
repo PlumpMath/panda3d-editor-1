@@ -18,12 +18,20 @@ class ObjectEggBase(TreeNode):
     TreeNode.setEditmodeDisabled(self, recurseException)
   
   def startEdit(self):
-    # disable the 3d window object selection
-    messenger.send(EVENT_SCENEPICKER_MODELSELECTION_DISABLE)
+    if TreeNode.isEditmodeEnabled(self):
+      # disable the 3d window object selection
+      TreeNode.startEdit(self)
+      messenger.send(EVENT_SCENEPICKER_MODELSELECTION_DISABLE)
+    else:
+      print "W: ObjectEggBase.startEdit: editmode not enabled"
     
   def stopEdit(self):
-    # enable the 3d window object selection
-    messenger.send(EVENT_SCENEPICKER_MODELSELECTION_ENABLE)
+    if TreeNode.isEditmodeEnabled(self):
+      TreeNode.stopEdit(self)
+      # enable the 3d window object selection
+      messenger.send(EVENT_SCENEPICKER_MODELSELECTION_ENABLE)
+    else:
+      print "W: ObjectEggBase.stopEdit: editmode not enabled"
   
   def destroy(self):
     TreeNode.destroy(self)
