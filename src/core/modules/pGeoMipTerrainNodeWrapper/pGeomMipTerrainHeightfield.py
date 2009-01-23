@@ -88,27 +88,30 @@ class GeoMipTerrainHeightfield(TreeNode):
       None]
   
   def startEdit(self):
-    # disable the 3d window object selection
-    messenger.send(EVENT_SCENEPICKER_MODELSELECTION_DISABLE)
-    
-    if self.renderMode == 0:
-      # update terrain height using geoMip.generate
-      texturePainter.enableEditor(self.geoMipTerrain.terrainNode, self.geoMipTerrain.terrain.heightfield())
-    if self.renderMode == 1:
-      # rendering using a shader
-      self.paintImage = self.geoMipTerrain.terrain.heightfield()
-      self.paintTexture = Texture()
-      self.paintTexture.load(self.paintImage)
-      texturePainter.enableEditor(self.geoMipTerrain.terrainNode, self.paintImage)
-      texturePainter.startEdit()
-      self.geoMipTerrain.terrainNode.setShaderInput("heightmap", self.paintTexture)
-      self.geoMipTerrain.terrainNode.setShader(COMPILED_SHADER)
-      # also apply the shader on the paint-model, hmm how to keep the texture?
-      texturePainter.paintModel.setShaderInput("heightmap", self.paintTexture)
-      texturePainter.paintModel.setShader(COMPILED_BACKGROUND_SHADER)
-    
-    self.lastUpdateTime = 0
-    taskMgr.add(self.updateTask, 'geoMipUpdateTask')
+    if not TreeNode.isEditmodeStarted(self):
+      TreeNode.startEdit(self)
+      
+      # disable the 3d window object selection
+      messenger.send(EVENT_SCENEPICKER_MODELSELECTION_DISABLE)
+      
+      if self.renderMode == 0:
+        # update terrain height using geoMip.generate
+        texturePainter.enableEditor(self.geoMipTerrain.terrainNode, self.geoMipTerrain.terrain.heightfield())
+      if self.renderMode == 1:
+        # rendering using a shader
+        self.paintImage = self.geoMipTerrain.terrain.heightfield()
+        self.paintTexture = Texture()
+        self.paintTexture.load(self.paintImage)
+        texturePainter.enableEditor(self.geoMipTerrain.terrainNode, self.paintImage)
+        texturePainter.startEdit()
+        self.geoMipTerrain.terrainNode.setShaderInput("heightmap", self.paintTexture)
+        self.geoMipTerrain.terrainNode.setShader(COMPILED_SHADER)
+        # also apply the shader on the paint-model, hmm how to keep the texture?
+        texturePainter.paintModel.setShaderInput("heightmap", self.paintTexture)
+        texturePainter.paintModel.setShader(COMPILED_BACKGROUND_SHADER)
+      
+      self.lastUpdateTime = 0
+      taskMgr.add(self.updateTask, 'geoMipUpdateTask')
   
   def updateTask(self, task):
     # update 5 times a second
@@ -125,38 +128,52 @@ class GeoMipTerrainHeightfield(TreeNode):
     return task.cont
   
   def stopEdit(self):
-    taskMgr.remove('geoMipUpdateTask')
-    
-    # enable the 3d window object selection
-    messenger.send(EVENT_SCENEPICKER_MODELSELECTION_ENABLE)
-    
-    # saving the texture
-    print "saving the heightfield to", self.heightfield
-    self.geoMipTerrain.terrain.heightfield().write(Filename(self.heightfield))
-    
-    # stop the shader and regenerate the terrain
-    if self.renderMode == 0:
-      pass
-    elif self.renderMode == 1:
-      self.geoMipTerrain.terrainNode.clearShader()
-      self.geoMipTerrain.terrain.generate()
-    
-    # stop painting
-    texturePainter.stopEdit()
-    texturePainter.disableEditor()
-  
-  def setHeightfield(self, heightfield):
-    self.heightfield = heightfield
-    self.stopEdit()
-    self.geoMipTerrain.update()
-    self.startEdit()
+    if TreeNode.isEditmodeStarted(self):
+      taskMgr.remove('geoMipUpdateTask')
+      
+      # enable the 3d window object selection
+      messenger.send(EVENT_SCENEPICKER_MODELSELECTION_ENABLE)
+      
+      # saving the texture
+      print "saving the heightfield to", self.heightfield
+      self.geoMipTerrain.terrain.heightfield().write(Filename(self.heightfield))
+      
+      # stop the shader and regenerate the terrain
+      if self.renderMode == 0:
+        pass
+      elif self.renderMode == 1:
+        self.geoMipTerrain.terrainNode.clearShader()
+        self.geoMipTerrain.terrain.generate()
+      
+      # stop painting
+      texturePainter.stopEdit()
+      texturePainter.disableEditor()
+      
+      TreeNode.stopEdit(self)
   
   def getHeightfield(self):
     return self.heightfield
   
+  def setHeightfield(self, heightfield):
+    # backup editing
+    editStarted = TreeNode.isEditmodeStarted(self)
+    if editStarted:  self.stopEdit()
+    # change stuff
+    self.heightfield = heightfield
+    self.geoMipTerrain.update()
+    # restore editing
+    if editStarted:  self.startEdit()
+  
   def getRenderMode(self):
     return self.renderMode
+  
   def setRenderMode(self, renderMode):
+    # backup editing
+    editStarted = TreeNode.isEditmodeStarted(self)
+    if editStarted:  self.stopEdit()
+    # change stuff
     if not (renderMode == 0 or renderMode == 1):
       renderMode = 1
     self.renderMode = renderMode
+    # restore editing
+    if editStarted:  self.startEdit()

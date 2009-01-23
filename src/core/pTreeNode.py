@@ -51,7 +51,7 @@ class TreeNode(object):
     self.treeChildren = list()
     self.treeName = treeName
     #self.treeData = treeData
-    self.editmodeStatus = int
+    self.editmodeStatus = int()
     self.mutableParameters = dict()
     self.mutableParameters['name'] = [ str,
       self.getName,
@@ -146,7 +146,7 @@ class TreeNode(object):
           child.setEditmodeDisabled(recurseException)
   
   def isEditmodeEnabled(self):
-    return self.editmodeStatus & EDITMODE_ENABLED
+    return (self.editmodeStatus & EDITMODE_ENABLED)
   
   
   # --- EDIT STATUS OF THE OBJECT ---
@@ -168,7 +168,7 @@ class TreeNode(object):
       self.editmodeStatus = self.editmodeStatus ^ EDITMODE_STARTED
   
   def isEditmodeStarted(self):
-    return self.editmodeStatus & EDITMODE_STARTED
+    return (self.editmodeStatus & EDITMODE_STARTED)
   
   
   # --- PARAMETER LOADING AND SAVING ---
