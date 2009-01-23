@@ -14,8 +14,15 @@ PNMBrush_BrushEffect_Enum = Enum(
   BELighten = PNMBrush.BELighten,
 )
 
-TEXTUREPAINTER_FUNCTION_PAINT = 0
-TEXTUREPAINTER_FUNCTION_READ = 1
+TEXTUREPAINTER_FUNCTION_PAINT_POINT = 'paintPoint'
+TEXTUREPAINTER_FUNCTION_PAINT_LINE = 'paintLine'
+TEXTUREPAINTER_FUNCTION_READ = 'readColor'
+
+TexturePainter_PaintMode_Enum = Enum(
+  PointPaint = TEXTUREPAINTER_FUNCTION_PAINT_POINT,
+  LinePaint = TEXTUREPAINTER_FUNCTION_PAINT_LINE,
+  ReadColor = TEXTUREPAINTER_FUNCTION_READ,
+)
 
 def createPickingImage(size):
   ''' create a picking image with uniq colors for each point in the image
@@ -51,6 +58,7 @@ class TexturePainter(DirectObject):
     self.paintSize = 10
     self.paintEffect = PNMBrush.BEBlend
     self.paintSmooth = True
+    self.paintMode = TEXTUREPAINTER_FUNCTION_PAINT_POINT
     
     # some debugging stuff
     #self.accept("v", base.bufferViewer.toggleEnable)
@@ -160,6 +168,16 @@ class TexturePainter(DirectObject):
   def getBrushSettings(self):
     return self.paintColor,self.paintSize,self.paintSmooth,self.paintEffect
   
+  def setPaintMode(self, newMode):
+    self.paintMode = newMode
+    # clear last point if mode changed
+    if newMode == TEXTUREPAINTER_FUNCTION_PAINT_POINT or \
+       newMode == TEXTUREPAINTER_FUNCTION_READ:
+      self.lastPoint = None
+  
+  def getPaintMode(self):
+    return self.paintMode
+  
   def disableEditor(self):
     print "I: TexturePainter.disableEditor"
     self.stopEdit()
@@ -177,11 +195,21 @@ class TexturePainter(DirectObject):
   def startEdit(self):
     if self.initialized:
       messenger.send(EVENT_TEXTUREPAINTER_STARTEDIT)
+      # start paint events
       self.accept("mouse1", self.startPaint)
+      self.accept("control-mouse1", self.startPaint)
+      self.accept("shift-mouse1", self.startPaint)
+      #self.accept("alt-mouse1", self.startPaint)
+      
+      # stop paint events
       self.accept("mouse1-up", self.stopPaint)
-      self.accept("shift-mouse1", self.startGetColor)
-      self.accept("mouse1-up", self.stopGetColor)
-      self.accept("shift-mouse1-up", self.stopGetColor)
+      self.accept("shift-mouse1-up", self.stopPaint)
+      self.accept("control-mouse1-up", self.stopPaint)
+      self.accept("alt-mouse1-up", self.stopPaint)
+      self.accept("shift-alt-mouse1-up", self.stopPaint)
+      self.accept("control-alt-mouse1-up", self.stopPaint)
+      self.accept("shift-control-mouse1-up", self.stopPaint)
+      self.accept("shift-control-alt-mouse1-up", self.stopPaint)
     else:
       print "E: TexturePainter.startEdit: not initialized"
   
@@ -192,18 +220,21 @@ class TexturePainter(DirectObject):
   
   def startPaint(self):
     self.backcam.node().copyLens(WindowManager.activeWindow.camera.node().getLens())
-    self.paintFunction = TEXTUREPAINTER_FUNCTION_PAINT
+    self.paintFunction = TEXTUREPAINTER_FUNCTION_PAINT_POINT
     taskMgr.add(self.paintTask, 'paintTask')
+    taskMgr.doMethodLater(1.0/30, self.textureUpdateTask, 'textureUpdateTask')
+    #self.lastPoint = None
   def stopPaint(self):
     taskMgr.remove('paintTask')
+    taskMgr.remove('textureUpdateTask')
+    #self.lastPoint = None
   
-  def startGetColor(self):
-    self.backcam.node().copyLens(WindowManager.activeWindow.camera.node().getLens())
-    self.paintFunction = TEXTUREPAINTER_FUNCTION_READ
-    taskMgr.add(self.paintTask, 'paintTask')
-  def stopGetColor(self):
-    taskMgr.remove('paintTask')
-
+  def textureUpdateTask(self, task):
+    # display the modified texture
+    if type(self.paintTexture) == Texture:
+      self.workTex.load(self.workLayer)
+    return task.again
+  
   def paintTask(self, task):
     if not WindowManager.activeWindow or not WindowManager.activeWindow.mouseWatcherNode.hasMouse():
       return
@@ -240,22 +271,28 @@ class TexturePainter(DirectObject):
     x = r + ((b%16)*256)
     y = g + ((b//16)*256)
     
-    if self.paintFunction == TEXTUREPAINTER_FUNCTION_PAINT:
-      # render a spot into the texture
-      self.painter.drawPoint(x, y)
-      
-      # display the modified texture
-      if type(self.paintTexture) == Texture:
-        self.workTex.load(self.workLayer)
-    elif self.paintFunction == TEXTUREPAINTER_FUNCTION_READ:
-      #if type(self.paintTexture) == Texture:
-      #  self.paintColor = VBase4D(col[0], col[1], col[2], a)
-      #else:
-      #col = self.workLayer.getXel(x,y)
-      col = self.workLayer.getXelA(x,y)
-      print "I: TexturePainter.paintTask:", col
-      self.paintColor = VBase4D(col[0], col[1], col[2], col[3])
-      messenger.send(EVENT_TEXTUREPAINTER_BRUSHCHANGED)
+    if x > self.workLayer.getXSize() or y > self.workLayer.getYSize():
+#      print "I: TexturePainter.paintTask: invalid paint location", x, y
+      pass
+    else:
+      if self.paintMode == TEXTUREPAINTER_FUNCTION_PAINT_POINT:
+#        print "I: TexturePainter.paintTask: paint point", x, y
+        # render a spot into the texture
+        self.painter.drawPoint(x, y)
+      elif self.paintMode == TEXTUREPAINTER_FUNCTION_READ:
+        col = self.workLayer.getXelA(x,y)
+        if self.workLayer.hasAlpha():
+#          print "I: TexturePainter.paintTask: read with alpha", x, y
+          self.paintColor = VBase4D(col[0], col[1], col[2], col[3])
+        else:
+#          print "I: TexturePainter.paintTask: read without alpha", x, y
+          self.paintColor = VBase4D(col[0], col[1], col[2], 1.0)
+        messenger.send(EVENT_TEXTUREPAINTER_BRUSHCHANGED)
+      elif self.paintMode == TEXTUREPAINTER_FUNCTION_PAINT_LINE:
+        if self.lastPoint != None:
+#          print "I: TexturePainter.paintTask: paint line", x, y, self.lastPoint[0], self.lastPoint[1]
+          self.painter.drawLine(x, y, self.lastPoint[0], self.lastPoint[1])
+      self.lastPoint = (x,y)
     
     return task.cont
   

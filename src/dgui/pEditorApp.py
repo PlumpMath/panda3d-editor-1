@@ -16,7 +16,9 @@ from dgui.directSidebar import *
 
 from core.pConfigDefs import *
 from core.pModelController import modelController
-from core.pTexturePainter import texturePainter, PNMBrush_BrushEffect_Enum
+from core.pTexturePainter import texturePainter, PNMBrush_BrushEffect_Enum, \
+TexturePainter_PaintMode_Enum, TEXTUREPAINTER_FUNCTION_READ, \
+TEXTUREPAINTER_FUNCTION_PAINT_POINT, TEXTUREPAINTER_FUNCTION_PAINT_LINE
 # doesnt work, because the editor may be started before panda
 #from core.modules import *
 
@@ -193,7 +195,10 @@ class EditorApp(DirectObject, FSM):
       self.texturePainterTools['size'].enterText(str(size))
       self.texturePainterTools['smooth']["indicatorValue"] = smooth
       self.texturePainterTools['smooth'].setIndicatorValue()
-      # TODO read the effect
+      for k, v in PNMBrush_BrushEffect_Enum.items():
+        if k == effect:
+          currentIndex = self.texturePainterTools['effect'].index(k)
+          self.texturePainterTools['effect'].set(currentIndex)
       if update:
         writeBrushSettings(False)
     
@@ -325,23 +330,85 @@ class EditorApp(DirectObject, FSM):
     self.texturePainterTools['effect'] = paramEntry
     yPos -= 0.06
     
-    # window
+    readBrushSettings()
+    
+    self.accept(EVENT_TEXTUREPAINTER_STOPEDIT, self.destroyTexturepainterTools)
+    self.accept(EVENT_TEXTUREPAINTER_BRUSHCHANGED, readBrushSettings)
+    
+    
+    # --- PAINT MODE ---
+    def readPaintMode(update=False, *args):
+      paintMode = texturePainter.getPaintMode()
+      print "I: readPaintMode", paintMode
+      for k, v in TexturePainter_PaintMode_Enum.items():
+        print "  -", k, v
+        if v == paintMode:
+          setIndex = self.texturePainterTools['paintmode'].index(k)
+          print "  -equal", v, setIndex
+          self.texturePainterTools['paintmode'].set(setIndex)
+      
+      if update is True:
+        writePaintMode()
+    
+    def writePaintMode(update=False, *args):
+      paintModeName = self.texturePainterTools['paintmode'].get()
+      paintMode = TexturePainter_PaintMode_Enum[paintModeName]
+      texturePainter.setPaintMode(paintMode)
+      
+      if update is True:
+        readPaintMode()
+    
+    def setPaintMode(paintMode):
+      print "I: EditorApp.showTexturepainterTools.setPaintMode:", paintMode
+      texturePainter.setPaintMode(paintMode)
+      readPaintMode()
+    
+    # --- TITLE ---
+    paramLabel = DirectLabel(
+        text = 'mode',
+        parent = editWindowFrame,
+        scale=.04,
+        pos = (0.1, 0, yPos),
+        text_align = TextNode.ALeft
+    )
+    # effect
+    items = TexturePainter_PaintMode_Enum.keys()
+    # select the default item 0, this must be done because it
+    # may be undefined, and thus updateAll will not set it
+    for k, v in TexturePainter_PaintMode_Enum.items():
+      if v == PNMBrush.BEBlend:
+    #    i = k
+        initialitem = items.index(k)
+    paramEntry = DirectOptionMenu(
+        pos = (xPos, 0, yPos),
+        scale=.04,
+        parent = editWindowFrame,
+        command = writePaintMode,
+        extraArgs = ['effect'],
+        items = items,
+        initialitem = initialitem,
+        highlightColor = (0.65,0.65,0.65,1),)
+    self.texturePainterTools['paintmode'] = paramEntry
+    yPos -= 0.06
+    
+    readPaintMode()
+    
+    self.accept("shift", setPaintMode, [TEXTUREPAINTER_FUNCTION_READ])
+    self.accept("shift-up", setPaintMode, [TEXTUREPAINTER_FUNCTION_PAINT_POINT])
+    self.accept("control", setPaintMode, [TEXTUREPAINTER_FUNCTION_PAINT_LINE])
+    self.accept("control-up", setPaintMode, [TEXTUREPAINTER_FUNCTION_PAINT_POINT])
+    
+    # --- window containing the edit tools ---
     self.texturePainterWindow = DirectSidebar(
       frameSize=(1.1,-yPos+0.04)
       #frameSize=(0.8,0.4), pos=(-.05,0,-0.1), align=ALIGN_RIGHT|ALIGN_TOP, orientation=VERTICAL
-    , pos=Vec3(0,0,-0.5)
+    , pos=Vec3(0,0,-0.45)
     , align=ALIGN_RIGHT|ALIGN_TOP
     , opendir=LEFT_OR_UP
     , orientation=VERTICAL
     , text='painting')
     editWindowFrame.reparentTo(self.texturePainterWindow)
     editWindowFrame.setZ(-yPos-0.02)
-    
-    readBrushSettings()
-    #writeBrushSettings()
-    
-    self.accept(EVENT_TEXTUREPAINTER_STOPEDIT, self.destroyTexturepainterTools)
-    self.accept(EVENT_TEXTUREPAINTER_BRUSHCHANGED, readBrushSettings)
   
   def destroyTexturepainterTools(self):
     self.texturePainterWindow.destroy()
