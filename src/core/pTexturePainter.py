@@ -301,7 +301,6 @@ class TexturePainter(DirectObject):
                 dividor += multiplier
                 average += self.workLayer.getXelA(x+dx,y+dy) * multiplier
             average /= dividor
-            print "I: TexturePainter.paintTask: SMOOTH to", average
             for dx in xrange(-radius, radius+1):
               for dy in xrange(-radius, radius+1):
                 multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy))) / (radius*radius)
