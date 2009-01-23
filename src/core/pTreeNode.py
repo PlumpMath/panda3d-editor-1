@@ -32,6 +32,8 @@ BASEWRAPPER_DATA_TAG = 'parameters'
     - ObjectVertexPool
 '''
 
+EDITMODE_ENABLED = 1
+EDITMODE_STARTED = 2
 
 class TreeNode(object):
   ''' a treenode is a node in the structure
@@ -49,7 +51,7 @@ class TreeNode(object):
     self.treeChildren = list()
     self.treeName = treeName
     #self.treeData = treeData
-    self.editmodeStatus = False
+    self.editmodeStatus = int
     self.mutableParameters = dict()
     self.mutableParameters['name'] = [ str,
       self.getName,
@@ -57,6 +59,12 @@ class TreeNode(object):
       None,
       None ]
   
+  def destroy(self):
+    self.stopEdit()
+    self.setEditmodeDisabled()
+    TreeNode.detachNode(self)
+  
+  # --- parenting functions ---
   def reparentTo(self, treeParent):
     self.detachNode()
     if treeParent not in self.getRecChildren():
@@ -106,6 +114,7 @@ class TreeNode(object):
       treeChild.printTree(depth+1)
   
   
+  # --- name of the node ---
   def getName(self):
     return self.treeName
   
@@ -115,7 +124,8 @@ class TreeNode(object):
   
   # --- EDIT MODE OF THE OBJECT ---
   def setEditmodeEnabled(self, recurseException=[]):
-    self.editmodeStatus = True
+    # add the editmode flag (or)
+    self.editmodeStatus = self.editmodeStatus | EDITMODE_ENABLED
     
     for child in self.getChildren():
       if recurseException is not None:
@@ -125,7 +135,8 @@ class TreeNode(object):
           child.setEditmodeEnabled(recurseException)
   
   def setEditmodeDisabled(self, recurseException=[]):
-    self.editmodeStatus = False
+    # remove the editmode flag (xor)
+    self.editmodeStatus = self.editmodeStatus ^ EDITMODE_ENABLED
     
     for child in self.getChildren():
       if recurseException is not None:
@@ -135,24 +146,29 @@ class TreeNode(object):
           child.setEditmodeDisabled(recurseException)
   
   def isEditmodeEnabled(self):
-    return self.editmodeStatus
+    return self.editmodeStatus & EDITMODE_ENABLED
   
   
+  # --- EDIT STATUS OF THE OBJECT ---
   def startEdit(self):
     # the object is selected to be edited
     # creates a directFrame to edit this object
     if not self.isEditmodeEnabled():
       print "E: core.BaseWrapper.startEdit: object is not in editmode", self
+    else:
+      # add the startedit flag (or)
+      self.editmodeStatus = self.editmodeStatus | EDITMODE_STARTED
   
   def stopEdit(self):
     # the object is deselected from being edited
     if not self.isEditmodeEnabled():
       print "E: core.BaseWrapper.stopEdit: object is not in editmode", self
+    else:
+      # remove the startedit flag (xor)
+      self.editmodeStatus = self.editmodeStatus ^ EDITMODE_STARTED
   
-  def destroy(self):
-    self.stopEdit()
-    self.setEditmodeDisabled()
-    TreeNode.detachNode(self)
+  def isEditmodeStarted(self):
+    return self.editmodeStatus & EDITMODE_STARTED
   
   
   # --- PARAMETER LOADING AND SAVING ---

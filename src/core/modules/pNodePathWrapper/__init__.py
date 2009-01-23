@@ -66,6 +66,9 @@ class NodePathWrapper(BaseWrapper):
     # content must be loaded using setModel
     # (done by onCreateInstance and loadFromEggGroup)
     
+    # model used to show highlighting of this node
+    self.highlightModel = None
+    
     # subnodes of this node
     self.eggTreeParent = None
   
@@ -155,7 +158,6 @@ class NodePathWrapper(BaseWrapper):
       self.highlightModel.setTextureOff(1000)
       self.highlightModel.clearColorScale()
       self.highlightModel.setColor(HIGHLIGHT_COLOR[0], HIGHLIGHT_COLOR[1], HIGHLIGHT_COLOR[2], 1000)
-      
   
   def stopEdit(self):
     # the object is deselected from being edited

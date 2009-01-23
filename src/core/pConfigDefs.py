@@ -32,7 +32,7 @@ EVENT_MODELCONTROLLER_EDITTOOL_DESELECTED = 'modelController-edittool-deselected
 
 EVENT_TEXTUREPAINTER_STOPEDIT = "event_texturePainter_stopEdit"
 EVENT_TEXTUREPAINTER_STARTEDIT = "event_texturePainter_startEdit"
-
+EVENT_TEXTUREPAINTER_BRUSHCHANGED= "event_texturePainter_brushChanged"
 # pressing the mousebutton while having a 3d model beneath it will change the
 # selected object (or not)
 EVENT_SCENEPICKER_MODELSELECTION_ENABLE='modelController-3d-modelselection-enable'

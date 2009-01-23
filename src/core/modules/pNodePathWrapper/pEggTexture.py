@@ -131,6 +131,71 @@ Texture_CompressionMode = Enum(
   CMDxt5 = Texture.CMDxt5,
 )
 
+'''Texture_TextureType = Enum(
+TT1dTexture	(TextureType)
+TT2dTexture	(TextureType)
+TT3dTexture	(TextureType)
+TTCubeMap	(TextureType)
+)
+
+Texture_ComponentType = Enum(
+TUnsignedByte	(ComponentType)
+TUnsignedShort	(ComponentType)
+TFloat	(ComponentType)
+)
+
+Texture_Format = Enum(
+FDepthStencil	(Format)
+FDepthComponent	(Format)
+FColorIndex	(Format)
+FRed	(Format)
+FGreen	(Format)
+FBlue	(Format)
+FAlpha	(Format)
+FRgb	(Format)
+FRgb5	(Format)
+FRgb8	(Format)
+FRgb12	(Format)
+FRgb332	(Format)
+FRgba	(Format)
+FRgbm	(Format)
+FRgba4	(Format)
+FRgba5	(Format)
+FRgba8	(Format)
+FRgba12	(Format)
+FLuminance	(Format)
+FLuminanceAlpha	(Format)
+FLuminanceAlphamask	(Format)
+FRgba16	(Format)
+FRgba32	(Format)
+)'''
+
+Texture_Min_FilterType = Enum(
+  FTNearest = Texture.FTNearest,
+  FTLinear = Texture.FTLinear,
+  FTDefault = Texture.FTDefault,
+  FTInvalid = Texture.FTInvalid,
+)
+
+Texture_Mag_FilterType = Enum(
+  FTNearest = Texture.FTNearest,
+  FTLinear = Texture.FTLinear,
+  FTNearestMipmapNearest = Texture.FTNearestMipmapNearest,
+  FTLinearMipmapNearest = Texture.FTLinearMipmapNearest,
+  FTNearestMipmapLinear = Texture.FTNearestMipmapLinear,
+  FTLinearMipmapLinear = Texture.FTLinearMipmapLinear,
+  FTShadow = Texture.FTShadow,
+  FTDefault = Texture.FTDefault,
+  FTInvalid = Texture.FTInvalid,
+)
+
+Texture_QualityLevel = Enum(
+  QLDefault = Texture.QLDefault,
+  QLFastest = Texture.QLFastest,
+  QLNormal = Texture.QLNormal,
+  QLBest = Texture.QLBest,
+)
+
 class ObjectEggTexture(ObjectEggBase):
   def __init__(self, parent, modelWrapper, eggTexture):
     ObjectEggBase.__init__(self, parent, modelWrapper, 'EggTexture')

@@ -31,17 +31,56 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
     self.nodePath.setCollideMask(BitMask32.allOff())
   
   def __init__(self, parent=None, name=None):
-    #name = "GeoMipTerrain-"+filepath.split('/')[-1]
     BaseWrapper.__init__(self, parent, name)
-    self.terrain = GeoMipTerrain("mySimpleTerrain")
+    self.terrain = GeoMipTerrain("GeoMipTerrainNodeWrapper")
     self.terrainNode = None
+    
+    # model used to show highlighting of this node
+    self.highlightModel = None
     
     self.mutableParameters['minlevel'] = [ int,
       self.terrain.getMinLevel,
       self.terrain.setMinLevel,
       None,
       None ]
+    self.mutableParameters['bruteforce'] = [ bool,
+      self.terrain.getBruteforce,
+      self.terrain.setBruteforce,
+      None,
+      None ]
+    self.mutableParameters['factor'] = [ float,
+      self.terrain.getFactor,
+      self.terrain.setFactor,
+      None,
+      None ]
+    self.mutableParameters['blocksize'] = [ int,
+      self.terrain.getBlockSize,
+      self.terrain.setBlockSize,
+      None,
+      None ]
   
+  def startEdit(self):
+    # the object is selected to be edited
+    # creates a directFrame to edit this object
+    BaseWrapper.startEdit(self)
+    if self.isEditmodeEnabled():
+      if self.highlightModel is None:
+        self.highlightModel = self.terrainNode.copyTo(self.nodePath)
+      self.highlightModel.setRenderModeWireframe(True)
+      self.highlightModel.setLightOff(1000)
+      self.highlightModel.setFogOff(1000)
+      self.highlightModel.setTextureOff(1000)
+      self.highlightModel.clearColorScale()
+      self.highlightModel.setColor(HIGHLIGHT_COLOR[0], HIGHLIGHT_COLOR[1], HIGHLIGHT_COLOR[2], 1000)
+  
+  def stopEdit(self):
+    # the object is deselected from being edited
+    if self.isEditmodeEnabled():
+      if self.highlightModel is not None:
+        self.highlightModel.removeNode()
+        self.highlightModel = None
+    BaseWrapper.stopEdit(self)
+    
   def setTerrain(self, filepath):
     parent = self
     heightfield = filepath

@@ -37,6 +37,8 @@ void fshader(in float4 l_bright,
   o_color = l_bright;
 } """
 
+COMPILED_SHADER = Shader.make(SHADER)
+
 BACKGROUND_SHADER = """//Cg
 
 void vshader(in  varying float4 vtx_position : POSITION,
@@ -64,7 +66,7 @@ void fshader(in float4 l_bright,
 {
   o_color = l_bright;
 } """
-
+COMPILED_BACKGROUND_SHADER = Shader.make(BACKGROUND_SHADER)
 
 class GeoMipTerrainHeightfield(TreeNode):
   def __init__(self, parent=None, geoMipTerrain=None, name='heightfield'):
@@ -100,10 +102,10 @@ class GeoMipTerrainHeightfield(TreeNode):
       texturePainter.enableEditor(self.geoMipTerrain.terrainNode, self.paintImage)
       texturePainter.startEdit()
       self.geoMipTerrain.terrainNode.setShaderInput("heightmap", self.paintTexture)
-      self.geoMipTerrain.terrainNode.setShader(Shader.make(SHADER))
+      self.geoMipTerrain.terrainNode.setShader(COMPILED_SHADER)
       # also apply the shader on the paint-model, hmm how to keep the texture?
       texturePainter.paintModel.setShaderInput("heightmap", self.paintTexture)
-      texturePainter.paintModel.setShader(Shader.make(BACKGROUND_SHADER))
+      texturePainter.paintModel.setShader(COMPILED_BACKGROUND_SHADER)
     
     self.lastUpdateTime = 0
     taskMgr.add(self.updateTask, 'geoMipUpdateTask')
@@ -116,7 +118,7 @@ class GeoMipTerrainHeightfield(TreeNode):
           print "I: GeoMipTerrainHeightfield.updateTask: updating terrain", task.time
           self.geoMipTerrain.terrain.generate()
       elif self.renderMode == 1:
-        texturePainter.paintModel.setShader(Shader.make(BACKGROUND_SHADER))
+        texturePainter.paintModel.setShader(COMPILED_BACKGROUND_SHADER)
         texturePainter.paintModel.setShaderInput("heightmap", self.paintTexture)
     if self.renderMode == 1:
       self.paintTexture.load(self.geoMipTerrain.terrain.heightfield())
@@ -145,6 +147,9 @@ class GeoMipTerrainHeightfield(TreeNode):
   
   def setHeightfield(self, heightfield):
     self.heightfield = heightfield
+    self.stopEdit()
+    self.geoMipTerrain.update()
+    self.startEdit()
   
   def getHeightfield(self):
     return self.heightfield

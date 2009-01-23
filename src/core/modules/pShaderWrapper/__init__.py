@@ -10,6 +10,7 @@ from core.pConfigDefs import *
 #from core.pTreeNode import *
 from core.modules.pBaseWrapper import *
 from core.pTexturePainter import texturePainter, PNMBrush_BrushEffect_Enum
+from core.modules.pNodePathWrapper.pEggTexture import Texture_Mag_FilterType, Texture_Min_FilterType
 
 from terrainShader import ShaderNode
 
@@ -47,6 +48,7 @@ class ShaderWrapper(BaseWrapper):
       self.setTex1,
       None,
       self.clearTex1 ]
+    
     self.mutableParameters['detailmap1'] = [ Filepath,
       self.getTex2,
       self.setTex2,
@@ -57,6 +59,17 @@ class ShaderWrapper(BaseWrapper):
       self.setTex2Scale,
       None,
       None ]
+    self.mutableParameters['tex1 mag filter'] = [ Texture_Mag_FilterType,
+      self.getTex2MagFiltertype,
+      self.setTex2MagFiltertype,
+      None,
+      None ]
+    self.mutableParameters['tex1 min filter'] = [ Texture_Min_FilterType,
+      self.getTex2MinFiltertype,
+      self.setTex2MinFiltertype,
+      None,
+      None ]
+    
     self.mutableParameters['detailmap2'] = [ Filepath,
       self.getTex3,
       self.setTex3,
@@ -67,6 +80,17 @@ class ShaderWrapper(BaseWrapper):
       self.setTex3Scale,
       None,
       None ]
+    self.mutableParameters['tex2 mag filter'] = [ Texture_Mag_FilterType,
+      self.getTex3MagFiltertype,
+      self.setTex3MagFiltertype,
+      None,
+      None ]
+    self.mutableParameters['tex2 min filter'] = [ Texture_Min_FilterType,
+      self.getTex3MinFiltertype,
+      self.setTex3MinFiltertype,
+      None,
+      None ]
+    
     self.mutableParameters['detailmap3'] = [ Filepath,
       self.getTex4,
       self.setTex4,
@@ -77,6 +101,17 @@ class ShaderWrapper(BaseWrapper):
       self.setTex4Scale,
       None,
       None ]
+    self.mutableParameters['tex3 mag filter'] = [ Texture_Mag_FilterType,
+      self.getTex4MagFiltertype,
+      self.setTex4MagFiltertype,
+      None,
+      None ]
+    self.mutableParameters['tex3 min filter'] = [ Texture_Min_FilterType,
+      self.getTex4MinFiltertype,
+      self.setTex4MinFiltertype,
+      None,
+      None ]
+    
     self.mutableParameters['detailmap4'] = [ Filepath,
       self.getTex5,
       self.setTex5,
@@ -87,6 +122,17 @@ class ShaderWrapper(BaseWrapper):
       self.setTex5Scale,
       None,
       None ]
+    self.mutableParameters['tex4 mag filter'] = [ Texture_Mag_FilterType,
+      self.getTex5MagFiltertype,
+      self.setTex5MagFiltertype,
+      None,
+      None ]
+    self.mutableParameters['tex4 min filter'] = [ Texture_Min_FilterType,
+      self.getTex5MinFiltertype,
+      self.setTex5MinFiltertype,
+      None,
+      None ]
+    
     self.mutableParameters['update'] = [ Trigger,
       self.getUpdateShader,
       self.setUpdateShader,
@@ -102,6 +148,14 @@ class ShaderWrapper(BaseWrapper):
     self.tex3Scale = 1
     self.tex4Scale = 1
     self.tex5Scale = 1
+    self.tex2MagFilter = Texture.FTNearest
+    self.tex2MinFilter = Texture.FTNearest
+    self.tex3MinFilter = Texture.FTNearest
+    self.tex3MagFilter = Texture.FTNearest
+    self.tex4MagFilter = Texture.FTNearest
+    self.tex4MinFilter = Texture.FTNearest
+    self.tex5MinFilter = Texture.FTNearest
+    self.tex5MagFilter = Texture.FTNearest
     
     self.relativePath = None
     self.shader = None
@@ -153,9 +207,32 @@ class ShaderWrapper(BaseWrapper):
           print "  - tex5", tex5Path, self.tex5Scale
           self.shader.AddAlphaMap(tex5Path, tex1Path, alphamapchannel = "a", texscale = self.tex5Scale)
         self.shader.Initialize()
-      
-      if self.isEditmodeEnabled():
-        self.startPaint()
+        
+        print self.shader.loadedMaps
+        print self.shader.AlphaMaps
+        mixTex = self.shader.loadedMaps[tex1Path]
+        if self.tex2Path:
+          self.shader.AlphaMaps[(mixTex, 'r')][0].setMagfilter(self.tex2MagFilter)
+          self.shader.AlphaMaps[(mixTex, 'r')][0].setMinfilter(self.tex2MinFilter)
+          self.shader.AlphaMaps[(mixTex, 'r')][0].setWrapU(Texture.WMRepeat)
+          self.shader.AlphaMaps[(mixTex, 'r')][0].setWrapV(Texture.WMRepeat)
+        if self.tex3Path:
+          self.shader.AlphaMaps[(mixTex, 'g')][0].setMagfilter(self.tex3MagFilter)
+          self.shader.AlphaMaps[(mixTex, 'g')][0].setMinfilter(self.tex3MinFilter)
+          self.shader.AlphaMaps[(mixTex, 'g')][0].setWrapU(Texture.WMRepeat)
+          self.shader.AlphaMaps[(mixTex, 'g')][0].setWrapV(Texture.WMRepeat)
+        if self.tex4Path:
+          self.shader.AlphaMaps[(mixTex, 'b')][0].setMagfilter(self.tex4MagFilter)
+          self.shader.AlphaMaps[(mixTex, 'b')][0].setMinfilter(self.tex4MinFilter)
+          self.shader.AlphaMaps[(mixTex, 'b')][0].setWrapU(Texture.WMRepeat)
+          self.shader.AlphaMaps[(mixTex, 'b')][0].setWrapV(Texture.WMRepeat)
+        if self.tex5Path:
+          self.shader.AlphaMaps[(mixTex, 'a')][0].setMagfilter(self.tex5MagFilter)
+          self.shader.AlphaMaps[(mixTex, 'a')][0].setMinfilter(self.tex5MinFilter)
+          self.shader.AlphaMaps[(mixTex, 'a')][0].setWrapU(Texture.WMRepeat)
+          self.shader.AlphaMaps[(mixTex, 'a')][0].setWrapV(Texture.WMRepeat)
+      #if self.isEditmodeEnabled():
+      #  self.startPaint()
   
   def loadFromData(self, eggGroup, filepath):
     # read the relative path we load the file from
@@ -169,21 +246,27 @@ class ShaderWrapper(BaseWrapper):
     # the object is selected to be edited
     # creates a directFrame to edit this object
     if self.isEditmodeEnabled():
-      print "E: ShaderWrapper.startEdit: object is not in editmode", self
       messenger.send(EVENT_SCENEPICKER_MODELSELECTION_DISABLE)
       
       if self.tex1Path:
+        print "  -", self.tex1Path
         #print "I: ObjectEggTexture.startEdit: editing texture", texture
         self.startPaint()
   
   def startPaint(self):
     if not self.paintActive:
       print "I: ShaderWrapper.startPaint"
-      self.paintTex = self.shader.loadedMaps[posixpath.join(self.relativePath, self.tex1Path)]
-      #texturePainter.startEdit(self.paintTex)
-      texturePainter.enableEditor(self.nodePath, self.paintTex)
-      texturePainter.startEdit()
-      self.paintActive = True
+      texPath = posixpath.join(self.relativePath, self.tex1Path)
+      if texPath in self.shader.loadedMaps:
+        self.paintTex = self.shader.loadedMaps[texPath]
+        #texturePainter.startEdit(self.paintTex)
+        success = texturePainter.enableEditor(self.nodePath, self.paintTex)
+        if success:
+          texturePainter.startEdit()
+          self.paintActive = True
+      else:
+        print "E: ShaderWrapper.startPaint: unable to start painting, shader not initialized"
+        self.paintActive = False
   
   def stopEdit(self):
     # the object is deselected from being edited
@@ -287,3 +370,40 @@ class ShaderWrapper(BaseWrapper):
     return self.tex5Scale
   def setTex5Scale(self, scale):
     self.tex5Scale = scale
+  
+  def getTex2MinFiltertype(self):
+    return self.tex2MinFilter
+  def setTex2MinFiltertype(self, filter):
+    self.tex2MinFilter = filter
+  def getTex2MagFiltertype(self):
+    return self.tex2MagFilter
+  def setTex2MagFiltertype(self, filter):
+    self.tex2MagFilter = filter
+
+
+  def getTex3MinFiltertype(self):
+    return self.tex3MinFilter
+  def setTex3MinFiltertype(self, filter):
+    self.tex3MinFilter = filter
+  def getTex3MagFiltertype(self):
+    return self.tex3MagFilter
+  def setTex3MagFiltertype(self, filter):
+    self.tex3MagFilter = filter
+
+  def getTex4MinFiltertype(self):
+    return self.tex4MinFilter
+  def setTex4MinFiltertype(self, filter):
+    self.tex4MinFilter = filter
+  def getTex4MagFiltertype(self):
+    return self.tex4MagFilter
+  def setTex4MagFiltertype(self, filter):
+    self.tex4MagFilter = filter
+
+  def getTex5MinFiltertype(self):
+    return self.tex5MinFilter
+  def setTex5MinFiltertype(self, filter):
+    self.tex5MinFilter = filter
+  def getTex5MagFiltertype(self):
+    return self.tex5MagFilter
+  def setTex5MagFiltertype(self, filter):
+    self.tex5MagFilter = filter

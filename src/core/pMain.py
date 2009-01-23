@@ -73,6 +73,8 @@ class EditorClass(DirectObject, FSM):
     #print "I: core.EditorClass.enterWorldEditMode:", modelModificator.__class__.__name__
     modelModificator.toggleEditmode(True)
     
+    WindowManager.getDefaultCamera().node().getLens().setFar(5000)
+    
     # a grid model
     gridNp = DirectGrid(parent=self.sceneHelperModels)
     

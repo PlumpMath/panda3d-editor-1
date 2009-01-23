@@ -183,10 +183,21 @@ class EditorApp(DirectObject, FSM):
   
   def showTexturepainterTools(self):
     print "I: dgui.EditorApp.showTexturepainterTools"
-    def updateBrush(*args):
-      # original values
+    def readBrushSettings(update=True,*args):
+      # read
       color, size, smooth, effect = texturePainter.getBrushSettings()
-      
+      # show
+      #colorStr = str(color).strip('VBase4D(').strip(')')
+      colorStr = "%.3G, %.3G, %.3G, %.3G" % (color[0], color[1], color[2], color[3])
+      self.texturePainterTools['color'].enterText(colorStr)
+      self.texturePainterTools['size'].enterText(str(size))
+      self.texturePainterTools['smooth']["indicatorValue"] = smooth
+      self.texturePainterTools['smooth'].setIndicatorValue()
+      # TODO read the effect
+      if update:
+        writeBrushSettings(False)
+    
+    def writeBrushSettings(update=True,*args):
       # read entries
       try:
         colorStr = self.texturePainterTools['color'].get()
@@ -199,7 +210,7 @@ class EditorApp(DirectObject, FSM):
         color = VBase4D(1,1,1,1)
       
       try:
-        size = int(self.texturePainterTools['size'].get())
+        size = float(self.texturePainterTools['size'].get())
       except:
         size = 10
       
@@ -211,15 +222,8 @@ class EditorApp(DirectObject, FSM):
       # write
       texturePainter.setBrushSettings(color, size, smooth, effect)
       
-      # reread
-      color, size, smooth, effect = texturePainter.getBrushSettings()
-      
-      # show
-      self.texturePainterTools['color'].enterText(str(color).strip('VBase4D(').strip(')'))
-      self.texturePainterTools['size'].enterText(str(size))
-      self.texturePainterTools['smooth']["indicatorValue"] = smooth
-      self.texturePainterTools['smooth'].setIndicatorValue()
-      #self.texturePainterTools['smooth']["indicatorValue"] = smooth # dont update, TODO
+      if update:
+        readBrushSettings(False)
     
     editWindowFrame = DirectFrame()
     self.texturePainterTools = dict()
@@ -238,13 +242,13 @@ class EditorApp(DirectObject, FSM):
         scale=.04,
         pos = (xPos, 0, yPos),
         parent = editWindowFrame,
-        command=updateBrush,
+        command=writeBrushSettings,
         extraArgs=['color'],
         initialText="(1,1,1,1)",
         numLines = 1,
         focus=0,
         width=12,
-        focusOutCommand=updateBrush,
+        focusOutCommand=writeBrushSettings,
         focusOutExtraArgs=['color'],
         text_align = TextNode.ALeft,
         frameSize=(-.3,12.3,-.3,0.9),)
@@ -263,13 +267,13 @@ class EditorApp(DirectObject, FSM):
         scale=.04,
         pos = (xPos, 0, yPos),
         parent = editWindowFrame,
-        command=updateBrush,
+        command=writeBrushSettings,
         extraArgs=['size'],
         initialText="10",
         numLines = 1,
         focus=0,
         width=12,
-        focusOutCommand=updateBrush,
+        focusOutCommand=writeBrushSettings,
         focusOutExtraArgs=['size'],
         text_align = TextNode.ALeft,
         frameSize=(-.3,12.3,-.3,0.9),)
@@ -288,7 +292,7 @@ class EditorApp(DirectObject, FSM):
         scale=.04,
         pos = (xPos+0.05, 0, yPos),
         parent = editWindowFrame,
-        command=updateBrush,
+        command=writeBrushSettings,
         extraArgs=['smooth'],
         )
     self.texturePainterTools['smooth'] = paramEntry
@@ -313,7 +317,7 @@ class EditorApp(DirectObject, FSM):
         pos = (xPos, 0, yPos),
         scale=.04,
         parent = editWindowFrame,
-        command=updateBrush,
+        command=writeBrushSettings,
         extraArgs=['effect'],
         items=items,
         initialitem=initialitem,
@@ -325,7 +329,7 @@ class EditorApp(DirectObject, FSM):
     self.texturePainterWindow = DirectSidebar(
       frameSize=(1.1,-yPos+0.04)
       #frameSize=(0.8,0.4), pos=(-.05,0,-0.1), align=ALIGN_RIGHT|ALIGN_TOP, orientation=VERTICAL
-    , pos=Vec3(0,0,-0.8)
+    , pos=Vec3(0,0,-0.5)
     , align=ALIGN_RIGHT|ALIGN_TOP
     , opendir=LEFT_OR_UP
     , orientation=VERTICAL
@@ -333,9 +337,11 @@ class EditorApp(DirectObject, FSM):
     editWindowFrame.reparentTo(self.texturePainterWindow)
     editWindowFrame.setZ(-yPos-0.02)
     
-    updateBrush()
+    readBrushSettings()
+    #writeBrushSettings()
     
     self.accept(EVENT_TEXTUREPAINTER_STOPEDIT, self.destroyTexturepainterTools)
+    self.accept(EVENT_TEXTUREPAINTER_BRUSHCHANGED, readBrushSettings)
   
   def destroyTexturepainterTools(self):
     self.texturePainterWindow.destroy()

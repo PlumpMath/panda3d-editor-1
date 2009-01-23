@@ -14,6 +14,9 @@ PNMBrush_BrushEffect_Enum = Enum(
   BELighten = PNMBrush.BELighten,
 )
 
+TEXTUREPAINTER_FUNCTION_PAINT = 0
+TEXTUREPAINTER_FUNCTION_READ = 1
+
 def createPickingImage(size):
   ''' create a picking image with uniq colors for each point in the image
   '''
@@ -41,6 +44,8 @@ class TexturePainter(DirectObject):
     self.paintModelSetup = False
     self.buffer = None
     self.backcam = None
+    
+    self.initialized = False
     
     self.paintColor = VBase4D(1,1,1,1)
     self.paintSize = 10
@@ -122,6 +127,12 @@ class TexturePainter(DirectObject):
       self.workTex = self.paintTexture #loader.loadTexture('models/maps/smiley.rgb')
       # copy the image from the texture to the working layer
       self.workLayer = PNMImage()
+      
+      '''if not self.workLayer.hasRamImage():
+        print "E: TexturePainter.enableEditor: paintTexture has not ramMipmapImage"
+        self.initialized = False
+        return False'''
+      
       self.workTex.store(self.workLayer)
     else:
       self.workLayer = self.paintTexture
@@ -132,6 +143,9 @@ class TexturePainter(DirectObject):
     self.updateModel()
     
     self.accept("window-event", self.windowEvent)
+    
+    self.initialized = True
+    return True
   
   def setBrushSettings(self, color, size, smooth, effect):
     print "I: TexturePainter.setBrushSettings", color, size, smooth, effect
@@ -156,14 +170,20 @@ class TexturePainter(DirectObject):
     self.workLayer = None
     self.painter = None
     
+    self.initialized = False
+    
     self.ignoreAll()
   
   def startEdit(self):
-    messenger.send(EVENT_TEXTUREPAINTER_STARTEDIT)
-    self.accept("mouse1", self.startPaint)
-    self.accept("mouse1-up", self.stopPaint)
-    self.accept("mouse3", self.startGetColor)
-    self.accept("mouse3-up", self.stopGetColor)
+    if self.initialized:
+      messenger.send(EVENT_TEXTUREPAINTER_STARTEDIT)
+      self.accept("mouse1", self.startPaint)
+      self.accept("mouse1-up", self.stopPaint)
+      self.accept("shift-mouse1", self.startGetColor)
+      self.accept("mouse1-up", self.stopGetColor)
+      self.accept("shift-mouse1-up", self.stopGetColor)
+    else:
+      print "E: TexturePainter.startEdit: not initialized"
   
   def stopEdit(self):
     messenger.send(EVENT_TEXTUREPAINTER_STOPEDIT)
@@ -172,8 +192,18 @@ class TexturePainter(DirectObject):
   
   def startPaint(self):
     self.backcam.node().copyLens(WindowManager.activeWindow.camera.node().getLens())
+    self.paintFunction = TEXTUREPAINTER_FUNCTION_PAINT
     taskMgr.add(self.paintTask, 'paintTask')
+  def stopPaint(self):
+    taskMgr.remove('paintTask')
   
+  def startGetColor(self):
+    self.backcam.node().copyLens(WindowManager.activeWindow.camera.node().getLens())
+    self.paintFunction = TEXTUREPAINTER_FUNCTION_READ
+    taskMgr.add(self.paintTask, 'paintTask')
+  def stopGetColor(self):
+    taskMgr.remove('paintTask')
+
   def paintTask(self, task):
     if not WindowManager.activeWindow or not WindowManager.activeWindow.mouseWatcherNode.hasMouse():
       return
@@ -210,22 +240,24 @@ class TexturePainter(DirectObject):
     x = r + ((b%16)*256)
     y = g + ((b//16)*256)
     
-    # render a spot into the texture
-    self.painter.drawPoint(x, y)
-    
-    # display the modified texture
-    if type(self.paintTexture) == Texture:
-      self.workTex.load(self.workLayer)
+    if self.paintFunction == TEXTUREPAINTER_FUNCTION_PAINT:
+      # render a spot into the texture
+      self.painter.drawPoint(x, y)
+      
+      # display the modified texture
+      if type(self.paintTexture) == Texture:
+        self.workTex.load(self.workLayer)
+    elif self.paintFunction == TEXTUREPAINTER_FUNCTION_READ:
+      #if type(self.paintTexture) == Texture:
+      #  self.paintColor = VBase4D(col[0], col[1], col[2], a)
+      #else:
+      #col = self.workLayer.getXel(x,y)
+      col = self.workLayer.getXelA(x,y)
+      print "I: TexturePainter.paintTask:", col
+      self.paintColor = VBase4D(col[0], col[1], col[2], col[3])
+      messenger.send(EVENT_TEXTUREPAINTER_BRUSHCHANGED)
     
     return task.cont
   
-  def stopPaint(self):
-    taskMgr.remove('paintTask')
-  
-  def startGetColor(self):
-    pass
-  def stopGetColor(self):
-    pass
-
 
 texturePainter = TexturePainter()
