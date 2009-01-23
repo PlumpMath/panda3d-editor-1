@@ -32,6 +32,13 @@ class ModelIdManager:
       return obj
     return None
   
+  def getObjectByName(self, name):
+    objList = list()
+    for objId, obj in self.modelIdDict.items():
+      if obj.getName() == name:
+        objList.append(obj)
+    return objList
+  
   def delObject(self, object):
     self.delObjectId(self.getObjectId(object))
   

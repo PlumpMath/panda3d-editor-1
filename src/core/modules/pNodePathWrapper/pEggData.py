@@ -11,7 +11,7 @@ class ObjectEggData(ObjectEggBase):
     print "I: ObjectEggData.save"
     #if self.editModule:
     #  print "  - saving"
-    self.eggData.writeEgg(filepath)
+    self.eggData.writeEgg(Filename(filepath))
     #  self.editModule.destroy()
     #  self.editModule = None
   

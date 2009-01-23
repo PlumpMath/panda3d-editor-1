@@ -50,7 +50,7 @@ def getTextureLayers(nodePath):
   return texStages
 
 
-TextureStage_ModeEnum = Enum(
+TextureStage_Mode_Enum = Enum(
   MModulate = TextureStage.MModulate,
   MDecal = TextureStage.MDecal,
   MBlend = TextureStage.MBlend,
@@ -68,7 +68,7 @@ TextureStage_ModeEnum = Enum(
   MSelector = TextureStage.MSelector,
 )
 
-TextureStage_CombineModeEnum = Enum(
+TextureStage_CombineMode_Enum = Enum(
   CMUndefined = TextureStage.CMUndefined,
   CMReplace = TextureStage.CMReplace,
   CMModulate = TextureStage.CMModulate,
@@ -80,7 +80,7 @@ TextureStage_CombineModeEnum = Enum(
   CMDot3Rgba = TextureStage.CMDot3Rgba,
 )
 
-TextureStage_CombineSourceEnum = Enum(
+TextureStage_CombineSource_Enum = Enum(
   CSUndefined = TextureStage.CSUndefined,
   CSTexture = TextureStage.CSTexture,
   CSConstant = TextureStage.CSConstant,
@@ -90,7 +90,7 @@ TextureStage_CombineSourceEnum = Enum(
   CSLastSavedResult = TextureStage.CSLastSavedResult,
 )
 
-TextureStage_CombineOperandEnum = Enum(
+TextureStage_CombineOperand_Enum = Enum(
   COUndefined        = TextureStage.COUndefined,
   COSrcColor         = TextureStage.COSrcColor,
   COOneMinusSrcColor = TextureStage.COOneMinusSrcColor,
@@ -98,7 +98,7 @@ TextureStage_CombineOperandEnum = Enum(
   COOneMinusSrcAlpha = TextureStage.COOneMinusSrcAlpha,
 )
 
-TexGenAttrib_PandaCompareFuncEnum = Enum(
+TexGenAttrib_PandaCompareFunc_Enum = Enum(
   MNone = TexGenAttrib.MNone,
   MNever = TexGenAttrib.MNever,
   MLess = TexGenAttrib.MLess,
@@ -110,7 +110,7 @@ TexGenAttrib_PandaCompareFuncEnum = Enum(
   MAlways = TexGenAttrib.MAlways,
 )
 
-TexGenAttrib_TexGenModeEnum = Enum(
+TexGenAttrib_TexGenMode_Enum = Enum(
   MOff = TexGenAttrib.MOff,
   MEyeSphereMap = TexGenAttrib.MEyeSphereMap,
   MWorldCubeMap = TexGenAttrib.MWorldCubeMap,
@@ -125,7 +125,7 @@ TexGenAttrib_TexGenModeEnum = Enum(
   MConstant = TexGenAttrib.MConstant,
 )
 
-Texture_WrapModeEnum = Enum(
+Texture_WrapMode_Enum = Enum(
   WMClamp = Texture.WMClamp,
   WMRepeat = Texture.WMRepeat,
   WMMirror = Texture.WMMirror,
@@ -134,7 +134,7 @@ Texture_WrapModeEnum = Enum(
   WMInvalid = Texture.WMInvalid,
 )
 
-Texture_CompressionMode = Enum(
+Texture_CompressionMode_Enum = Enum(
   CMDefault = Texture.CMDefault,
   CMOff = Texture.CMOff,
   CMOn = Texture.CMOn,
@@ -146,53 +146,53 @@ Texture_CompressionMode = Enum(
   CMDxt5 = Texture.CMDxt5,
 )
 
-'''Texture_TextureType = Enum(
-TT1dTexture	(TextureType)
-TT2dTexture	(TextureType)
-TT3dTexture	(TextureType)
-TTCubeMap	(TextureType)
+Texture_TextureType_Enum = Enum(
+TT1dTexture = Texture.TT1dTexture,
+TT2dTexture = Texture.TT2dTexture,
+TT3dTexture = Texture.TT3dTexture,
+TTCubeMap  = Texture.TTCubeMap,
 )
 
-Texture_ComponentType = Enum(
-TUnsignedByte	(ComponentType)
-TUnsignedShort	(ComponentType)
-TFloat	(ComponentType)
+Texture_ComponentType_Enum = Enum(
+  TUnsignedByte = Texture.TUnsignedByte,
+  TUnsignedShort = Texture.TUnsignedShort,
+  TFloat = Texture.TFloat,
 )
 
-Texture_Format = Enum(
-FDepthStencil	(Format)
-FDepthComponent	(Format)
-FColorIndex	(Format)
-FRed	(Format)
-FGreen	(Format)
-FBlue	(Format)
-FAlpha	(Format)
-FRgb	(Format)
-FRgb5	(Format)
-FRgb8	(Format)
-FRgb12	(Format)
-FRgb332	(Format)
-FRgba	(Format)
-FRgbm	(Format)
-FRgba4	(Format)
-FRgba5	(Format)
-FRgba8	(Format)
-FRgba12	(Format)
-FLuminance	(Format)
-FLuminanceAlpha	(Format)
-FLuminanceAlphamask	(Format)
-FRgba16	(Format)
-FRgba32	(Format)
-)'''
+Texture_Format_Enum = Enum(
+  FDepthStencil = Texture.FDepthStencil,
+  FDepthComponent = Texture.FDepthComponent,
+  FColorIndex = Texture.FColorIndex,
+  FRed = Texture.FRed,
+  FGreen = Texture.FGreen,
+  FBlue = Texture.FBlue,
+  FAlpha = Texture.FAlpha,
+  FRgb = Texture.FRgb,
+  FRgb5 = Texture.FRgb5,
+  FRgb8 = Texture.FRgb8,
+  FRgb12 = Texture.FRgb12,
+  FRgb332 = Texture.FRgb332,
+  FRgba = Texture.FRgba,
+  FRgbm = Texture.FRgbm,
+  FRgba4 = Texture.FRgba4,
+  FRgba5 = Texture.FRgba5,
+  FRgba8 = Texture.FRgba8,
+  FRgba12 = Texture.FRgba12,
+  FLuminance = Texture.FLuminance,
+  FLuminanceAlpha = Texture.FLuminanceAlpha,
+  FLuminanceAlphamask = Texture.FLuminanceAlphamask,
+  FRgba16 = Texture.FRgba16,
+  FRgba32 = Texture.FRgba32,
+)
 
-Texture_Min_FilterType = Enum(
+Texture_Min_FilterType_Enum = Enum(
   FTNearest = Texture.FTNearest,
   FTLinear = Texture.FTLinear,
   FTDefault = Texture.FTDefault,
   FTInvalid = Texture.FTInvalid,
 )
 
-Texture_Mag_FilterType = Enum(
+Texture_Mag_FilterType_Enum = Enum(
   FTNearest = Texture.FTNearest,
   FTLinear = Texture.FTLinear,
   FTNearestMipmapNearest = Texture.FTNearestMipmapNearest,
@@ -204,7 +204,7 @@ Texture_Mag_FilterType = Enum(
   FTInvalid = Texture.FTInvalid,
 )
 
-Texture_QualityLevel = Enum(
+Texture_QualityLevel_Enum = Enum(
   QLDefault = Texture.QLDefault,
   QLFastest = Texture.QLFastest,
   QLNormal = Texture.QLNormal,
@@ -223,23 +223,48 @@ class ObjectEggTexture(ObjectEggBase):
     self.modelWrapper = None
   
   def startEdit(self):
+    ''' as we are editing a egg-file, but for texture painting we modify a texture
+    on the model, we need to find the corresponding texture's from the 3dmodel and
+    the eggdata
+    if we find it we start modifying it
+    WARNING: the current implementation may select the wrong texture to edit
+    if the filename of a texture is equal, but in different subdirectories
+    '''
     if ObjectEggBase.isEditmodeEnabled(self):
       ObjectEggBase.startEdit(self)
       print "I: ObjectEggTexture.startEdit"
       # search for the corresponding nodepath-texture in the egg-file
-      eggTextureFilename = self.eggTexture.getFilename()
-      texture = None
-      for texLayer in getTextureLayers(self.modelWrapper.model):
-        if str(eggTextureFilename) in str(texLayer.texture.getFullpath()):
+      eggTextureFilename = str(self.eggTexture.getFilename()).lstrip('./')
+      # the texture we will modify
+      editTexture = None
+      modelTextureLayers = getTextureLayers(self.modelWrapper.model)
+      for modelTexLayer in modelTextureLayers:
+        modelTexFilename = str(modelTexLayer.texture.getFullpath())
+        if eggTextureFilename in modelTexFilename:
+          editTexture = modelTexLayer.texture
+        ''' # the above might be better
+        if posixpath.basename(eggTextureFilename) == posixpath.basename(modelTexFilename): # the filename is equal
+          if posixpath.dirname(eggTextureFilename) == '.':
+            # i dont really know to what directory it's relative
+            # for now assume it's the correct file
+            editTexture = modelTexLayer.texture
+          else:
+            # check the directory as well
+            if posixpath.dirname(eggTextureFilename) == posixpath.dirname(modelTexFilename):
+              editTexture = modelTexLayer.texture
+        if str(eggTextureFilename) in str(modelTexFilename):
           #print "I: ObjectEggTexture.startEdit: modifying texture", str(eggTextureFilename), str(texLayer.texture.getFullpath())
-          texture = texLayer.texture
-      if texture:
-        #print "I: ObjectEggTexture.startEdit: editing texture", texture
+          editTexture = modelTexLayer.texture'''
+      if editTexture:
+        print "I: ObjectEggTexture.startEdit: start editing texture", eggTextureFilename
+        print "  - selected from these: ", [tex.texture.getFullpath() for tex in modelTextureLayers]
         #texturePainter.selectPaintModel()
-        texturePainter.enableEditor(self.modelWrapper.model, texture)
+        texturePainter.enableEditor(self.modelWrapper.model, editTexture)
         texturePainter.startEdit()
       else:
         print "I: ObjectEggTexture.startEdit: texture not found", eggTextureFilename
+        print "  - fullpath", [tex.texture.getFullpath() for tex in modelTextureLayers]
+        print "  - filename", [tex.texture.getFilename() for tex in modelTextureLayers]
     else:
       print "W: ObjectEggTexture.startEdit: editmode not enabled"
   

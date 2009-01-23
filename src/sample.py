@@ -3,19 +3,75 @@
 ''' sample showing the usage of the editor in scene loading
 '''
 
+
 from pandac.PandaModules import *
+
+from direct.showbase.DirectObject import DirectObject
+
+
+KEYBINDINGS = {'w': [Vec3(0,20,0), Vec3(0,0,0)],
+               's': [Vec3(0,-20,0), Vec3(0,0,0)],
+               'q': [Vec3(-10,0,0), Vec3(0,0,0)],
+               'e': [Vec3(10,0,0), Vec3(0,0,0)],
+               'a': [Vec3(0,0,0), Vec3(45,0,0)],
+               'd': [Vec3(0,0,0), Vec3(-45,0,0)],
+                }
+class Player(DirectObject):
+  def __init__(self):
+    self.terrain = modelIdManager.getObjectByName('terrain.png')[0]
+    #self.terrain.terrainNode.setRenderModeWireframe()
+    self.playerNode = render.attachNewNode('playerPos')
+    self.playerNode.setPos(0,0,0)
+    self.focalPoint = self.playerNode.attachNewNode('focalPoint')
+    self.focalPoint.setPos(0,100,0)
+    base.camera.reparentTo(self.playerNode)
+    base.camera.setPos(0,-25,50)
+    base.camera.lookAt(self.playerNode, Point3(0,0,10))
+    base.camLens.setFar(2000)
+    taskMgr.add(self.update, 'update')
+    
+    self.pressedKeys = dict()
+    for key in KEYBINDINGS.keys():
+      self.accept(key, self.keyPress, [key, True])
+      self.accept(key+"-up", self.keyPress, [key, False])
+  
+  def keyPress(self, key, state):
+    self.pressedKeys[key] = state
+  
+  def update(self, task):
+    dt = globalClock.getDt()
+    for key, state in self.pressedKeys.items():
+      if state:
+        mov, rot = KEYBINDINGS[key]
+        self.playerNode.setPos(self.playerNode, mov*dt)
+        self.playerNode.setHpr(self.playerNode, rot*dt)
+    
+    # get elevation of the player on the terrain
+    playerPos = self.playerNode.getPos(self.terrain.terrainNode)
+    terrainZ = self.terrain.terrain.getElevation(playerPos[0], playerPos[1])
+    playerZ = render.getRelativePoint( self.terrain.terrainNode, Vec3(0,0,terrainZ) )
+    self.playerNode.setZ(render, playerZ.getZ() + 3)
+    
+    # set the focal point
+    focalPos = self.focalPoint.getPos(self.terrain.terrainNode)
+    self.terrain.terrain.setFocalPoint(focalPos)
+    self.terrain.terrain.update()
+    
+    return task.cont
 
 if __name__ == '__main__':
   from direct.directbase import DirectStart
   from core.pMain import *
   
-  editor = EditorClass(render)
-  editor.loadEggModelsFile("examples/save-1.egs")
+  #base.disableMouse()
   
-  #print dir(editor)
-  #print objectEditor
-  #print dir(modelIdManager)
-  print modelIdManager.getAllObjects()
-  #print modelController
+  editor = EditorClass(render)
+  editor.loadEggModelsFile("examples/mytestscene.egs")
+  
+  player = Player()
+  
+  print "all objects"
+  for obj in modelIdManager.getAllObjects():
+    print "  -", obj.getName()
   
   run()

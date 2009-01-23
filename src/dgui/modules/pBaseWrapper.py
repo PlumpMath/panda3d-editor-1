@@ -174,7 +174,7 @@ class BaseWrapper(DirectObject):
                   extraArgs=[paramName, k],
                   )
               paramEntry[k] = entry
-              entry.setPos((xPos+0.02 - entry.getBounds()[0] * .04, 0, yPos))
+              entry.setPos(Vec3(xPos+0.02 - entry.getBounds()[0] * .04, 0, yPos))
               yPos -= 0.06
             items = paramType.keys()
           elif paramType.__name__ == "Trigger":

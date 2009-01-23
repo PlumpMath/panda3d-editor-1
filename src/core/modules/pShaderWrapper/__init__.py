@@ -10,7 +10,7 @@ from core.pConfigDefs import *
 #from core.pTreeNode import *
 from core.modules.pBaseWrapper import *
 from core.pTexturePainter import texturePainter, PNMBrush_BrushEffect_Enum
-from core.modules.pNodePathWrapper.pEggTexture import Texture_Mag_FilterType, Texture_Min_FilterType
+from core.modules.pNodePathWrapper.pEggTexture import Texture_Mag_FilterType_Enum, Texture_Min_FilterType_Enum
 
 from terrainShader import ShaderNode
 
@@ -59,12 +59,12 @@ class ShaderWrapper(BaseWrapper):
       self.setTex2Scale,
       None,
       None ]
-    self.mutableParameters['tex1 mag filter'] = [ Texture_Mag_FilterType,
+    self.mutableParameters['tex1 mag filter'] = [ Texture_Mag_FilterType_Enum,
       self.getTex2MagFiltertype,
       self.setTex2MagFiltertype,
       None,
       None ]
-    self.mutableParameters['tex1 min filter'] = [ Texture_Min_FilterType,
+    self.mutableParameters['tex1 min filter'] = [ Texture_Min_FilterType_Enum,
       self.getTex2MinFiltertype,
       self.setTex2MinFiltertype,
       None,
@@ -80,12 +80,12 @@ class ShaderWrapper(BaseWrapper):
       self.setTex3Scale,
       None,
       None ]
-    self.mutableParameters['tex2 mag filter'] = [ Texture_Mag_FilterType,
+    self.mutableParameters['tex2 mag filter'] = [ Texture_Mag_FilterType_Enum,
       self.getTex3MagFiltertype,
       self.setTex3MagFiltertype,
       None,
       None ]
-    self.mutableParameters['tex2 min filter'] = [ Texture_Min_FilterType,
+    self.mutableParameters['tex2 min filter'] = [ Texture_Min_FilterType_Enum,
       self.getTex3MinFiltertype,
       self.setTex3MinFiltertype,
       None,
@@ -101,12 +101,12 @@ class ShaderWrapper(BaseWrapper):
       self.setTex4Scale,
       None,
       None ]
-    self.mutableParameters['tex3 mag filter'] = [ Texture_Mag_FilterType,
+    self.mutableParameters['tex3 mag filter'] = [ Texture_Mag_FilterType_Enum,
       self.getTex4MagFiltertype,
       self.setTex4MagFiltertype,
       None,
       None ]
-    self.mutableParameters['tex3 min filter'] = [ Texture_Min_FilterType,
+    self.mutableParameters['tex3 min filter'] = [ Texture_Min_FilterType_Enum,
       self.getTex4MinFiltertype,
       self.setTex4MinFiltertype,
       None,
@@ -122,12 +122,12 @@ class ShaderWrapper(BaseWrapper):
       self.setTex5Scale,
       None,
       None ]
-    self.mutableParameters['tex4 mag filter'] = [ Texture_Mag_FilterType,
+    self.mutableParameters['tex4 mag filter'] = [ Texture_Mag_FilterType_Enum,
       self.getTex5MagFiltertype,
       self.setTex5MagFiltertype,
       None,
       None ]
-    self.mutableParameters['tex4 min filter'] = [ Texture_Min_FilterType,
+    self.mutableParameters['tex4 min filter'] = [ Texture_Min_FilterType_Enum,
       self.getTex5MinFiltertype,
       self.setTex5MinFiltertype,
       None,
