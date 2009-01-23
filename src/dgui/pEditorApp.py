@@ -18,7 +18,8 @@ from core.pConfigDefs import *
 from core.pModelController import modelController
 from core.pTexturePainter import texturePainter, PNMBrush_BrushEffect_Enum, \
 TexturePainter_PaintMode_Enum, TEXTUREPAINTER_FUNCTION_READ, \
-TEXTUREPAINTER_FUNCTION_PAINT_POINT, TEXTUREPAINTER_FUNCTION_PAINT_LINE
+TEXTUREPAINTER_FUNCTION_PAINT_POINT, TEXTUREPAINTER_FUNCTION_PAINT_LINE, \
+TEXTUREPAINTER_FUNCTION_PAINT_RECTANGLE
 # doesnt work, because the editor may be started before panda
 #from core.modules import *
 
@@ -196,10 +197,11 @@ class EditorApp(DirectObject, FSM):
       self.texturePainterTools['smooth']["indicatorValue"] = smooth
       self.texturePainterTools['smooth'].setIndicatorValue()
       for k, v in PNMBrush_BrushEffect_Enum.items():
-        if k == effect:
+        if v == effect:
           currentIndex = self.texturePainterTools['effect'].index(k)
           self.texturePainterTools['effect'].set(currentIndex)
-      if update:
+      
+      if update is True:
         writeBrushSettings(False)
     
     def writeBrushSettings(update=True,*args):
@@ -227,7 +229,7 @@ class EditorApp(DirectObject, FSM):
       # write
       texturePainter.setBrushSettings(color, size, smooth, effect)
       
-      if update:
+      if update is True:
         readBrushSettings(False)
     
     editWindowFrame = DirectFrame()
@@ -312,12 +314,12 @@ class EditorApp(DirectObject, FSM):
     )
     # effect
     items = PNMBrush_BrushEffect_Enum.keys()
-    # select the default item 0, this must be done because it
+    '''# select the default item 0, this must be done because it
     # may be undefined, and thus updateAll will not set it
     for k, v in PNMBrush_BrushEffect_Enum.items():
       if v == PNMBrush.BEBlend:
-        i = k
-    initialitem = items.index(i)
+        i = k'''
+    initialitem = 0 #items.index(i)
     paramEntry = DirectOptionMenu(
         pos = (xPos, 0, yPos),
         scale=.04,
@@ -373,12 +375,13 @@ class EditorApp(DirectObject, FSM):
     )
     # effect
     items = TexturePainter_PaintMode_Enum.keys()
-    # select the default item 0, this must be done because it
+    '''# select the default item 0, this must be done because it
     # may be undefined, and thus updateAll will not set it
     for k, v in TexturePainter_PaintMode_Enum.items():
       if v == PNMBrush.BEBlend:
     #    i = k
-        initialitem = items.index(k)
+        initialitem = items.index(k)'''
+    initialitem = 0
     paramEntry = DirectOptionMenu(
         pos = (xPos, 0, yPos),
         scale=.04,
@@ -397,6 +400,8 @@ class EditorApp(DirectObject, FSM):
     self.accept("shift-up", setPaintMode, [TEXTUREPAINTER_FUNCTION_PAINT_POINT])
     self.accept("control", setPaintMode, [TEXTUREPAINTER_FUNCTION_PAINT_LINE])
     self.accept("control-up", setPaintMode, [TEXTUREPAINTER_FUNCTION_PAINT_POINT])
+    self.accept("alt", setPaintMode, [TEXTUREPAINTER_FUNCTION_PAINT_RECTANGLE])
+    self.accept("alt-up", setPaintMode, [TEXTUREPAINTER_FUNCTION_PAINT_POINT])
     
     # --- window containing the edit tools ---
     self.texturePainterWindow = DirectSidebar(

@@ -1,3 +1,5 @@
+import random, math
+
 from direct.showbase.DirectObject import *
 from pandac.PandaModules import TextureAttrib, Texture, PNMImage, \
 GraphicsOutput, NodePath, Filename, TextureStage, VBase4D, PNMPainter, \
@@ -7,20 +9,27 @@ from core.pWindow import WindowManager
 from core.pMouseHandler import mouseHandler
 from core.pConfigDefs import *
 
+TEXTUREPAINTER_BRUSH_SMOOTH = 'smooth'
+TEXTUREPAINTER_BRUSH_RANDOMIZE = 'randomize'
+
 PNMBrush_BrushEffect_Enum = Enum(
   BESet = PNMBrush.BESet,
   BEBlend = PNMBrush.BEBlend,
   BEDarken = PNMBrush.BEDarken,
   BELighten = PNMBrush.BELighten,
+  Smooth = TEXTUREPAINTER_BRUSH_SMOOTH,
+  Randomize = TEXTUREPAINTER_BRUSH_RANDOMIZE,
 )
 
 TEXTUREPAINTER_FUNCTION_PAINT_POINT = 'paintPoint'
 TEXTUREPAINTER_FUNCTION_PAINT_LINE = 'paintLine'
+TEXTUREPAINTER_FUNCTION_PAINT_RECTANGLE = 'paintRectangle'
 TEXTUREPAINTER_FUNCTION_READ = 'readColor'
 
 TexturePainter_PaintMode_Enum = Enum(
   PointPaint = TEXTUREPAINTER_FUNCTION_PAINT_POINT,
   LinePaint = TEXTUREPAINTER_FUNCTION_PAINT_LINE,
+  RectanglePaint = TEXTUREPAINTER_FUNCTION_PAINT_RECTANGLE,
   ReadColor = TEXTUREPAINTER_FUNCTION_READ,
 )
 
@@ -161,9 +170,10 @@ class TexturePainter(DirectObject):
     self.paintSize = size
     self.paintEffect = effect
     self.paintSmooth = smooth
-    self.brush = PNMBrush.makeSpot(color, size, smooth, effect)
-    if self.paintModel:
-      self.painter.setPen(self.brush)
+    if effect in [PNMBrush.BESet, PNMBrush.BEBlend, PNMBrush.BEDarken, PNMBrush.BELighten]:
+      self.brush = PNMBrush.makeSpot(color, size, smooth, effect)
+      if self.paintModel:
+        self.painter.setPen(self.brush)
   
   def getBrushSettings(self):
     return self.paintColor,self.paintSize,self.paintSmooth,self.paintEffect
@@ -272,26 +282,66 @@ class TexturePainter(DirectObject):
     y = g + ((b//16)*256)
     
     if x > self.workLayer.getXSize() or y > self.workLayer.getYSize():
-#      print "I: TexturePainter.paintTask: invalid paint location", x, y
       pass
     else:
       if self.paintMode == TEXTUREPAINTER_FUNCTION_PAINT_POINT:
-#        print "I: TexturePainter.paintTask: paint point", x, y
-        # render a spot into the texture
-        self.painter.drawPoint(x, y)
+        if self.paintEffect in [PNMBrush.BESet, PNMBrush.BEBlend, PNMBrush.BEDarken, PNMBrush.BELighten]:
+          # render a spot into the texture
+          self.painter.drawPoint(x, y)
+        
+        elif self.paintEffect in [TEXTUREPAINTER_BRUSH_SMOOTH, TEXTUREPAINTER_BRUSH_RANDOMIZE]:
+          radius = int(round(self.paintSize/2.0))
+          dividor = 0
+          
+          if self.paintEffect == TEXTUREPAINTER_BRUSH_SMOOTH:
+            average = VBase4D(0)
+            for dx in xrange(-radius, radius+1):
+              for dy in xrange(-radius, radius+1):
+                multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy))) / (radius*radius)
+                dividor += multiplier
+                average += self.workLayer.getXelA(x+dx,y+dy) * multiplier
+            average /= dividor
+            print "I: TexturePainter.paintTask: SMOOTH to", average
+            for dx in xrange(-radius, radius+1):
+              for dy in xrange(-radius, radius+1):
+                multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy))) / (radius*radius)
+                currentValue = self.workLayer.getXelA(x+dx,y+dy)
+                r = currentValue.getX() * (1-multiplier*self.paintColor.getX()) + average.getX() * multiplier*self.paintColor.getX()
+                g = currentValue.getY() * (1-multiplier*self.paintColor.getY()) + average.getY() * multiplier*self.paintColor.getY()
+                b = currentValue.getZ() * (1-multiplier*self.paintColor.getZ()) + average.getZ() * multiplier*self.paintColor.getZ()
+                a = currentValue.getW() * (1-multiplier*self.paintColor.getW()) + average.getW() * multiplier*self.paintColor.getW()
+                if self.workLayer.hasAlpha():
+                  self.workLayer.setXelA(x+dx,y+dy,VBase4D(r,g,b,a))
+                else:
+                  self.workLayer.setXel(x+dx,y+dy,VBase3D(r,g,b))
+          
+          elif self.paintEffect == TEXTUREPAINTER_BRUSH_RANDOMIZE:
+            for dx in xrange(-radius, radius+1):
+              for dy in xrange(-radius, radius+1):
+                r = VBase4D(random.random()*self.paintColor.getX()-self.paintColor.getX()/2.,
+                           random.random()*self.paintColor.getY()-self.paintColor.getY()/2.,
+                           random.random()*self.paintColor.getZ()-self.paintColor.getZ()/2.,
+                           random.random()*self.paintColor.getW()-self.paintColor.getW()/2.)
+                multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy))) / (radius*radius)
+                currentValue = self.workLayer.getXelA(x+dx,y+dy)
+                self.workLayer.setXelA(x+dx,y+dy,currentValue+r*multiplier)
+      
       elif self.paintMode == TEXTUREPAINTER_FUNCTION_READ:
         col = self.workLayer.getXelA(x,y)
         if self.workLayer.hasAlpha():
-#          print "I: TexturePainter.paintTask: read with alpha", x, y
           self.paintColor = VBase4D(col[0], col[1], col[2], col[3])
         else:
-#          print "I: TexturePainter.paintTask: read without alpha", x, y
           self.paintColor = VBase4D(col[0], col[1], col[2], 1.0)
         messenger.send(EVENT_TEXTUREPAINTER_BRUSHCHANGED)
+      
       elif self.paintMode == TEXTUREPAINTER_FUNCTION_PAINT_LINE:
         if self.lastPoint != None:
-#          print "I: TexturePainter.paintTask: paint line", x, y, self.lastPoint[0], self.lastPoint[1]
           self.painter.drawLine(x, y, self.lastPoint[0], self.lastPoint[1])
+      
+      elif self.paintMode == TEXTUREPAINTER_FUNCTION_PAINT_RECTANGLE:
+        if self.lastPoint != None:
+          self.painter.drawRectangle(x, y, self.lastPoint[0], self.lastPoint[1])
+      
       self.lastPoint = (x,y)
     
     return task.cont
