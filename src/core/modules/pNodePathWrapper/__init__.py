@@ -49,6 +49,7 @@ def getEggDataEditable(parent, objectNode, modelFilepath):
   return recurse(parent, objectNode, eggData)
 
 class NodePathWrapper(BaseWrapper):
+  className = 'Model'
   def onCreateInstance(self, parent, filepath):
     # create instance of this class
     if filepath is not None:
@@ -63,6 +64,10 @@ class NodePathWrapper(BaseWrapper):
   def __init__(self, parent=None, name=None):
     BaseWrapper.__init__(self, parent, name)
     self.model = None
+    
+    # atm this type of node can have no new childrens
+    #self.possibleChildren = []
+    
     # content must be loaded using setModel
     # (done by onCreateInstance and loadFromEggGroup)
     
@@ -122,10 +127,18 @@ class NodePathWrapper(BaseWrapper):
   def save(self, filepath):
     print "I: NodePathWrapper.save:", filepath
     if self.eggTreeParent:
-      print "saving"
       self.eggTreeParent.save(filepath)
   
   def destroy(self):
+    # destroy egg data
+    def recurse(parent):
+      for child in parent.getChildren()[:]: # accessing it directly causes it to miss childrens
+        recurse(child)
+        child.destroy()
+    recurse(self.eggTreeParent)
+    
+    if self.model:
+      loader.unloadModel(self.model)
     # destroy this object
     BaseWrapper.destroy(self)
     self.model.detachNode()

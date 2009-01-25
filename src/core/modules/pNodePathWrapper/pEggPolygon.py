@@ -3,6 +3,7 @@ from pandac.PandaModules import *
 from core.modules.pNodePathWrapper.pEggBase import *
 
 class ObjectEggPolygon(ObjectEggBase):
+  className = 'EggPolygon'
   def __init__(self, parent, modelWrapper, eggPolygon):
     ObjectEggBase.__init__(self, parent, modelWrapper, 'EggPolygon')
     self.eggPolygon = eggPolygon

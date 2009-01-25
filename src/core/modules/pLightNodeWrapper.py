@@ -6,6 +6,7 @@ from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.pConfigDefs import *
 
 class LightNodeWrapper(VirtualNodeWrapper):
+  className = 'Light'
   def __init__(self, parent, name, lightModel, lightType):
     VirtualNodeWrapper.__init__(self, parent, name, lightModel)
     

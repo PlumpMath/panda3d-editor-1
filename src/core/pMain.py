@@ -124,9 +124,9 @@ class EditorClass(DirectObject, FSM):
                                               , str(model.getScale(render)) )
     return modelData
   
-  def saveEggModelsFile(self, filepath):
+  '''def saveEggModelsFile(self, filepath):
     # walk the render tree and save the egg-links
-    self.treeParent.save(filepath)
+    self.treeParent.saveAs(filepath)'''
   
   def loadEggModelsFile(self, filepath):
     
@@ -206,3 +206,13 @@ class EditorClass(DirectObject, FSM):
         #if node.nodePath.hasTag(EDITABLE_OBJECT_TAG):
           #node.destroy()
           #del node
+  
+  def newScene(self, filepath):
+    ''' create a new scene
+    '''
+    print "D: core.EditorApp.newScene:", filepath
+    self.destroyScene()
+    self.treeParent = SceneNodeWrapper.onCreateInstance(None, '')
+    self.treeParent.saveAs(filepath)
+    messenger.send(EVENT_SCENEGRAPH_CHANGE_ROOT, [self.treeParent])
+    messenger.send(EVENT_MODELCONTROLLER_SELECT_OBJECT, [None])

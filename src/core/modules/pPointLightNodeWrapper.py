@@ -6,6 +6,7 @@ from core.modules.pLightNodeWrapper import LightNodeWrapper
 from core.pConfigDefs import *
 
 class PointLightNodeWrapper(LightNodeWrapper):
+  className = 'PointLight'
   def __init__(self, parent=None, name='PointLight'):
     # define the name of this object
     name = 'PointLight'

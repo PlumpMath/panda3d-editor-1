@@ -15,6 +15,7 @@ from core.modules.pNodePathWrapper.pEggTexture import Texture_Mag_FilterType_Enu
 from terrainShader import ShaderNode
 
 class ShaderWrapper(BaseWrapper):
+  className = 'TerrainShader'
   def onCreateInstance(self, parent, name='ShaderWrapper'):
     # create instance of this class
     objectInstance = self(parent, name)
@@ -34,6 +35,7 @@ class ShaderWrapper(BaseWrapper):
     BaseWrapper.__init__(self, parent, name)
     #BaseWrapper.reparentTo(self, parent)
     
+    self.possibleFunctions = ['save']
     # all values that can be changed require a entry in the mutableParameters
     
     # when a value exists, it means that it's allowed to read/write the value
@@ -42,7 +44,7 @@ class ShaderWrapper(BaseWrapper):
     
     # valueType, getFunc vtion, setFunction, hasFunction, clearFunction, saveToComments
     # hasFunction == None -> the value should be saved
-    self.mutableParameters = dict()
+    #self.mutableParameters = dict()
     self.mutableParameters['mixmap'] = [ Filepath,
       self.getTex1,
       self.setTex1,
@@ -280,14 +282,18 @@ class ShaderWrapper(BaseWrapper):
       texturePainter.stopEdit()
       texturePainter.disableEditor()
       self.paintActive = False
-      # saving the texture
-      saveTex = PNMImage()
-      self.paintTex.store(saveTex)
-      savePath = posixpath.join(self.relativePath, self.tex1Path)
-      saveTex.write(Filename(savePath))
+  
+  def save(self):
+    # saving the texture
+    saveTex = PNMImage()
+    self.paintTex.store(saveTex)
+    savePath = posixpath.join(self.relativePath, self.tex1Path)
+    print "I: ShaderWrapper.save:", savePath
+    saveTex.write(Filename(savePath))
   
   def destroy(self):
     self.stopEdit()
+    self.shader.destroy()
     self.setEditmodeDisabled()
     BaseWrapper.destroy(self)
   

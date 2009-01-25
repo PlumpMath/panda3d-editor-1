@@ -7,19 +7,38 @@ class TreeGraphBrowser(DirectObject):
                frameSize=(1,1),
                pos=(0,0,0),
                button1func=None,
+               button1extraArgs=[],
                button2func=None,
-               button3func=None,):
+               button2extraArgs=[],
+               button3func=None,
+               button3extraArgs=[],):
     self.browser = DirectTree(parent=parent, pos=pos, frameSize=frameSize)
     self.includeTag = includeTag
     self.button1funcCall=button1func
+    self.button1extraArgs=button1extraArgs
     self.button2funcCall=button2func
+    self.button2extraArgs=button2extraArgs
     self.button3funcCall=button3func
+    self.button3extraArgs=button3extraArgs
     self.directTreeDict = dict()
     self.setRoot(treeWrapperRoot)
     
     self.accept(EVENT_MODELCONTROLLER_SELECTED_OBJECT_CHANGE, self.highlight)
     
     self.accept(EVENT_SCENEGRAPH_CHANGE_ROOT, self.setRoot)
+  
+  def destroy(self):
+    print "E: TreeGraphBrowser.destroy: TODO!!!"
+    self.browser.destroy()
+    self.includeTag = None
+    self.button1funcCall = None
+    self.button1extraArgs = None
+    self.button2funcCall = None
+    self.button2extraArgs = None
+    self.button3funcCall = None
+    self.button3extraArgs = None
+    self.ignoreAll()
+    self.treeWrapperRoot = None
   
   def setRoot(self, treeWrapperRoot):
     self.treeWrapperRoot = treeWrapperRoot
@@ -42,17 +61,17 @@ class TreeGraphBrowser(DirectObject):
         self.browser.highlight([])
   
   def button1func(self, treeItem):
-    #self.browser.highlight([treeItem])
-    self.button1funcCall(treeItem.sceneNp)
+    self.button1funcCall(treeItem.sceneNp, *self.button1extraArgs)
   def button2func(self, treeItem):
-    self.button2funcCall(treeItem.sceneNp)
+    self.button2funcCall(treeItem.sceneNp, *self.button2extraArgs)
   def button3func(self, treeItem):
-    self.button3funcCall(treeItem.sceneNp)
+    self.button3funcCall(treeItem.sceneNp, *self.button3extraArgs)
   
   def rec(self, treeWrapperNode=None, treeWrapperParent=None):
-    """Used internally to recursively add the children of a nodepath to the scene graph browser."""
+    """ Used internally to recursively add the children of a nodepath
+    to the scene graph browser."""
     if treeWrapperNode is not None:
-      name = "("+treeWrapperNode.__class__.__name__+") "+treeWrapperNode.treeName
+      name = "("+treeWrapperNode.className+") "+treeWrapperNode.treeName
       
       if not treeWrapperNode in self.oldDirectTreeDict:
         # create new treeNode
@@ -74,22 +93,22 @@ class TreeGraphBrowser(DirectObject):
         treeWrapperChild = treeWrapperNode.getChildren(c)
         self.rec(treeWrapperChild, directTreeItem)
       return directTreeItem
+    else:
+      return None
   
   def update(self):
-    # update the scenegraph
+    ''' update the scenegraph, deleting old gui elements
+    '''
     self.oldDirectTreeDict = self.directTreeDict.copy()
     self.directTreeDict = dict()
     directTreeParent = self.rec(self.treeWrapperRoot, None)
     # destroy the contents of the nodeDict
     for treeWrapperNode in self.oldDirectTreeDict.keys()[:]:
-      #print "destryoing node", treeNode
       directTreeItem = self.oldDirectTreeDict[treeWrapperNode]
       del directTreeItem.sceneNp
       directTreeItem.destroy()
       if directTreeItem in self.oldDirectTreeDict:
         del self.oldDirectTreeDict[directTreeItem]
-#      else:
-#        print "I: TreeGraphBrowser.update: object already destroyed", directTreeItem
     del self.oldDirectTreeDict
     self.browser.treeStructure = directTreeParent
     if self.treeWrapperRoot is not None:
@@ -98,66 +117,6 @@ class TreeGraphBrowser(DirectObject):
 
 SceneGraphBrowser = TreeGraphBrowser
 
-'''class SceneGraphBrowser(DirectObject):
-  def __init__(self, parent, treeRoot, includeTag,
-               frameSize=(1,1),
-               pos=(0,0,0),
-               button1func=None,
-               button2func=None,
-               button3func=None,):
-    self.browser = DirectTree(parent=parent, pos=pos, frameSize=frameSize)
-    self.treeRoot = treeRoot
-    self.includeTag = includeTag
-    self.button1funcCall=button1func
-    self.button2funcCall=button2func
-    self.button3funcCall=button3func
-    self.nodeDict = dict()
-    self.update()
-  
-  def button1func(self, treeItem):
-    self.button1funcCall(treeItem.sceneNp)
-  def button2func(self, treeItem):
-    self.button2funcCall(treeItem.sceneNp)
-  def button3func(self, treeItem):
-    self.button3funcCall(treeItem.sceneNp)
-  
-  def rec(self, nodePath=None, treeParent=None):
-    """Used internally to recursively add the children of a nodepath to the scene graph browser."""
-    name = nodePath.getName()
-    if nodePath.hasTag(self.includeTag) or nodePath == self.treeRoot:
-      if not nodePath in self.oldNodeDict:
-        treeItem = DirectTreeItem(treeParent, name)
-        treeItem.sceneNp = nodePath
-        treeItem.button1Func=self.button1func
-        treeItem.button2Func=self.button1func
-        treeItem.button3Func=self.button1func
-      else:
-        treeItem = self.oldNodeDict[nodePath]
-        treeItem.setParent(treeParent)
-        treeItem.clearChildrens()
-        del self.oldNodeDict[nodePath] # remove it from the old dict
-      self.nodeDict[nodePath] = treeItem
-      
-      for c in xrange(nodePath.getNumChildren()):
-        childNodePath = nodePath.getChild(c)
-        self.rec(childNodePath, treeItem)
-      return treeItem
-  
-  def update(self):
-    # update the scenegraph
-    self.oldNodeDict = self.nodeDict.copy()
-    self.nodeDict = dict()
-    treeParent = self.rec(self.treeRoot, None)
-    # destroy the contents of the nodeDict
-    for treeNode in self.oldNodeDict.keys()[:]:
-      #print "destryoing node", treeNode
-      treeItem = self.oldNodeDict[treeNode]
-      del treeItem.sceneNp
-      treeItem.destroy()
-      del self.oldNodeDict[treeNode]
-    self.browser.treeStructure = treeParent
-    self.browser.render()
-    self.browser.update()'''
 
 if __name__ == '__main__' and True:
   from direct.directbase import DirectStart

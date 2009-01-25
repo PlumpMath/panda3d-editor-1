@@ -120,15 +120,18 @@ class DirectTree(DirectObject):
     self.frameHeight = frameSize[1] #1.5
     
     self.itemIndent = 0.05
-    self.itemScale = 0.04
+    self.itemScale = 0.03
     self.itemTextScale = 1.2
-    self.verticalSpacing = 0.05
+    self.verticalSpacing = 0.0375
     self.__createTreeLines()
     
     self.childrenFrame = DirectScrolledFrame(
-        parent=parent,pos=pos, relief=DGG.GROOVE,
+        parent=parent,pos=pos,
+        relief=DGG.GROOVE,
         state=DGG.NORMAL, # to create a mouse watcher region
-        manageScrollBars=0, enableEdit=0, #suppressMouse=DEFAULT_SUPRESS_MOUSE_OVER_GUI,
+        manageScrollBars=0,
+        enableEdit=0,
+        #suppressMouse=1,
         sortOrder=1000,
         frameColor=(0,0,0,.7),
         borderWidth=(0.005,0.005),
@@ -146,6 +149,7 @@ class DirectTree(DirectObject):
   def destroy(self):
     self.treeStructure = DirectTreeItem()
     self.render()
+    self.childrenFrame.destroy()
     #del self.treeStructureNodes
   
   def __createLine(self, length=1, color=(1,1,1,1), endColor=None):
@@ -186,10 +190,15 @@ class DirectTree(DirectObject):
         hor.setPos(-1.5*self.itemIndent,0,self.itemScale*.25)
         vert.setX(-.5*self.itemIndent)
         
-        nodeButton = DirectButton(parent=treeNode,
-            scale=self.itemScale, relief=DGG.FLAT,
-            text_scale=self.itemTextScale,text_align=TextNode.ALeft,
-            text=treeItem.name, 
+        nodeButton = DirectButton(
+            parent=treeNode,
+            scale=self.itemScale,
+            relief=DGG.FLAT,
+            text_scale=self.itemTextScale,
+            text_align=TextNode.ALeft,
+            text=treeItem.name,
+            rolloverSound=None,
+            #clickSound=None,
           )
         nodeButton.bind(DGG.B1PRESS,treeItem.button1press)
         nodeButton.bind(DGG.B2PRESS,treeItem.button2press)
@@ -197,11 +206,20 @@ class DirectTree(DirectObject):
         
         treeButton = None
         if len(treeItem.childrens) > 0:
-          treeButton = DirectButton(parent=nodeButton,
-              frameColor=(1,1,1,1), frameSize=(-.4,.4,-.4,.4),
+          treeButton = DirectButton(
+              parent=nodeButton,
+              frameColor=(1,1,1,1),
+              frameSize=(-.4,.4,-.4,.4),
               pos=(-.5*self.itemIndent/self.itemScale,0,.25),
-              text='', text_pos=(-.1,-.22), text_scale=(1.6,1), text_fg=(0,0,0,1),
-              enableEdit=0, command=treeItem.setOpen, sortOrder=1000,
+              text='',
+              text_pos=(-.1,-.22),
+              text_scale=(1.6,1),
+              text_fg=(0,0,0,1),
+              enableEdit=0,
+              command=treeItem.setOpen,
+              sortOrder=1000,
+              rolloverSound=None,
+              #clickSound=None,
             )
         
 

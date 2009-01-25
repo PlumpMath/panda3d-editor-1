@@ -6,6 +6,7 @@ from core.modules.pLightNodeWrapper import LightNodeWrapper
 from core.pConfigDefs import *
 
 class DirectionalLightNodeWrapper(LightNodeWrapper):
+  className = 'DirectionalLight'
   def __init__(self, parent=None, name='DirectionalLight'):
     # define the name of this object
     name = 'DirectionalLight'

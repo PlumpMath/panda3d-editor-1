@@ -40,6 +40,7 @@ class BaseWrapper(TreeNode):
   todo:
   - maybe move color,antialias etc. to special implementations of this node
   '''
+  className = 'Base'
   def onCreateInstance(self, parent, name='BaseWrapper'):
     # create instance of this class
     #print help(self.__init__)
@@ -54,20 +55,16 @@ class BaseWrapper(TreeNode):
   loadFromEggGroup = classmethod(loadFromEggGroup)
   
   def __init__(self, parent, name):
-    # get a uniq id for this object
-    self.id = modelIdManager.getId()
     # define a name for this object
     TreeNode.__init__(self, name)
-    TreeNode.reparentTo(self, parent)
-    self.nodePath = NodePath(name)
+    # get a uniq id for this object
+    self.id = modelIdManager.getId()
     # store this object
     modelIdManager.setObject(self, self.id)
-    # reparent this nodePath
-    if parent is None:
-      parentNodepath = render
-    else:
-      parentNodepath = parent.nodePath
-    self.nodePath.reparentTo(parentNodepath)
+    # create a node for this object
+    self.nodePath = NodePath(name)
+    
+    self.reparentTo(parent)
     
     # all values that can be changed require a entry in the mutableParameters
     
@@ -156,6 +153,15 @@ class BaseWrapper(TreeNode):
     instance.setTransform3d(nm)
     return instance
   
+  def reparentTo(self, parent):
+    TreeNode.reparentTo(self, parent)
+    
+    # reparent this nodePath
+    if parent is None:
+      parentNodepath = render
+    else:
+      parentNodepath = parent.nodePath
+    self.nodePath.reparentTo(parentNodepath)
   
   ''' --- external reference saving / loading ---
   these are used by if a wrapper uses a external file

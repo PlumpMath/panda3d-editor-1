@@ -6,6 +6,7 @@ from core.modules.pLightNodeWrapper import LightNodeWrapper
 from core.pConfigDefs import *
 
 class SpotLightNodeWrapper(LightNodeWrapper):
+  className = 'SpotLight'
   def __init__(self, parent=None, name='SpotLight'):
     LightNodeWrapper.__init__(self, parent, name, SPOTLIGHT_WRAPPER_DUMMYOBJECT, Spotlight)
     self.lens = PerspectiveLens()

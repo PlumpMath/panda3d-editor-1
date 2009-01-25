@@ -11,6 +11,7 @@ DEBUG = False
 
 
 class GeoMipTerrainNodeWrapper(BaseWrapper):
+  className = 'GeoMipTerrain'
   def onCreateInstance(self, parent, filepath):
     # create instance of this class
     if filepath is not None:

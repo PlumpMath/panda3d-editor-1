@@ -1,3 +1,5 @@
+from pandac.PandaModules import *
+
 from core.pTexturePainter import texturePainter
 from core.pConfigDefs import * # imports Enum
 from core.modules.pNodePathWrapper.pEggBase import *
@@ -212,15 +214,30 @@ Texture_QualityLevel_Enum = Enum(
 )
 
 class ObjectEggTexture(ObjectEggBase):
+  className = 'EggTexture'
   def __init__(self, parent, modelWrapper, eggTexture):
     ObjectEggBase.__init__(self, parent, modelWrapper, 'EggTexture')
     self.eggTexture = eggTexture
+    self.possibleFunctions = ['save']
+    
+    self.editTexture = None
+    self.editTextureFilename = None
   
   def destroy(self):
+    print "I: ObjectEggTexture.destroy"
     self.stopEdit()
     ObjectEggBase.destroy(self)
     self.eggTexture = None
     self.modelWrapper = None
+    
+    # TODO RELEASE OF TEXTURES DOESNT WORK YET
+    if self.editTexture:
+      print "  - release texture", self.editTextureFilename
+      TexturePool.releaseTexture(self.editTexture)
+    TexturePool.releaseAllTextures()
+    
+    self.editTexture = None
+    self.editTextureFilename = None
   
   def startEdit(self):
     ''' as we are editing a egg-file, but for texture painting we modify a texture
@@ -242,23 +259,12 @@ class ObjectEggTexture(ObjectEggBase):
         modelTexFilename = str(modelTexLayer.texture.getFullpath())
         if eggTextureFilename in modelTexFilename:
           editTexture = modelTexLayer.texture
-        ''' # the above might be better
-        if posixpath.basename(eggTextureFilename) == posixpath.basename(modelTexFilename): # the filename is equal
-          if posixpath.dirname(eggTextureFilename) == '.':
-            # i dont really know to what directory it's relative
-            # for now assume it's the correct file
-            editTexture = modelTexLayer.texture
-          else:
-            # check the directory as well
-            if posixpath.dirname(eggTextureFilename) == posixpath.dirname(modelTexFilename):
-              editTexture = modelTexLayer.texture
-        if str(eggTextureFilename) in str(modelTexFilename):
-          #print "I: ObjectEggTexture.startEdit: modifying texture", str(eggTextureFilename), str(texLayer.texture.getFullpath())
-          editTexture = modelTexLayer.texture'''
       if editTexture:
         print "I: ObjectEggTexture.startEdit: start editing texture", eggTextureFilename
         print "  - selected from these: ", [tex.texture.getFullpath() for tex in modelTextureLayers]
         #texturePainter.selectPaintModel()
+        self.editTexture = editTexture
+        self.editTextureFilename = tex.texture.getFullpath()
         texturePainter.enableEditor(self.modelWrapper.model, editTexture)
         texturePainter.startEdit()
       else:
@@ -275,3 +281,12 @@ class ObjectEggTexture(ObjectEggBase):
       texturePainter.disableEditor()
     else:
       print "W: ObjectEggTexture.stopEdit: editmode not enabled"
+  
+  def save(self):
+    if self.editTexture:
+      saveTex = PNMImage()
+      self.editTexture.store(saveTex)
+      savePath = self.editTextureFilename #posixpath.join(self.relativePath, self.tex1Path)
+      print "I: ObjectEggTexture.save:", savePath
+      saveTex.write(Filename(savePath))
+

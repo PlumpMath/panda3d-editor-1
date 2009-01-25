@@ -58,6 +58,18 @@ class TreeNode(object):
       self.setName,
       None,
       None ]
+    self.mutableParameters['parent'] = [ TreeNode,
+      self.getParent,
+      self.reparentTo,
+      None,
+      None ]
+    # functions that can be done with this node
+    self.possibleFunctions = [
+        'destroy',
+        'duplicate',
+      ]
+    # do not define possible children here
+    # self.possibleChildrens = list()
   
   def destroy(self):
     self.stopEdit()
@@ -66,6 +78,15 @@ class TreeNode(object):
   
   # --- parenting functions ---
   def reparentTo(self, treeParent):
+    if hasattr(treeParent, 'possibleChildren'):
+      if self.__class__.__name__ in treeParent.getPossibleChildren():
+        pass
+      else:
+        print "I: TreeNode.reparentTo: invalid parent for reparenting:"
+        print "  - new parent:", treeParent, treeParent.__class__.__name__
+        print "  - own type", self, self.__class__.__name__
+        print "  - possible children:", treeParent.getPossibleChildren()
+        return
     self.detachNode()
     if treeParent not in self.getRecChildren():
       self.treeParent = treeParent
@@ -87,6 +108,16 @@ class TreeNode(object):
   
   def getParent(self):
     return self.treeParent
+  
+  def getRecParents(self):
+    ''' get a list of parent of this node (including self)'''
+    def rec(treeNode, parentList=list()):
+      parentList.append(treeNode)
+      parentNode = treeNode.getParent()
+      if parentNode is not None:
+        parentList = rec(parentNode, parentList)
+      return parentList
+    return rec(self)
   
   def getRecChildren(self):
     l = list()
@@ -121,6 +152,9 @@ class TreeNode(object):
   def setName(self, name):
     self.treeName = name
   
+  def __repr__(self):
+    text = "(%s) %s" % (str(self.className), str(self.getName()))
+    return text
   
   # --- EDIT MODE OF THE OBJECT ---
   def setEditmodeEnabled(self, recurseException=[]):
@@ -128,22 +162,24 @@ class TreeNode(object):
     self.editmodeStatus = self.editmodeStatus | EDITMODE_ENABLED
     
     for child in self.getChildren():
-      if recurseException is not None:
+      child.setEditmodeEnabled()
+      '''if recurseException is not None:
         if type(child) in recurseException:
           child.setEditmodeEnabled(None)
         else:
-          child.setEditmodeEnabled(recurseException)
+          child.setEditmodeEnabled(recurseException)'''
   
   def setEditmodeDisabled(self, recurseException=[]):
     # remove the editmode flag (xor)
     self.editmodeStatus = self.editmodeStatus ^ EDITMODE_ENABLED
     
     for child in self.getChildren():
-      if recurseException is not None:
+      child.setEditmodeDisabled()
+      '''if recurseException is not None:
         if type(child) in recurseException:
           child.setEditmodeDisabled(None)
         else:
-          child.setEditmodeDisabled(recurseException)
+          child.setEditmodeDisabled(recurseException)'''
   
   def isEditmodeEnabled(self):
     return (self.editmodeStatus & EDITMODE_ENABLED)
@@ -170,6 +206,19 @@ class TreeNode(object):
   def isEditmodeStarted(self):
     return (self.editmodeStatus & EDITMODE_STARTED)
   
+  def getPossibleChildren(self):
+    parentList = self.getRecParents()
+    for parent in parentList:
+      if hasattr(parent, 'possibleChildren'):
+        return parent.possibleChildren
+    return []
+  
+  def getPossibleFunctions(self):
+    parentList = self.getRecParents()
+    for parent in parentList:
+      if hasattr(parent, 'possibleFunctions'):
+        return parent.possibleFunctions
+    return []
   
   # --- PARAMETER LOADING AND SAVING ---
   def getParameter(self, name):
@@ -196,6 +245,11 @@ class TreeNode(object):
     elif varType.__name__ == 'Filepath': #elif isinstance(varType, Filepath):
       return val
     elif varType.__name__ == 'Trigger':
+      return val
+    #elif isinstance(varType, TreeNode): # hmm doesnt recognize it this way
+    #  return val
+    elif varType.__name__ == 'TreeNode':
+      #print
       return val
     else:
       print "E: core.TreeNode.getParameter: unknown varType %s for %s" % (varType.__name__, name)
@@ -271,7 +325,7 @@ class TreeNode(object):
     parameters = self.getParameters()
     if len(parameters) > 0:
       # dont store those values into the parameters
-      for paramName in ['name', 'position', 'scale', 'rotation']:
+      for paramName in ['name', 'position', 'scale', 'rotation', 'parent']:
         if paramName in parameters:
           del parameters[paramName]
       # add the data to the egg-file

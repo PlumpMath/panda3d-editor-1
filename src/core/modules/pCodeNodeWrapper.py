@@ -8,6 +8,7 @@ from core.pConfigDefs import *
 DEBUG = False
 
 class CodeNodeWrapper(VirtualNodeWrapper):
+  className = 'Code'
   def onCreateInstance(self, parent, filepath):
     # create instance of this class
     name='CodeNode'

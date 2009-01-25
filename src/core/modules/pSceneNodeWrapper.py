@@ -4,8 +4,28 @@ from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.pConfigDefs import *
 from core.modules.pBaseWrapper import *
 from core.modules.pShaderWrapper import *
+#from core.modules import POSSIBLE_SCENE_CHILDRENS
 
 DEBUG = False
+
+
+# model nodes
+from pNodePathWrapper import *
+from pGeoMipTerrainNodeWrapper import *
+
+# light nodes
+from pAmbientLightNodeWrapper import *
+from pDirectionalLightNodeWrapper import *
+from pPointLightNodeWrapper import *
+from pSpotLightNodeWrapper import *
+
+# virtual nodes
+from pCodeNodeWrapper import *
+from pParticleSystemWrapper import *
+from pSoundNodeWrapper import *
+#from pSceneNodeWrapper import *
+
+from pShaderWrapper import *
 
 class SceneNodeWrapper(VirtualNodeWrapper):
   ''' this node contains a scene (so that a scene may contain other scenes)
@@ -15,6 +35,7 @@ class SceneNodeWrapper(VirtualNodeWrapper):
   objects loaded from this scene should not be mutable, when loaded as subscene
   objects loaded from this scene should be mutable, when loaded as parent scene
   '''
+  className = 'Scene'
   def onCreateInstance(self, parent, filepath):
     # create instance of this class
     objectInstance = super(SceneNodeWrapper, self).onCreateInstance(parent, 'SceneNode')
@@ -26,6 +47,24 @@ class SceneNodeWrapper(VirtualNodeWrapper):
   def __init__(self, parent, name='SceneNode'):
     self.objectInstance = None
     VirtualNodeWrapper.__init__(self, parent, name, SCENE_WRAPPER_DUMMYOBJECT)
+    self.possibleChildren = [
+        'NodePathWrapper',
+        'GeoMipTerrainNodeWrapper',
+        'AmbientLightNodeWrapper',
+        'DirectionalLightNodeWrapper',
+        'SpotLightNodeWrapper',
+        'CodeNodeWrapper',
+        'ParticleSystemWrapper',
+        'SoundNodeWrapper',
+        'SceneNodeWrapper',
+        'ShaderWrapper',
+      ]
+    self.possibleFunctions = [
+        'saveAs',
+        'save',
+        'destroy',
+        'duplicate',
+      ]
   
   def setScene(self, sceneFilepath):
     # load the scene
@@ -127,7 +166,10 @@ class SceneNodeWrapper(VirtualNodeWrapper):
     #print "  -", posixpath.dirname(posixpath.abspath(sceneFilepath))
     self.sceneFilepath = sceneFilepath
   
-  def save(self, filepath):
+  def save(self):
+    self.saveAs(self.sceneFilepath)
+  
+  def saveAs(self, filepath):
     def saveRecursiveChildrens(parent, eggParentData, relativeTo):
       for child in parent.getChildren():
         # save the childs data

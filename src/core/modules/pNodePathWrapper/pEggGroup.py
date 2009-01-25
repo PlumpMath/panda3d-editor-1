@@ -46,6 +46,7 @@ EggGroup_BillboardType_Enum = Enum(
 )
 
 class ObjectEggGroup(ObjectEggBase):
+  className = 'EggGroup'
   def __init__(self, parent, modelWrapper, eggGroup):
     ObjectEggBase.__init__(self, parent, modelWrapper, 'EggGroup')
     # we need to work on the external eggGroup

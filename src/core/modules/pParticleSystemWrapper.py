@@ -14,6 +14,7 @@ PARTICLES_ENABLED = False
 DEBUG = False
 
 class ParticleSystemWrapper(VirtualNodeWrapper):
+  className = 'ParticleSystem'
   def onCreateInstance(self, parent, filepath):
     # create instance of this class
     objectInstance = super(VirtualNodeWrapper, self).onCreateInstance(parent, "ParticleSystem")

@@ -9,6 +9,7 @@ from core.pConfigDefs import *
 # like lights, particle systems etc. (well most except the NodePath)
 # (might be useful for all virtual objects?)
 class VirtualNodeWrapper(BaseWrapper):
+  className = 'Virtual'
   def __init__(self, parent, name, virtualModelpath):
     self.virtualModelpath = virtualModelpath
     self.virtualModel = None

@@ -9,6 +9,7 @@ from core.pSoundManager import soundManager
 DEBUG = False
 
 class SoundNodeWrapper(VirtualNodeWrapper):
+  className = '3dSound'
   def onCreateInstance(self, parent, filepath):
     # create instance of this class
     if filepath is not None:

@@ -16,16 +16,19 @@ RIGHT_OR_DOWN=20
 LEFT_OR_UP=21
 
 class DirectSidebar(DirectFrame):
-  def __init__(self,
-               parent=None,
-               frameSize=(1, 1),
-               dragbarSize=0.05,
-               align=ALIGN_LEFT|ALIGN_TOP,
-               orientation=HORIZONTAL,
-               opendir=RIGHT_OR_DOWN,
-               pos=Vec3(0,0,0),
-               text='',
-               toggleFunc=None):
+  def __init__(
+        self,
+        parent=None,
+        frameSize=(1, 1),
+        dragbarSize=0.05,
+        align=ALIGN_LEFT|ALIGN_TOP,
+        orientation=HORIZONTAL,
+        opendir=RIGHT_OR_DOWN,
+        pos=Vec3(0,0,0),
+        text='',
+        toggleFunc=None,
+        frameColor=(1,1,1,1),
+      ):
     if parent is None:
       parent=aspect2d
     self.dragbarSize=dragbarSize
@@ -38,23 +41,32 @@ class DirectSidebar(DirectFrame):
     
     self.collapsed=False
     
-    DirectFrame.__init__(self, parent=parent,
-                         frameSize=(0,frameSize[0],0,frameSize[1]),
-                         frameColor=(1,1,1,1), )
+    DirectFrame.__init__(
+        self, parent=parent,
+        frameSize=(0,frameSize[0],0,frameSize[1]),
+        frameColor=frameColor,
+        suppressMouse=1,
+      )
     self.initialiseoptions(DirectSidebar)
-    self.collapseButton = DirectButton(parent=parent, 
-                                       borderWidth=(0, 0), relief=DGG.FLAT,
-                                       command=self.toggleCollapsed,
-                                       )
-    self.label = DirectLabel(parent=self.collapseButton,
-                             scale=0.05,
-                             text=text,
-                             text_align=TextNode.ACenter
-                             )
+    self.resetFrameSize()
+    
+    self.collapseButton = DirectButton(
+        parent=parent, 
+        borderWidth=(0, 0),
+        relief=DGG.FLAT,
+        command=self.toggleCollapsed,
+      )
+    self.label = DirectLabel(
+        parent=self.collapseButton,
+        scale=0.04,
+        text=text,
+        text_align=TextNode.ACenter,
+        frameColor=(0,0,0,0)
+      )
     if self.orientation == HORIZONTAL:
       self.label.setPos(Vec3(frameSize[0]/2.,0,0.015))
     if self.orientation == VERTICAL:
-      self.label.setPos(Vec3(0.04,0,frameSize[1]/2.))
+      self.label.setPos(Vec3(0.035,0,frameSize[1]/2.))
       self.label.setR(-90)
     
     self.accept('window-event', self.update)

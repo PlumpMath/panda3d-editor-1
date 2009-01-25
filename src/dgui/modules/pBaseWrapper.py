@@ -11,6 +11,7 @@ from dgui.filebrowser import FG
 
 from dgui.directWindow.src.directWindow import DirectWindow
 from dgui.directSidebar import *
+from dgui.pScenegraphBrowser import *
 from core.pModelIdManager import modelIdManager
 from core.pConfigDefs import *
 from core.modules.pBaseWrapper import TransparencyEnum, AntialiasEnum
@@ -56,6 +57,7 @@ class BaseWrapper(DirectObject):
     self.mutableParameters = self.object.mutableParameters
     self.mutableParametersSorting = [
       'name',
+      'parent',
       'position',
       'rotation',
       'scale',
@@ -93,10 +95,12 @@ class BaseWrapper(DirectObject):
         if paramName not in mutableParameterSorting:
           mutableParameterSorting.append(paramName)
       
-      editWindowFrame = DirectFrame()
+      editWindowFrame = DirectFrame(
+          suppressMouse=1,
+        )
       self.parameterEntries = dict()
-      yPos = -0.02
-      xPos = 0.47
+      yPos = 0 #-0.02
+      xPos = 0.34
       for paramName in mutableParameterSorting:
         if paramName in self.mutableParameters.keys():
           # --- TITLE ---
@@ -104,13 +108,16 @@ class BaseWrapper(DirectObject):
               text = paramName,
               parent = editWindowFrame,
               scale=.04,
-              pos = (0.1, 0, yPos),
-              text_align = TextNode.ALeft
-          )
+              pos = (0.07, 0, yPos),
+              text_align = TextNode.ALeft,
+              frameColor = (0,0,0,0),
+              text_fg = (1,1,1,1)
+            )
           #yPos -= 0.05
           
           # --- ELEMENTS ---
           paramType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[paramName]
+          
           if paramType  in [str, float, int, Vec4, Vec3, Vec2, Point4, Point3, Point2]:
             paramEntry = DirectEntry(
                 #text = "",
@@ -131,17 +138,73 @@ class BaseWrapper(DirectObject):
                 #text_fg=(.8,.8,.8,1),
                 #fg=(0,0,0,0),
                 #frameColor=(0,0,0,0) # this is the background
-                )
+              )
             yPos -= 0.06
+          
           elif paramType == bool:
             paramEntry = DirectCheckButton(
                 scale=.04,
-                pos = (xPos+0.05, 0, yPos),
+                pos = (xPos+0.04, 0, yPos+0.01),
                 parent = editWindowFrame,
                 command=self.setEntryCommand,
                 extraArgs=[paramName],
-                )
+              )
             yPos -= 0.06
+          
+          elif paramType.__name__ == "TreeNode":
+            print "I: BaseWrapper.createEditWindow: is TreeNode"
+            w = 8.3 # width of the entry field
+            paramEntry = DirectEntry(
+                scale=.04,
+                pos = (xPos, 0, yPos),
+                parent = editWindowFrame,
+                #command=self.setEntryCommand,
+                #extraArgs=[paramName],
+                initialText="",
+                numLines = 1,
+                focus=0,
+                width=w,
+                #focusOutCommand=self.setEntryFocusOut,
+                #focusOutExtraArgs=[paramName],
+                text_align = TextNode.ALeft,
+                frameSize=(-.3,w+.3,-.3,0.9),
+                state = DGG.DISABLED,
+              )
+            def setParentCallback(newParent, setFunc, SGB):
+              print "I: BaseWrapper.createEditWindow.setParentCallback:", setFunc, newParent
+              setFunc(newParent)
+              SGB.destroy()
+              messenger.send(EVENT_SCENEGRAPH_REFRESH)
+              #entry.set(filepath)
+              # call the commandfunc, to store the value
+              #entry.commandFunc(None)
+              # the path is modified internally, reloading the values fixes the entry
+              #self.updateAllEntires()
+            def setParent(setFunc):
+              print "I: BaseWrapper.createEditWindow.setParent:", setFunc
+              #setParentCallback(entry, None)
+              SGB = SceneGraphBrowser(
+                parent=None, #self.scenegraphBrowserWindow, # where to attach SceneGraphBrowser frame
+                treeWrapperRoot=self.editorInstance.editorInstance.treeParent, # display children under this root node
+                includeTag=ENABLE_SCENEGRAPHBROWSER_MODEL_TAG,
+                button1func=setParentCallback,
+                pos=(0,0,-1),
+                frameSize=(1,1.5)
+              )
+              SGB.button1extraArgs=[setFunc, SGB]
+              #FG.openFileBrowser()
+              #FG.accept('selectionMade', setPathCallback, [entry])
+            button = DirectButton(
+                scale=.04,
+                pos = (xPos+0.42, 0, yPos+0.005),
+                parent = editWindowFrame,
+                command = setParent,
+                extraArgs = [setFunc],
+                text = "reparent",
+              )
+            #paramEntry = [entry, button] # we dont need the button later on
+            yPos -= 0.06
+          
           elif paramType.__name__ == "Enum":
             items = paramType.keys()
             # select the default item 0, this must be done because it
@@ -158,8 +221,10 @@ class BaseWrapper(DirectObject):
                 extraArgs=[paramName],
                 items=items,
                 initialitem=initialitem,
-                highlightColor=(0.65,0.65,0.65,1),)
+                highlightColor=(0.65,0.65,0.65,1),
+              )
             yPos -= 0.06
+          
           elif paramType.__name__ == "Bitmask":
             paramEntry = dict()
             i = 0
@@ -177,16 +242,20 @@ class BaseWrapper(DirectObject):
               entry.setPos(Vec3(xPos+0.02 - entry.getBounds()[0] * .04, 0, yPos))
               yPos -= 0.06
             items = paramType.keys()
+          
           elif paramType.__name__ == "Trigger":
             button = DirectButton(
                 scale=.04,
-                pos = (xPos+0.55, 0, yPos),
+                pos = (xPos+0.25, 0, yPos),
                 parent = editWindowFrame,
                 command=self.setEntry,
                 extraArgs=[paramName],
-                text=paramName,)
+                text=paramName,
+              )
             yPos -= 0.06
+          
           elif paramType.__name__ == "Filepath":
+            w = 9.8 # width of the entry field
             paramEntry = DirectEntry(
                 scale=.04,
                 pos = (xPos, 0, yPos),
@@ -196,11 +265,12 @@ class BaseWrapper(DirectObject):
                 initialText="",
                 numLines = 1,
                 focus=0,
-                width=12,
+                width=9.8,
                 focusOutCommand=self.setEntryFocusOut,
                 focusOutExtraArgs=[paramName],
                 text_align = TextNode.ALeft,
-                frameSize=(-.3,12.3,-.3,0.9),)
+                frameSize=(-.3,w+0.3,-.3,0.9),
+              )
             
             def setPathCallback(entry, filepath):
               entry.set(filepath)
@@ -213,13 +283,15 @@ class BaseWrapper(DirectObject):
               FG.accept('selectionMade', setPathCallback, [entry])
             button = DirectButton(
                 scale=.04,
-                pos = (xPos+0.55, 0, yPos),
+                pos = (xPos+0.45, 0, yPos),
                 parent = editWindowFrame,
                 command=setPath,
                 extraArgs=[paramEntry],
-                text="load",)
-#            paramEntry = [entry, button]
+                text="load",
+              )
+#            paramEntry = [entry, button] # we dont need the button later on
             yPos -= 0.06
+          
           else:
             if DEBUG:
               print "W: dgui.BaseWrapper.createEditWindow: unknown entry type"
@@ -238,17 +310,62 @@ class BaseWrapper(DirectObject):
           paramEntry = None
         self.parameterEntries[paramName] = paramEntry
       
-      #ySize = -yPos #len(self.mutableParameters)*.11
       title='editWindow-%s' % str(self.object.getName())
-      self.buttonsWindow = DirectSidebar(
-        frameSize=(1.1,-yPos+0.04),
-        align=ALIGN_RIGHT|ALIGN_BOTTOM, opendir=LEFT_OR_UP, orientation=VERTICAL,
-        text=title,
-        toggleFunc=self.editorInstance.setObjectEditwindowToggled,)
-      self.buttonsWindow.toggleCollapsed(self.editorInstance.getObjectEditwindowToggled())
+      maxHeight = 0.95
+      if -yPos <= maxHeight:
+        # dont use a scrolled frame
+        self.buttonsWindow = DirectSidebar(
+            frameSize=(0.9,-yPos+0.04),
+            align=ALIGN_RIGHT|ALIGN_BOTTOM,
+            opendir=LEFT_OR_UP,
+            orientation=VERTICAL,
+            text=title,
+            toggleFunc=self.editorInstance.setObjectEditwindowToggled,
+            frameColor=(0,0,0,.8),
+            pos=(0,0,0.05),
+          )
+        editWindowFrame.reparentTo(self.buttonsWindow)
+        editWindowFrame.setZ(-yPos-0.02)
+      else:
+        # use a scrolled frame
+        self.buttonsWindow = DirectSidebar(
+            frameSize=(0.9,maxHeight),
+            align=ALIGN_RIGHT|ALIGN_BOTTOM,
+            opendir=LEFT_OR_UP,
+            orientation=VERTICAL,
+            text=title,
+            toggleFunc=self.editorInstance.setObjectEditwindowToggled,
+            frameColor=(0,0,0,.8),
+            pos=(0,0,0.05),
+          )
+        # we need a scrolled frame, it's too large othervise
+        itemScale = 0.03
+        
+        scrolledFrame = DirectScrolledFrame(
+          parent=self.buttonsWindow,
+          pos=(0,0,0),
+          relief=DGG.GROOVE,
+          state=DGG.NORMAL, # to create a mouse watcher region
+          manageScrollBars=0,
+          enableEdit=0,
+          #suppressMouse=1,
+          sortOrder=1000,
+          frameColor=(0,0,0,0),
+          borderWidth=(0.005,0.005),
+          frameSize=(0,0.9,0,maxHeight),
+          #frameSize =(0, self.frameWidth, 0, self.frameHeight),
+          canvasSize=(0,0.8,0,-yPos+0.04),
+          verticalScroll_frameSize   = [0,itemScale,0,1],
+          horizontalScroll_frameSize = [0,1,0,itemScale],
+        )
+        editWindowFrame.reparentTo(scrolledFrame.getCanvas())
+        editWindowFrame.setZ(-yPos-0.02)
       
-      editWindowFrame.reparentTo(self.buttonsWindow)
-      editWindowFrame.setZ(-yPos-0.02)
+      self.buttonsWindow.toggleCollapsed(self.editorInstance.getObjectEditwindowToggled())
+      # try to prevent the mouse going through the frame
+      #editWindowFrame['frameSize'] = (0,1.1,0,yPos+0.04)
+      #editWindowFrame['suppressMouse'] = 1
+      #editWindowFrame.resetFrameSize()
       
       self.updateAllEntires()
   
@@ -269,6 +386,8 @@ class BaseWrapper(DirectObject):
     self.buttonsWindow = None
   
   def setEntry(self, paramName, *args):
+    ''' when a gui element is changed, call the update function of the object
+    with the paramValue '''
     if self.buttonsWindow:
       if self.parameterEntries.has_key(paramName):
         if len(args) > 0:
@@ -278,6 +397,10 @@ class BaseWrapper(DirectObject):
         try:
           if paramType in [str, float, int]:
             paramValue = paramType(paramValue)
+          elif paramType.__name__ == "TreeNode":
+            print "I: BaseWrapper.setEntry: is TreeNode"
+            #paramValue = str(paramValue.className+paramValue.getName())
+            pass
           elif paramType.__name__ == "Enum":
             pass # doesnt need conversion
           elif paramType.__name__ == "Filename":
@@ -315,6 +438,8 @@ class BaseWrapper(DirectObject):
     self.setEntry(paramName, paramValue, *args)
   
   def updateAllEntires(self):
+    ''' update the gui elements with the content of the object getFunc result
+    '''
     if self.buttonsWindow:
       for paramName in self.parameterEntries:
         if paramName in self.mutableParameters:
@@ -327,6 +452,12 @@ class BaseWrapper(DirectObject):
               if paramType == bool:
                 paramEntry["indicatorValue"] = currentValue
                 paramEntry.setIndicatorValue()
+              elif paramType.__name__ == "TreeNode":
+                print "I: BaseWrapper.updateAllEntires: is TreeNode"
+                #text = 
+                #print dir(paramEntry)
+                #paramEntry['text'] = text
+                paramEntry.enterText(str(currentValue))
               elif paramType.__name__ == "Enum":
                 entryValue = paramEntry.get()
                 if entryValue != currentValue:

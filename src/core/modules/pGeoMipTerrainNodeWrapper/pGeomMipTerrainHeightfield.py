@@ -71,6 +71,7 @@ COMPILED_BACKGROUND_SHADER = Shader.make(BACKGROUND_SHADER)
 class GeoMipTerrainHeightfield(TreeNode):
   ''' this node handles the height texture of the geomipterrain
   '''
+  className = 'Heightfield'
   def __init__(self, parent=None, geoMipTerrain=None, name='heightfield'):
     self.geoMipTerrain = geoMipTerrain
     self.heightfield = ''
@@ -88,6 +89,9 @@ class GeoMipTerrainHeightfield(TreeNode):
       self.setRenderMode,
       None,
       None]
+    
+    self.possibleChildren = []
+    self.possibleFunctions = ['save']
   
   def startEdit(self):
     if not TreeNode.isEditmodeStarted(self):
@@ -137,10 +141,6 @@ class GeoMipTerrainHeightfield(TreeNode):
       # enable the 3d window object selection
       messenger.send(EVENT_SCENEPICKER_MODELSELECTION_ENABLE)
       
-      # saving the texture
-      print "saving the heightfield to", self.heightfield
-      self.geoMipTerrain.terrain.heightfield().write(Filename(self.heightfield))
-      
       # stop the shader and regenerate the terrain
       if self.renderMode == 0:
         pass
@@ -153,6 +153,11 @@ class GeoMipTerrainHeightfield(TreeNode):
       texturePainter.disableEditor()
       
       TreeNode.stopEdit(self)
+  
+  def save(self):
+    # saving the texture
+    print "saving the heightfield to", self.heightfield
+    self.geoMipTerrain.terrain.heightfield().write(Filename(self.heightfield))
   
   def getHeightfield(self):
     return self.heightfield

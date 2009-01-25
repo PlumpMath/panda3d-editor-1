@@ -4,7 +4,7 @@ Original version written by pro-rsoft
 with permission to use it in the editor
 """
 
-from pandac.PandaModules import PNMImage, GeoMipTerrain, NodePath, Texture, TextureStage
+from pandac.PandaModules import PNMImage, GeoMipTerrain, NodePath, Texture, TextureStage, TexturePool
 from pShader import ShaderWriter
 
 class VTextureMapMode:
@@ -59,6 +59,7 @@ class ShaderNode:
     else:
       if not self.loadedMaps.has_key(texmap):
         self.loadedMaps[texmap] = loader.loadTexture(texmap)
+        self.loadedMaps[texmap].reload()
       self.TextureMap = self.loadedMaps[texmap]
   
   def SetLightMap(self, texmap):
@@ -69,6 +70,7 @@ class ShaderNode:
     else:
       if not self.loadedMaps.has_key(texmap):
         self.loadedMaps[texmap] = loader.loadTexture(texmap)
+        self.loadedMaps[texmap].reload()
       self.LightMap = self.loadedMaps[texmap]
   
   def SetTextureLightMap(self, texmap):
@@ -81,6 +83,7 @@ class ShaderNode:
     else:
       if not self.loadedMaps.has_key(texmap):
         self.loadedMaps[texmap] = loader.loadTexture(texmap)
+        self.loadedMaps[texmap].reload()
       self.TextureLightMap = self.loadedMaps[texmap]
   
   def AddAlphaMap(self, detailtex, alphamap, alphamapchannel = "r", texscale = (1.0, 1.0)):
@@ -97,8 +100,11 @@ class ShaderNode:
       texscale = None
     if not self.loadedMaps.has_key(alphamap):
       self.loadedMaps[alphamap] = loader.loadTexture(alphamap)
+      self.loadedMaps[alphamap].reload()
     alphamap = self.loadedMaps[alphamap]
-    self.AlphaMaps[(alphamap, alphamapchannel)] = (loader.loadTexture(detailtex), texscale)
+    detailTex = loader.loadTexture(detailtex)
+    detailTex.reload()
+    self.AlphaMaps[(alphamap, alphamapchannel)] = (detailTex, texscale)
   
   def Initialize(self):
     """Initializes the terrain (generates it and calls Texture()) and
@@ -209,6 +215,12 @@ class ShaderNode:
     self.Root.setShader(Cg.Make())
   
   def destroy(self):
+    print "I: ShaderNode.destroy"
+    #for tex, x in TextureMapping:
+    #  TexturePool.releaseTexture(tex)
+    for [alphamap, alphamapchannel], [detailTex, texscale] in self.AlphaMaps.items():
+      TexturePool.releaseTexture(alphamap)
+      TexturePool.releaseTexture(detailTex)
     self.Root.clearShader()
     self.Root.clearTexture()
 

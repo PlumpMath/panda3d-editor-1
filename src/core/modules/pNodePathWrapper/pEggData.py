@@ -3,9 +3,12 @@ from pandac.PandaModules import *
 from core.modules.pNodePathWrapper.pEggBase import *
 
 class ObjectEggData(ObjectEggBase):
+  className = 'EggData'
   def __init__(self, parent, modelWrapper, eggData):
     ObjectEggBase.__init__(self, parent, modelWrapper, 'EggData')
     self.eggData = eggData
+    
+    self.possibleFunctions = ['save']
   
   def save(self, filepath):
     print "I: ObjectEggData.save"
