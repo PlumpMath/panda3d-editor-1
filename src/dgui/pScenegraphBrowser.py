@@ -46,7 +46,7 @@ class TreeGraphBrowser(DirectObject):
   
   def highlight(self, treeNode):
     def parentOpen(directTreeNode):
-      ''' open the parent nodes of the highlighted node
+      ''' open the parent nodes of the highlighted node, recursively
       '''
       if directTreeNode.parent:
         parentOpen(directTreeNode.parent)

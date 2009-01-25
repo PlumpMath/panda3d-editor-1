@@ -43,9 +43,8 @@ def addTitle(text):
     return OnscreenText(text=text, style=1, fg=(1,1,1,1),
                   pos=(1.3,-0.95), align=TextNode.ARight, scale = .07)
 
-class EditorApp(DirectObject, FSM):
+class EditorApp(DirectObject):
   def __init__( self, editorInstance ):
-    FSM.__init__(self,'EditorApp')
     self.enabled = False
     self.editorInstance = editorInstance
     self.objectEditorVisible = False
@@ -53,49 +52,11 @@ class EditorApp(DirectObject, FSM):
     
     self.texturePainterGui = TexturePainterGui(self)
     self.menuBarGui = MenuBarGui(self)
-    
-    self.request('WorldEditMode')
   
-  def toggle(self, state=None):
-    ''' toggle between world and object edit mode
-    '''
-    if state is None:
-      if self.editorInstance.state == 'WorldEditMode':
-        state = 'ObjectEditMode'
-      elif self.editorInstance.state == 'ObjectEditMode':
-        state = 'WorldEditMode'
-      else:
-        state = 'WorldEditMode'
-    print "I: dgui.EditorApp.toggle: toggling to", state
-    
-    self.editorInstance.toggle(state)
-    self.request(self.editorInstance.state)
-    
-    self.accept(EDITOR_DGUI_TOGGLE_BUTTON, self.toggle)
-    self.accept(EDITOR_DGUI_DISABLE_BUTTON, self.disable)
+  def __del__(self):
+    print "I: EditorApp.__del__: whoooot it works !!!!!!!!!!!!!!!!!!!!!!!!!!!"
   
-  def disable(self, state=None):
-    if state is None:
-      if self.editorInstance.state == 'DisabledMode' or self.editorInstance.state == 'PlayMode':
-        state = 'WorldEditMode'
-      else:
-        state = 'PlayMode'
-    print "I: dgui.EditorApp.disable: toggling to", state
-    
-    self.editorInstance.toggle(state)
-    self.request(self.editorInstance.state)
-  
-  def enterDisabledMode(self):
-    pass
-  def exitDisabledMode(self):
-    pass
-  
-  def enterPlayMode(self):
-    cameraController.disable()
-  def exitPlayMode(self):
-    pass
-  
-  def enterWorldEditMode(self):
+  def enable(self):
     cameraController.enable()
     self.menuBarGui.enable()
     
@@ -140,8 +101,25 @@ class EditorApp(DirectObject, FSM):
     self.lastSelectedObject = None
     
     self.accept(EVENT_MODELCONTROLLER_SELECTED_OBJECT_CHANGE, self.modelSelected)
+    
+    self.editorInstance.toggleEditmode(True)
   
-  def exitWorldEditMode(self):
+  def disable(self, state=None):
+    '''if state is None:
+      if self.editorInstance.state == 'DisabledMode' or self.editorInstance.state == 'PlayMode':
+        state = 'WorldEditMode'
+      else:
+        state = 'PlayMode'
+    print "I: dgui.EditorApp.disable: toggling to", state'''
+    
+    #self.editorInstance.toggle(state)
+    #self.request(self.editorInstance.state)
+    
+    self.editorInstance.toggleEditmode(False)
+  
+  def destroy(self):
+    self.disable()
+    
     # hide the text
     for text in self.helpText:
       text.detachNode()
@@ -157,11 +135,8 @@ class EditorApp(DirectObject, FSM):
       self.editorObjectGuiInstance.stopEdit()
     
     messenger.send( EDITOR_MODE_DISABLED )
-  
-  def enterObjectEditMode(self):
-    cameraController.enable()
-  def exitObjectEditMode(self):
-    pass
+    
+    cameraController.disable()
   
   def setObjectEditwindowToggled(self, state):
     ''' saves the state of the object related window, so you dont have to

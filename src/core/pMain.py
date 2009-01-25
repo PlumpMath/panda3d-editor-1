@@ -32,88 +32,131 @@ from core.pTexturePainter import texturePainter
 DEBUG = False
 
 
-class EditorClass(DirectObject, FSM):
-  def __init__(self, parentNodePath):
-    FSM.__init__(self,'EditorClass')
+class EditorClass(DirectObject): #, FSM):
+  def __init__(self, parent=None, gui=None):
+    # First phase: load the configurations.
+    if gui == "dgui":
+      from dgui.pConfig import Config
+    elif gui == "wxgui":
+      from wxgui.pConfig import Config
+    if gui is not None:
+      Config.loadConfig()
     
-    self.accept( 'PlayMode', self.request, ['PlayMode'] )
-    self.accept( 'WorldEditMode', self.request, ['WorldEditMode'] )
-    self.accept( 'ObjectEditMode', self.request, ['ObjectEditMode'] )
+    # Second phase: initialize the window manager (which starts ShowBase)
+    from core.pWindow import WindowManager
+    if gui == "dgui":
+      WindowManager.startBase(showDefaultWindow = True, allowMultipleWindows = False)
+    elif gui == "wxgui":
+      WindowManager.startBase(showDefaultWindow = False, allowMultipleWindows = True)
+    else:
+      from direct.directbase import DirectStart
     
-    self.request('DisabledMode')
+    if parent is None:
+      parent = render
     
-    #self.treeParent = TreeParentNode(parentNodePath)
+    self.editorGui = False
+    self.guiType = gui
+    
+    self.editModeEnabled = False
+    
+    soundManager.enable()
+    
     self.treeParent = SceneNodeWrapper.onCreateInstance(None, 'default.egg')
   
-  def enterDisabledMode(self):
-    pass
-  def exitDisabledMode(self):
-    self.treeParent.setEditmodeEnabled([SceneNodeWrapper])
-  
-  def enterPlayMode(self):
-    soundManager.enable()
-    # disable edit mode on all nodes
-    self.treeParent.setEditmodeDisabled([SceneNodeWrapper])
-  def exitPlayMode(self):
-    self.treeParent.setEditmodeEnabled([SceneNodeWrapper])
-  
-  def enterWorldEditMode(self):
-    print "I: core.EditorClass.enterWorldEditMode:"
-    soundManager.enable()
-    
-    self.sceneHelperModels = NodePath('editor-helper-models')
-    self.sceneHelperModels.reparentTo(render)
-    self.sceneHelperModels.setLightOff()
-    
-    # the axis model at 0/0/0
-    axis = loader.loadModel( 'zup-axis.egg' )
-    axis.reparentTo( self.sceneHelperModels )
-    
-    scenePicker.toggleEditmode(True)
-    #print "I: core.EditorClass.enterWorldEditMode:", modelModificator.__class__.__name__
-    modelModificator.toggleEditmode(True)
-    
-    WindowManager.getDefaultCamera().node().getLens().setFar(5000)
-    
-    # a grid model
-    gridNp = DirectGrid(parent=self.sceneHelperModels)
-    
-    # refresh the scenegraphbrowser
-    #messenger.send(EVENT_SCENEGRAPH_REFRESH)
-    messenger.send(EVENT_SCENEGRAPH_CHANGE_ROOT, [self.treeParent])
-    
-    messenger.send(EVENT_MODELCONTROLLER_SELECT_OBJECT, [None])
-    messenger.send(EVENT_SCENEGRAPH_REFRESH)
-  
-  def exitWorldEditMode(self):
-    # save the selected model to the texturePainter
-    objectEditor.setEditObject(modelController.getSelectedObject())
-    # drop what we have selected
-    modelController.selectObject(None)
-    # disable the selecting of nodes
-    scenePicker.toggleEditmode(False)
-    modelModificator.toggleEditmode(False)
-  
   def toggle(self, state=None):
+    ''' this function creates instances of the editor
+    this is also the function that a game may use to enable/disable the editor
+    '''
     if state is None:
-      # switch to next mode
-      if self.state == 'DisabledMode':
-        state = 'WorldEditMode'
-      elif self.state == 'PlayMode':
-        state = 'WorldEditMode'
-      elif self.state == 'WorldEditMode':
-        state = 'ObjectEditMode'
-      elif self.state == 'ObjectEditMode':
-        state = 'PlayMode'
-      else:
-        state = 'PlayMode'
-        print "W: EditorClass.toggle: unknown previous mode", self.state, "setting to", state
+      state = not self.editorGui
+    print "I: EditorClass.toggleEditor:", state
     
-    if state in ['DisabledMode', 'PlayMode', 'WorldEditMode', 'ObjectEditMode']:
-      self.request(state)
+    if state:
+      # Fourth phase: load one of the two interface layers.
+      if self.guiType == "dgui":
+        from dgui.pEditorApp import EditorApp
+        self.editorGui = EditorApp(self)
+        self.editorGui.enable()
+      elif self.guiType == "wxgui":
+        # wxGui needs to be opened before the editor, as it opens the window later
+        from wxgui.pEditorApp import EditorApp
+        self.editorGui = EditorApp(self)
     else:
-      self.request('PlayMode')
-      print "W: EditorClass.toggle: unknown requested mode", state, ", setting to", self.state
+      if self.guiType == "dgui":
+        self.editorGui.disable()
+        self.editorGui.destroy()
+        self.editorGui = None
+      elif self.guiType == "wxgui":
+        print "E: EditorClass.toggleEditor: wxGui cannot be closed"
+  
+  def toggleEditmode(self, state=None):
+    ''' this function should be called by the gui, not by a game
+    '''
+    if state is None:
+      state = self.editModeEnabled
+    
+    if state:
+      self.__enableEditor()
+    else:
+      self.__disableEditor()
+  
+  def __enableEditor(self):
+    ''' the gui will call this function and enabled the core editor using it
+    '''
+    if self.guiType is not None:
+      if self.editModeEnabled is False:
+        print "I: core.EditorClass.__enableEditor:"
+        
+        WindowManager.getDefaultCamera().node().getLens().setFar(5000)
+        
+        self.sceneHelperModels = NodePath('editor-helper-models')
+        self.sceneHelperModels.reparentTo(render)
+        self.sceneHelperModels.setLightOff()
+        
+        # the axis model at 0/0/0
+        axis = loader.loadModel( 'zup-axis.egg' )
+        axis.reparentTo( self.sceneHelperModels )
+        
+        scenePicker.toggleEditmode(True)
+        #print "I: core.EditorClass.enterWorldEditMode:", modelModificator.__class__.__name__
+        modelModificator.toggleEditmode(True)
+        
+        # a grid model
+        gridNp = DirectGrid(parent=self.sceneHelperModels)
+        
+        # enable editmode on the object tree
+        self.treeParent.setEditmodeEnabled()
+        
+        # refresh the scenegraphbrowser
+        #messenger.send(EVENT_SCENEGRAPH_REFRESH)
+        messenger.send(EVENT_SCENEGRAPH_CHANGE_ROOT, [self.treeParent])
+        
+        messenger.send(EVENT_MODELCONTROLLER_SELECT_OBJECT, [None])
+        messenger.send(EVENT_SCENEGRAPH_REFRESH)
+        
+        self.editModeEnabled = True
+      else:
+        print "I: core.EditorClass.__enableEditor: editmode already enabled"
+    else:
+      print "I: core.EditorClass.__enableEditor: editmode unavailable if no gui type defined"
+  
+  def __disableEditor(self):
+    ''' the gui will call this function and disable the core editor using it
+    '''
+    if self.editModeEnabled:
+      # disable editmode on the object tree
+      self.treeParent.setEditmodeDisabled()
+      # save the selected model to the texturePainter
+      objectEditor.setEditObject(modelController.getSelectedObject())
+      # drop what we have selected
+      modelController.selectObject(None)
+      # disable the selecting of nodes
+      scenePicker.toggleEditmode(False)
+      modelModificator.toggleEditmode(False)
+      
+      self.editModeEnabled = False
+    else:
+      print "I: core.EditorClass.__disableEditor: editmode already disabled"
   
   def getData(self):
     modelData = ''
@@ -132,25 +175,30 @@ class EditorClass(DirectObject, FSM):
     
     filebase, filetype = os.path.splitext(filepath)
     if filetype == '.egg':
-      print "EditorClass.loadEggModelsFile: NodePath"
+      print "I: EditorClass.loadEggModelsFile: NodePath"
       self.destroyScene()
       self.treeParent = NodePathWrapper.onCreateInstance(None, filepath)
-      if self.getCurrentOrNextState() == 'WorldEditMode':
-        self.treeParent.setEditmodeEnabled([NodePathWrapper])
+      #if self.editModeEnabled:
+      #  self.treeParent.setEditmodeEnabled([NodePathWrapper])
     elif filetype == '.egs':
-      print "EditorClass.loadEggModelsFile: SceneNode"
+      print "I: EditorClass.loadEggModelsFile: SceneNode"
       self.destroyScene()
       self.treeParent = SceneNodeWrapper.onCreateInstance(None, filepath)
-      if self.getCurrentOrNextState() == 'WorldEditMode':
-        self.treeParent.setEditmodeEnabled([SceneNodeWrapper, NodePathWrapper])
+      #if self.editModeEnabled:
+      #  self.treeParent.setEditmodeEnabled([SceneNodeWrapper, NodePathWrapper])
     else:
-      print "EditorClass.loadEggModelsFile: Unknown", filetype
+      print "I: EditorClass.loadEggModelsFile: Unknown", filetype
       return
+    
+    if self.editModeEnabled:
+      self.treeParent.setEditmodeEnabled()
+    else:
+      print "I: EditorClass.loadEggModelsFile: edit mode is disabled"
     
     # refresh the scenegraphbrowser
     messenger.send(EVENT_SCENEGRAPH_CHANGE_ROOT, [self.treeParent])
     
-    if self.getCurrentOrNextState() == 'WorldEditMode':
+    if self.editModeEnabled:
       # select no model -> will select sceneRoot
       modelController.selectObject(None)
   
@@ -199,6 +247,7 @@ class EditorClass(DirectObject, FSM):
     self.treeParent.destroy()
     del self.treeParent
     
+    ''' # check if there are still models in the scene, which have not been deleted
     print "D: core.EditorApp.destroyScene: found obj in modelIdManager"
     for obj in modelIdManager.getAllObjects():
       if type(obj) != NodePath:
@@ -206,6 +255,7 @@ class EditorClass(DirectObject, FSM):
         #if node.nodePath.hasTag(EDITABLE_OBJECT_TAG):
           #node.destroy()
           #del node
+    '''
   
   def newScene(self, filepath):
     ''' create a new scene

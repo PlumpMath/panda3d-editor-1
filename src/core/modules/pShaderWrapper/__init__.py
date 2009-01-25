@@ -168,7 +168,7 @@ class ShaderWrapper(BaseWrapper):
     pass
   
   def setUpdateShader(self, *args):
-    print "I: ShaderWrapper.updateShader:"
+    #print "I: ShaderWrapper.updateShader:"
     if self.shader:
       self.shader.destroy()
       self.shader = None
@@ -180,33 +180,33 @@ class ShaderWrapper(BaseWrapper):
         # read the filepath of this node
         def recGetParent(treeNode):
           parent = treeNode.getParent()
-          print "recGetParent", parent
+          #print "recGetParent", parent
           if parent:
             return recGetParent(parent)
           else:
             return treeNode
         topParent = recGetParent(self)
         self.relativePath = topParent.relativePath
-        print "I: ShaderWrapper.updateShader: updateing relativePath", self.relativePath
+        #print "I: ShaderWrapper.updateShader: updateing relativePath", self.relativePath
       
       if self.tex1Path:
         tex1Path = posixpath.join(self.relativePath, self.tex1Path)
-        print "  - tex1", tex1Path
+        #print "  - tex1", tex1Path
         if self.tex2Path:
           tex2Path = posixpath.join(self.relativePath, self.tex2Path)
-          print "  - tex2", tex2Path, self.tex2Scale
+          #print "  - tex2", tex2Path, self.tex2Scale
           self.shader.AddAlphaMap(tex2Path, tex1Path, alphamapchannel = "r", texscale = self.tex2Scale)
         if self.tex3Path:
           tex3Path = posixpath.join(self.relativePath, self.tex3Path)
-          print "  - tex3", tex3Path, self.tex3Scale
+          #print "  - tex3", tex3Path, self.tex3Scale
           self.shader.AddAlphaMap(tex3Path, tex1Path, alphamapchannel = "g", texscale = self.tex3Scale)
         if self.tex4Path:
           tex4Path = posixpath.join(self.relativePath, self.tex4Path)
-          print "  - tex4", tex4Path, self.tex4Scale
+          #print "  - tex4", tex4Path, self.tex4Scale
           self.shader.AddAlphaMap(tex4Path, tex1Path, alphamapchannel = "b", texscale = self.tex4Scale)
         if self.tex5Path:
           tex5Path = posixpath.join(self.relativePath, self.tex5Path)
-          print "  - tex5", tex5Path, self.tex5Scale
+          #print "  - tex5", tex5Path, self.tex5Scale
           self.shader.AddAlphaMap(tex5Path, tex1Path, alphamapchannel = "a", texscale = self.tex5Scale)
         self.shader.Initialize()
         
@@ -235,16 +235,18 @@ class ShaderWrapper(BaseWrapper):
           self.shader.AlphaMaps[(mixTex, 'a')][0].setWrapV(Texture.WMRepeat)
       #if self.isEditmodeEnabled():
       #  self.startPaint()
+    #print "TESTING"
+    #self.getShaderFilepath()
   
   def loadFromData(self, eggGroup, filepath):
     # read the relative path we load the file from
-    print "I: ShaderWrapper.loadFromData: filepath", filepath
+    #print "I: ShaderWrapper.loadFromData: filepath", filepath
     self.relativePath = filepath
     BaseWrapper.loadFromData(self, eggGroup, filepath)
     self.setUpdateShader()
   
   def startEdit(self):
-    print "I: ShaderWrapper.startEdit:", self.isEditmodeEnabled()
+    #print "I: ShaderWrapper.startEdit:", self.isEditmodeEnabled()
     # the object is selected to be edited
     # creates a directFrame to edit this object
     if self.isEditmodeEnabled():

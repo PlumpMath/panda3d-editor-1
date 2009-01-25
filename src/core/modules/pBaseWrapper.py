@@ -32,6 +32,25 @@ AntialiasEnum = Enum(
   MAuto = AntialiasAttrib.MAuto,
 )
 
+def getShaderAttrib(nodepath):
+  if hasattr(ShaderAttrib, 'getClassSlot'): # 1.6 uses getClassSlot ??? not checked
+    shaderAttrib = nodepath.getAttrib(ShaderAttrib.getClassSlot())
+  elif hasattr(ShaderAttrib, 'getClassType'): # 1.5.4 uses getClassType ??? not checked
+    shaderAttrib = nodepath.getAttrib(ShaderAttrib.getClassType())
+  hasShader = None
+  shaderPriority = None
+  shaderAuto = None
+  shaderFilename = None
+  if shaderAttrib:
+    hasShader = shaderAttrib.hasShader()
+    shaderPriority = shaderAttrib.getShaderPriority()
+    shaderAuto = shaderAttrib.autoShader()
+    shader = shaderAttrib.getShader()
+    if shader:
+      shaderFilename = shader.getFilename()
+  return hasShader, shaderPriority, shaderAuto, shaderFilename
+
+
 class BaseWrapper(TreeNode):
   ''' a special version of a treenode
   features:
@@ -110,6 +129,75 @@ class BaseWrapper(TreeNode):
       self.nodePath.setScale,
       None,
       None ]
+    
+    self.shaderOffPriority = None
+    self.mutableParameters['shaderOff'] = [ int,
+      self.getShaderOff,
+      self.setShaderOff,
+      None,
+      self.clearShader ]
+    self.lightOffPriority = None
+    self.mutableParameters['lightOff'] = [ int,
+      self.getLightOff,
+      self.setLightOff,
+      None,
+      self.clearLightOff ]
+    self.inheritTexture = None
+    self.mutableParameters['inheritTexOff'] = [ int,
+      self.getStopInheritTexture,
+      self.setStopInheritTexture,
+      None,
+      self.clearStopInheritTexture ]
+    self.colorOffPriority = None
+    self.mutableParameters['colorOff'] = [ int,
+      self.getColorOff,
+      self.setColorOff,
+      None,
+      self.clearColorOff ]
+  
+  def setShaderOff(self, priority):
+    if priority != None:
+      self.nodePath.setShaderOff(priority)
+  def getShaderOff(self):
+    hasShader, shaderPriority, shaderAuto, shaderFilename = getShaderAttrib(self.nodePath)
+    if hasShader and shaderAuto is 0 and shaderFilename is None:
+      return shaderPriority
+    return None
+  def clearShader(self):
+    self.nodePath.clearShader()
+  
+  def setLightOff(self, priority):
+    self.lightOffPriority = priority
+    if priority != None:
+      self.nodePath.setLightOff(priority)
+  def getLightOff(self):
+    return self.lightOffPriority
+  def clearLightOff(self):
+    self.lightOffPriority = None
+    self.nodePath.clearLight()
+  
+  def setColorOff(self, priority):
+    self.colorOffPriority = priority
+    if priority != None:
+      self.nodePath.setColorOff(priority)
+  def getColorOff(self):
+    return self.colorOffPriority
+  def clearColorOff(self):
+    self.colorOffPriority = None
+    self.nodePath.clearColor()
+  
+  def setStopInheritTexture(self, priority):
+    self.inheritTexture = priority
+    if priority != None:
+      self.nodePath.setTextureOff() #self.inheritTexture)
+  def getStopInheritTexture(self):
+    return self.inheritTexture
+  def clearStopInheritTexture(self):
+    self.inheritTexture = None
+    self.nodePath.clearTexture()
+  
+  
+  
   
   def __del__(self):
     print "I: BaseWrapper.__del__:", self.__class__.__name__
@@ -154,14 +242,18 @@ class BaseWrapper(TreeNode):
     return instance
   
   def reparentTo(self, parent):
+    # save the old parent in case the nodepath.reparenting fails
+    #oldParent = self.getParent()
+    
+    # reparent
     TreeNode.reparentTo(self, parent)
     
     # reparent this nodePath
     if parent is None:
       parentNodepath = render
     else:
-      parentNodepath = parent.nodePath
-    self.nodePath.reparentTo(parentNodepath)
+      parentNodepath = self.getParent().nodePath
+    self.nodePath.wrtReparentTo(parentNodepath)
   
   ''' --- external reference saving / loading ---
   these are used by if a wrapper uses a external file

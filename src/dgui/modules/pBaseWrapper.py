@@ -152,7 +152,7 @@ class BaseWrapper(DirectObject):
             yPos -= 0.06
           
           elif paramType.__name__ == "TreeNode":
-            print "I: BaseWrapper.createEditWindow: is TreeNode"
+            #print "I: BaseWrapper.createEditWindow: is TreeNode"
             w = 8.3 # width of the entry field
             paramEntry = DirectEntry(
                 scale=.04,
@@ -171,17 +171,12 @@ class BaseWrapper(DirectObject):
                 state = DGG.DISABLED,
               )
             def setParentCallback(newParent, setFunc, SGB):
-              print "I: BaseWrapper.createEditWindow.setParentCallback:", setFunc, newParent
+              #print "I: BaseWrapper.createEditWindow.setParentCallback:", setFunc, newParent
               setFunc(newParent)
               SGB.destroy()
               messenger.send(EVENT_SCENEGRAPH_REFRESH)
-              #entry.set(filepath)
-              # call the commandfunc, to store the value
-              #entry.commandFunc(None)
-              # the path is modified internally, reloading the values fixes the entry
-              #self.updateAllEntires()
-            def setParent(setFunc):
-              print "I: BaseWrapper.createEditWindow.setParent:", setFunc
+            def setParent(setFunc, getFunc):
+              #print "I: BaseWrapper.createEditWindow.setParent:", setFunc
               #setParentCallback(entry, None)
               SGB = SceneGraphBrowser(
                 parent=None, #self.scenegraphBrowserWindow, # where to attach SceneGraphBrowser frame
@@ -191,6 +186,10 @@ class BaseWrapper(DirectObject):
                 pos=(0,0,-1),
                 frameSize=(1,1.5)
               )
+              currentParent = getFunc()
+              #print "  - highlight:", currentParent, getFunc
+              SGB.highlight(currentParent)
+              SGB.update()
               SGB.button1extraArgs=[setFunc, SGB]
               #FG.openFileBrowser()
               #FG.accept('selectionMade', setPathCallback, [entry])
@@ -199,7 +198,7 @@ class BaseWrapper(DirectObject):
                 pos = (xPos+0.42, 0, yPos+0.005),
                 parent = editWindowFrame,
                 command = setParent,
-                extraArgs = [setFunc],
+                extraArgs = [setFunc, getFunc],
                 text = "reparent",
               )
             #paramEntry = [entry, button] # we dont need the button later on
@@ -395,10 +394,19 @@ class BaseWrapper(DirectObject):
         paramType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[paramName]
         #self.object.setParameters( {paramName: paramValue} )
         try:
-          if paramType in [str, float, int]:
-            paramValue = paramType(paramValue)
+          if paramType in [str, float, int] and clearFunc:
+            if paramValue.strip() == '':
+              paramValue = None
+            else:
+              paramValue = paramType(paramValue)
+            '''try:
+              
+            except:
+              if clearFunc:
+                # integer values defined as None with a clearfunc, will be cleared
+                paramValue = None'''
           elif paramType.__name__ == "TreeNode":
-            print "I: BaseWrapper.setEntry: is TreeNode"
+            #print "I: BaseWrapper.setEntry: is TreeNode"
             #paramValue = str(paramValue.className+paramValue.getName())
             pass
           elif paramType.__name__ == "Enum":
@@ -441,10 +449,10 @@ class BaseWrapper(DirectObject):
     ''' update the gui elements with the content of the object getFunc result
     '''
     if self.buttonsWindow:
+      objectParameters = self.object.getParameters()
       for paramName in self.parameterEntries:
         if paramName in self.mutableParameters:
           [paramType, getFunc, setFunc, hasFunc, clearFunc] = self.mutableParameters[paramName]
-          objectParameters = self.object.getParameters()
           if paramName in objectParameters:
             if self.parameterEntries[paramName]:
               currentValue = objectParameters[paramName]
@@ -453,10 +461,6 @@ class BaseWrapper(DirectObject):
                 paramEntry["indicatorValue"] = currentValue
                 paramEntry.setIndicatorValue()
               elif paramType.__name__ == "TreeNode":
-                print "I: BaseWrapper.updateAllEntires: is TreeNode"
-                #text = 
-                #print dir(paramEntry)
-                #paramEntry['text'] = text
                 paramEntry.enterText(str(currentValue))
               elif paramType.__name__ == "Enum":
                 entryValue = paramEntry.get()
@@ -496,6 +500,5 @@ class BaseWrapper(DirectObject):
           # when the name changed, update the scenegraph
           if paramName == 'name':
             messenger.send(EVENT_SCENEGRAPH_REFRESH)
-
 
 

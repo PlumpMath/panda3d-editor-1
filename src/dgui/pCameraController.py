@@ -30,7 +30,6 @@ class CameraController(DirectObject, FSM):
                         'd': Vec3(moveSpeed,0,0),
                         'e': Vec3(0,0,moveSpeed),
                         'q': Vec3(0,0,-moveSpeed)}
-    #taskMgr.remove('movePivotTask')
     taskMgr.add(self.movePivotTask, 'movePivotTask')
     
     self.cameraHprResets = {'shift-1': Vec3(90,0,0),
@@ -40,23 +39,55 @@ class CameraController(DirectObject, FSM):
                             'shift-5': Vec3(0,0,0),
                             'shift-6': Vec3(0,90,0),}
     
+    self.backupSettings()
+    
     self.request('Disabled')
     
     self.accept('shift-0', self.toggleLens)
+  
+  def __del__(self):
+    print "I: CameraController.__del__:"
+    print "  - prevMouseEnabled", self.prevMouseEnabled
+    print "  - prevCamParent", self.prevCamParent
+    base.camera.reparentTo(self.prevCamParent)
+    if self.prevMouseEnabled:
+      base.enableMouse()
   
   def enable( self ):
     self.request('Default')
   def disable( self ):
     self.request('Disabled')
   
+  def backupSettings(self):
+    # TODO: BACKUP AND RESTORE THE LENS SETTINGS (NEAR/FAR/FOV)
+    # backup settings
+    self.prevCamParent = base.camera.getParent()
+    self.prevCameraPos = base.camera.getPos()
+    if base.mouse2cam.getParent() == base.mouseInterface:
+      self.prevMouseEnabled = True
+    else:
+      self.prevMouseEnabled = False
+    base.disableMouse()
+  
+  def restoreSettings(self):
+    # doesnt work
+    # base.camera.reparentTo(self.prevCamParent)
+    # this works
+    base.camera = WindowManager.getDefaultCamera()
+    base.camera.reparentTo(self.prevCamParent)
+    base.camera.setPos(self.prevCameraPos)
+    if self.prevMouseEnabled:
+      base.enableMouse()
+  
   def enterDisabled( self ):
-    try:
-      WindowManager.getDefaultCamera().reparentTo( render )
-    except:
-      pass
+    # restore settings
+    self.restoreSettings()
     self.posPivotModel.hide()
     self.ignoreAll()
   def exitDisabled( self ):
+    # backup settings
+    self.backupSettings()
+    # start control of camera
     WindowManager.getDefaultCamera().reparentTo( self.cameraRotPivot )
     WindowManager.getDefaultCamera().setY( -STARTUP_CAMERA_DISTANCE )
     self.posPivotModel.show()

@@ -19,7 +19,7 @@ KEYBINDINGS = {
 }
 
 class Player(DirectObject):
-  def __init__(self):
+  def __init__(self, editorInstance):
     self.terrain = modelIdManager.getObjectByName('terrain.png')[0]
     #self.terrain.terrainNode.setRenderModeWireframe()
     self.playerNode = render.attachNewNode('playerPos')
@@ -37,6 +37,8 @@ class Player(DirectObject):
     for key in KEYBINDINGS.keys():
       self.accept(key, self.keyPress, [key, True])
       self.accept(key+"-up", self.keyPress, [key, False])
+    
+    self.accept('t', editorInstance.toggle)
   
   def keyPress(self, key, state):
     self.pressedKeys[key] = state
@@ -74,11 +76,11 @@ if __name__ == '__main__':
   
   #base.disableMouse()
   
-  editor = EditorClass(render)
+  editor = EditorClass(render, 'dgui')
   editor.loadEggModelsFile("examples/mytestscene.egs")
   #render.flattenMedium()
   
-  player = Player()
+  player = Player(editor)
   
   print "all objects"
   for obj in modelIdManager.getAllObjects():

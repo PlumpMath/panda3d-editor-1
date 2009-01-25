@@ -113,7 +113,7 @@ class NodePathWrapper(BaseWrapper):
   def enableSubNodes(self):
     # create the children treeNodes of the nodepath
     if self.eggTreeParent is None:
-      print "I: NodePathWrapper.enableSubNodes: creating child nodes"
+      #print "I: NodePathWrapper.enableSubNodes: creating child nodes"
       parent = self
       modelFilepath = self.modelFilepath
       node = self
@@ -121,7 +121,7 @@ class NodePathWrapper(BaseWrapper):
   
   def disableSubNodes(self):
     if self.eggTreeParent is not None:
-      print "I: NodePathWrapper.disableSubNodes: destroying child nodes"
+      #print "I: NodePathWrapper.disableSubNodes: destroying child nodes"
       self.eggTreeParent.destroy()
   
   def save(self, filepath):

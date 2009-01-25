@@ -169,7 +169,7 @@ class ShaderNode:
     for tx, scale in TextureMapping.keys():
       # Load and apply the textures
       num, ts = Cg.AddNewTextureStage(tx.getTextureType())
-      self.Root.setTexture(ts, tx, ts.getSort())
+      self.Root.setTexture(ts, tx, -10+ts.getSort())
       TextureMapping[(tx, scale)] = num
       if scale == None or scale == 1 or scale == (1, 1):
         Cg.Fragment += "float4 tex%s = tex2D(tex_%s, l_texcoord0);" % (num, num)
@@ -180,10 +180,10 @@ class ShaderNode:
     
     Cg.Fragment += "o_color = float4(0.0, 0.0, 0.0, 0.0);"
     # Loop *again*, but now we're really blending
-    print self.AlphaMaps
+    #print self.AlphaMaps
     for (dm, chan), ts in self.AlphaMaps.items():
       dmNum = TextureMapping[(dm, None)]
-      print TextureMapping
+      #print TextureMapping
       txNum = TextureMapping[ts]
       Cg.Fragment += "o_color += tex%d.%s * tex%d;" % (dmNum, chan, txNum)
     

@@ -13,36 +13,12 @@ if __name__ == "__main__":
   elif options.usedgui: USE_GUI = "dgui"
   print "I: main: using interface:", USE_GUI
   
-  # First phase: load the configurations.
-  if USE_GUI == "dgui":
-    from dgui.pConfig import Config
-  elif USE_GUI == "wxgui":
-    from wxgui.pConfig import Config
-  if USE_GUI is not None:
-    Config.loadConfig()
-  
-  # Second phase: initialize the window manager (which starts ShowBase)
-  from core.pWindow import WindowManager
-  if USE_GUI == "dgui":
-    WindowManager.startBase(showDefaultWindow = True, allowMultipleWindows = False)
-  elif USE_GUI == "wxgui":
-    WindowManager.startBase(showDefaultWindow = False, allowMultipleWindows = True)
-  else:
-    from direct.directbase import DirectStart
-  
-  # Third phase: load up the core of the editor.
+  # i put everything into the editor, because the external interface
+  # must be as small as possible
   from core.pMain import EditorClass
-  editor = EditorClass(render)
+  editor = EditorClass(parent=None, gui=USE_GUI)
   editor.loadEggModelsFile("examples/mytestscene.egs")
   
-  # Fourth phase: load one of the two interface layers.
-  if USE_GUI == "dgui":
-    from dgui.pEditorApp import EditorApp
-    app = EditorApp(editor)
-    app.toggle('WorldEditMode')
-  elif USE_GUI == "wxgui":
-    # wxGui needs to be opened before the editor, as it opens the window later
-    from wxgui.pEditorApp import EditorApp
-    app = EditorApp(editor)
+  editor.toggle(True)
   
   run()

@@ -204,23 +204,23 @@ class DirectTree(DirectObject):
         nodeButton.bind(DGG.B2PRESS,treeItem.button2press)
         nodeButton.bind(DGG.B3PRESS,treeItem.button3press)
         
-        treeButton = None
-        if len(treeItem.childrens) > 0:
-          treeButton = DirectButton(
-              parent=nodeButton,
-              frameColor=(1,1,1,1),
-              frameSize=(-.4,.4,-.4,.4),
-              pos=(-.5*self.itemIndent/self.itemScale,0,.25),
-              text='',
-              text_pos=(-.1,-.22),
-              text_scale=(1.6,1),
-              text_fg=(0,0,0,1),
-              enableEdit=0,
-              command=treeItem.setOpen,
-              sortOrder=1000,
-              rolloverSound=None,
-              #clickSound=None,
-            )
+        #treeButton = None
+        #if len(treeItem.childrens) > 0:
+        treeButton = DirectButton(
+            parent=nodeButton,
+            frameColor=(1,1,1,1),
+            frameSize=(-.4,.4,-.4,.4),
+            pos=(-.5*self.itemIndent/self.itemScale,0,.25),
+            text='',
+            text_pos=(-.1,-.22),
+            text_scale=(1.6,1),
+            text_fg=(0,0,0,1),
+            enableEdit=0,
+            command=treeItem.setOpen,
+            sortOrder=1000,
+            rolloverSound=None,
+            #clickSound=None,
+          )
         
 
         self.treeStructureNodes[treeItem] = [treeNode, nodeButton, treeButton, hor, vert]
@@ -283,6 +283,11 @@ class DirectTree(DirectObject):
         treeNode.hide()
         hor.hide()
         vert.hide()
+      
+      if len(treeItem.childrens) > 0:
+        treeButton.show()
+      else:
+        treeButton.hide()
       
       if treeItem.highlighted:
         nodeButton['text_fg'] = (1,0,0,1)

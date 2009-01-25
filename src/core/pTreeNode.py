@@ -75,6 +75,8 @@ class TreeNode(object):
     self.stopEdit()
     self.setEditmodeDisabled()
     TreeNode.detachNode(self)
+    del self.treeChildren
+    self.treeChildren = list()
   
   # --- parenting functions ---
   def reparentTo(self, treeParent):
@@ -86,25 +88,24 @@ class TreeNode(object):
         print "  - new parent:", treeParent, treeParent.__class__.__name__
         print "  - own type", self, self.__class__.__name__
         print "  - possible children:", treeParent.getPossibleChildren()
-        return
-    self.detachNode()
-    if treeParent not in self.getRecChildren():
+        return False
+    if treeParent not in self.getRecChildren() and treeParent != self:
+      self.detachNode()
       self.treeParent = treeParent
       if self.treeParent:
         self.treeParent.treeChildren.append(self)
+      return True
     else:
       print "W: TreeNode.reparentTo: cannot reparent to TreeNode in children"
-      print "  - self: '%s' parent: '%s'" % (str(self.treeName), str(parent.treeName))
-      print "  - childrens:", [c.treeName for c in self]
+      print "  - self: '%s' parent: '%s'" % (str(self.getName()), str(treeParent.getName()))
+      print "  - childrens:", [c.getName() for c in self.getRecChildren()]
+    return False
   
   def detachNode(self):
     if self.treeParent:
       if self in self.treeParent.treeChildren:
         self.treeParent.treeChildren.remove(self)
     self.treeParent = None
-    #self.treeData = None
-    del self.treeChildren
-    self.treeChildren = list()
   
   def getParent(self):
     return self.treeParent

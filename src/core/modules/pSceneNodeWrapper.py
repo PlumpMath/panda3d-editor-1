@@ -39,7 +39,7 @@ class SceneNodeWrapper(VirtualNodeWrapper):
   def onCreateInstance(self, parent, filepath):
     # create instance of this class
     objectInstance = super(SceneNodeWrapper, self).onCreateInstance(parent, 'SceneNode')
-    print "I: SceneNodeWrapper.onCreateInstance:", filepath
+    #print "I: SceneNodeWrapper.onCreateInstance:", filepath
     objectInstance.setScene(filepath)
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
@@ -66,7 +66,7 @@ class SceneNodeWrapper(VirtualNodeWrapper):
         'duplicate',
       ]
   
-  def setScene(self, sceneFilepath):
+  def setScene(self, relativePath):
     # load the scene
     
     def loadRecursiveChildrens(eggParentData, parent, transform, filepath, loadedObjects):
@@ -134,8 +134,8 @@ class SceneNodeWrapper(VirtualNodeWrapper):
       
       return parent, loadedObjects
     
-    if sceneFilepath != None and sceneFilepath != '' and sceneFilepath != ' ':
-      p3filename = Filename.fromOsSpecific(sceneFilepath)
+    if relativePath != None and relativePath != '' and relativePath != ' ':
+      p3filename = Filename.fromOsSpecific(relativePath)
       p3filename.makeAbsolute()
       # destroy old models
       #self.destroyAllModels()
@@ -159,15 +159,25 @@ class SceneNodeWrapper(VirtualNodeWrapper):
       # refresh the scenegraphbrowser
       messenger.send(EVENT_SCENEGRAPH_REFRESH)
     
-    self.relativePath = posixpath.dirname(posixpath.abspath(sceneFilepath))
+    # relative path to editor / or parent scene
+    self.relativePath = relativePath # examples/sample.egs
+    # absolute path of the file (different on every computer)
+    self.fullPath = posixpath.abspath(relativePath) # /home/user/editor/example/samples.egs
+    # folder where the file is at
+    self.dirname = posixpath.dirname(self.fullPath) # /home/user/editor/example/
+    print "I: SceneNodeWrapper.setScene: loaded"
+    print "  - relativePath", self.relativePath
+    print "  - fullPath", self.fullPath
+    print "  - relativePath", self.relativePath
+  
     #print "I: pSceneNodeWrapper.setScene:"
-    #print "  -", sceneFilepath
-    #print "  -", posixpath.abspath(sceneFilepath)
-    #print "  -", posixpath.dirname(posixpath.abspath(sceneFilepath))
-    self.sceneFilepath = sceneFilepath
+    #print "  -", relativePath
+    #print "  -", posixpath.abspath(relativePath)
+    #print "  -", posixpath.dirname(posixpath.abspath(relativePath))
   
   def save(self):
-    self.saveAs(self.sceneFilepath)
+    print "I: SceneNodeWrapper.save: using path", self.fullPath
+    self.saveAs(self.fullPath)
   
   def saveAs(self, filepath):
     def saveRecursiveChildrens(parent, eggParentData, relativeTo):
@@ -220,7 +230,7 @@ class SceneNodeWrapper(VirtualNodeWrapper):
   
   def getSaveData(self, relativeTo):
     objectInstance = VirtualNodeWrapper.getSaveData(self, relativeTo)
-    self.setExternalReference(self.sceneFilepath, relativeTo, objectInstance)
+    self.setExternalReference(self.relativePath, relativeTo, objectInstance)
     return objectInstance
   
   def loadFromData(self, eggGroup, filepath):
@@ -231,6 +241,6 @@ class SceneNodeWrapper(VirtualNodeWrapper):
   def makeInstance(self, original):
     ''' make a instance of this node somewhere else '''
     objectInstance = super(SceneNodeWrapper, self).makeInstance(original)
-    objectInstance.setScene(original.sceneFilepath)
+    objectInstance.setScene(original.relativePath)
     return objectInstance
   makeInstance = classmethod(makeInstance)

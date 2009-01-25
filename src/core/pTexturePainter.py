@@ -72,8 +72,8 @@ class TexturePainter(DirectObject):
     # some debugging stuff
     #self.accept("v", base.bufferViewer.toggleEnable)
     #self.accept("V", base.bufferViewer.toggleEnable)
-    base.bufferViewer.setPosition("llcorner")
-    base.bufferViewer.setCardSize(0.25, 0.0)
+    #base.bufferViewer.setPosition("llcorner")
+    #base.bufferViewer.setCardSize(0.25, 0.0)
     #base.bufferViewer.toggleEnable()
   
   def windowEvent(self, win):
