@@ -211,11 +211,11 @@ class SceneNodeWrapper(VirtualNodeWrapper):
     # save the egg file
     eggData.writeEgg(Filename(filepath))
   
-  def setEditmodeEnabled(self, recurseException=[]):
-    VirtualNodeWrapper.setEditmodeEnabled(self, recurseException)
+  def setEditmodeEnabled(self):
+    VirtualNodeWrapper.setEditmodeEnabled(self)
   
-  def setEditmodeDisabled(self, recurseException=[]):
-    VirtualNodeWrapper.setEditmodeDisabled(self, recurseException)
+  def setEditmodeDisabled(self):
+    VirtualNodeWrapper.setEditmodeDisabled(self)
   
   def destroy(self, recursive=True):
     # destroy the scene

@@ -22,7 +22,7 @@ class VirtualNodeWrapper(BaseWrapper):
     #modelIdManager.delObjectId( self.id )
     BaseWrapper.destroy( self )
   
-  def setEditmodeEnabled(self, recurseException=[]):
+  def setEditmodeEnabled(self):
     ''' enables the edit methods of this object
     makes it pickable etc.'''
     if not self.isEditmodeEnabled(): # variable will be changed by basewrapper
@@ -35,14 +35,14 @@ class VirtualNodeWrapper(BaseWrapper):
       # enable picking of the object
       self.nodePath.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
       # edit mode is enabled
-      BaseWrapper.setEditmodeEnabled(self, recurseException)
+      BaseWrapper.setEditmodeEnabled(self)
   
-  def setEditmodeDisabled(self, recurseException=[]):
+  def setEditmodeDisabled(self):
     ''' disables the edit methods of this object
      -> performance increase'''
     if self.isEditmodeEnabled():
       # edit mode is disabled
-      BaseWrapper.setEditmodeDisabled(self, recurseException)
+      BaseWrapper.setEditmodeDisabled(self)
       # remove the dummy model
       self.virtualModel.removeNode()
       self.virtualModel.detachNode()

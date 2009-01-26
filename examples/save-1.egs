@@ -304,7 +304,7 @@
     "models/plants/palm-v1.egg"
   }
 }
-<Instance> "fireish.ptf" {
+<Instance> fireish.ptf {
   <Transform> {
     <Matrix4> {
       1 0 0 0
@@ -322,7 +322,7 @@
   <File> ExtRef {
     "particlesystems/fireish.ptf"
   }
-  <Instance> "smoke.ptf" {
+  <Instance> smoke.ptf {
     <Transform> {
       <Matrix4> {
         1 0 0 0
@@ -450,7 +450,7 @@
     ShaderWrapper
   }
   <Comment> parameters {
-    "{'tex3 min filter': 'FTLinear', 'detailmap3': 'stone.png', 'detailmap2': 'dirt.png', 'mixmap': 'terrain-mix.png', 'tex1scale': 25.0, 'tex2 min filter': 'FTLinear', 'tex3scale': 100.0, 'tex2scale': 25.0, 'tex2 mag filter': 'FTLinear', 'tex3 mag filter': 'FTLinear', 'tex1 mag filter': 'FTLinear', 'detailmap4': '', 'tex4 min filter': 'FTLinear', 'tex1 min filter': 'FTLinear', 'tex4scale': 1.0, 'detailmap1': 'grass.png', 'tex4 mag filter': 'FTLinear'}"
+    "{'mixmap': 'terrain-mix.png', 'tex1scale': 25.0, 'tex3scale': 100.0, 'tex2 mag filter': 'FTLinear', 'tex3 mag filter': 'FTLinear', 'detailmap4': '', 'detailmap3': 'stone.png', 'detailmap2': 'dirt.png', 'detailmap1': 'grass.png', 'tex1 mag filter': 'FTLinear', 'tex4 min filter': 'FTLinear', 'tex4 mag filter': 'FTLinear', 'tex3 min filter': 'FTLinear', 'tex2 min filter': 'FTLinear', 'tex2scale': 25.0, 'tex1 min filter': 'FTLinear', 'tex4scale': 1.0}"
   }
   <Instance> terrain.png {
     <Transform> {
@@ -542,7 +542,7 @@
     ShaderWrapper
   }
   <Comment> parameters {
-    "{'tex3 min filter': 'FTNearest', 'detailmap3': 'stone.png', 'detailmap2': 'dirt.png', 'mixmap': 'sky-mix.png', 'tex1scale': 10.0, 'tex2 min filter': 'FTNearest', 'tex3scale': 1.0, 'tex2scale': 1.0, 'tex2 mag filter': 'FTNearest', 'tex3 mag filter': 'FTNearest', 'tex1 mag filter': 'FTNearest', 'detailmap4': '', 'tex4 min filter': 'FTNearest', 'tex1 min filter': 'FTNearest', 'tex4scale': 1.0, 'detailmap1': 'sky.jpg', 'tex4 mag filter': 'FTNearest'}"
+    "{'mixmap': 'sky-mix.png', 'tex1scale': 10.0, 'tex3scale': 1.0, 'tex2 mag filter': 'FTNearest', 'tex3 mag filter': 'FTNearest', 'detailmap4': '', 'detailmap3': 'stone.png', 'detailmap2': 'dirt.png', 'detailmap1': 'sky.jpg', 'tex1 mag filter': 'FTNearest', 'tex4 min filter': 'FTNearest', 'tex4 mag filter': 'FTNearest', 'tex3 min filter': 'FTNearest', 'tex2 min filter': 'FTNearest', 'tex2scale': 1.0, 'tex1 min filter': 'FTNearest', 'tex4scale': 1.0}"
   }
   <Instance> smiley.egg.pz {
     <Transform> {

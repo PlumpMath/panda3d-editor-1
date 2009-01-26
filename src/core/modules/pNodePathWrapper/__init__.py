@@ -1,5 +1,7 @@
 __all__=['NodePathWrapper']
 
+#import copy
+
 from pandac.PandaModules import *
 
 from core.modules.pBaseWrapper import *
@@ -74,13 +76,18 @@ class NodePathWrapper(BaseWrapper):
     # model used to show highlighting of this node
     self.highlightModel = None
     
+    self.mutableParameters['update'] = [ Trigger,
+        self.getUpdateModelFromEggData,
+        self.setUpdateModelFromEggData,
+        None,
+        None
+      ]
+    
+    
     # subnodes of this node
     self.eggTreeParent = None
   
   def setModel(self, modelFilepath):
-    # if there is already a model defined, remove it
-    if self.model is not None:
-      self.model.detachNode()
     
     if modelFilepath is not None:
       filepath = str(Filename.fromOsSpecific(modelFilepath))
@@ -97,8 +104,10 @@ class NodePathWrapper(BaseWrapper):
       
       # the path to the model we handle
       self.modelFilepath = modelFilepath
+      
       # load the model
       self.model = loader.loadModel(filepath)
+      #self.update()
       
       if self.isEditmodeEnabled():
         self.enableSubNodes()
@@ -107,8 +116,14 @@ class NodePathWrapper(BaseWrapper):
     if self.model is None:
       print "W: NodePathWrapper.setModel: model could not be loaded, loading dummy"
       self.model = loader.loadModel(MODEL_NOT_FOUND_MODEL)
-    # make the model visible
-    self.model.reparentTo(self.nodePath)
+      # make the model visible
+      self.model.reparentTo(self.nodePath)
+    else:
+      if self.isEditmodeEnabled():
+        # reread the model from the egg-data
+        self.updateModelFromEggData()
+      else:
+        self.model.reparentTo(self.nodePath)
   
   def enableSubNodes(self):
     # create the children treeNodes of the nodepath
@@ -127,7 +142,20 @@ class NodePathWrapper(BaseWrapper):
   def save(self, filepath):
     print "I: NodePathWrapper.save:", filepath
     if self.eggTreeParent:
-      self.eggTreeParent.save(filepath)
+      self.eggTreeParent.eggData.save(filepath)
+  
+  def setUpdateModelFromEggData(self, *args):
+    # if there is already a model defined, remove it
+    if self.model is not None:
+      self.model.detachNode()
+    
+    egg = EggData()
+    egg.read(StringStream(str(self.eggTreeParent.eggData)))
+    self.model = NodePath(loadEggData(egg))
+    self.model.reparentTo(self.nodePath)
+  
+  def getUpdateModelFromEggData(self):
+    pass
   
   def destroy(self):
     # destroy egg data
@@ -144,19 +172,19 @@ class NodePathWrapper(BaseWrapper):
     self.model.detachNode()
     self.model.removeNode()
   
-  def setEditmodeEnabled(self, recurseException=[]):
+  def setEditmodeEnabled(self):
     # if it was inactive before
     if not self.isEditmodeEnabled():
       self.nodePath.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
       self.enableSubNodes()
-    BaseWrapper.setEditmodeEnabled(self, recurseException)
+    BaseWrapper.setEditmodeEnabled(self)
   
-  def setEditmodeDisabled(self, recurseException=[]):
+  def setEditmodeDisabled(self):
     # if it was active before
     if self.isEditmodeEnabled():
       self.nodePath.setCollideMask(BitMask32.allOff())
       self.disableSubNodes()
-    BaseWrapper.setEditmodeDisabled(self, recurseException)
+    BaseWrapper.setEditmodeDisabled(self)
   
   def startEdit(self):
     # the object is selected to be edited

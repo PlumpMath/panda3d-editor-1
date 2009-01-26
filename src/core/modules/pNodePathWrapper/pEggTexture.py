@@ -213,12 +213,111 @@ Texture_QualityLevel_Enum = Enum(
   QLBest = Texture.QLBest,
 )
 
+
+EggTexture_WrapMode_Enum = Enum(
+  WMUnspecified = EggTexture.WMUnspecified,
+  WMClamp = EggTexture.WMClamp,
+  WMRepeat = EggTexture.WMRepeat,
+  WMMirror = EggTexture.WMMirror,
+  WMMirrorOnce = EggTexture.WMMirrorOnce,
+  WMBorderColor = EggTexture.WMBorderColor,
+)
+
+EggTexture_Mag_FilterType_Enum = Enum(
+  FTUnspecified = EggTexture.FTUnspecified,
+  FTNearest = EggTexture.FTNearest,
+  FTLinear = EggTexture.FTLinear,
+  FTNearestMipmapNearest = EggTexture.FTNearestMipmapNearest,
+  FTLinearMipmapNearest = EggTexture.FTLinearMipmapNearest,
+  FTNearestMipmapLinear = EggTexture.FTNearestMipmapLinear,
+  FTLinearMipmapLinear = EggTexture.FTLinearMipmapLinear,
+)
+
+EggTexture_Min_FilterType_Enum = Enum(
+  FTUnspecified = EggTexture.FTUnspecified,
+  FTNearest = EggTexture.FTNearest,
+  FTLinear = EggTexture.FTLinear,
+)
+
+EggTexture_EnvType_Enum = Enum(
+  ETUnspecified = EggTexture.ETUnspecified,
+  ETModulate = EggTexture.ETModulate,
+  ETDecal = EggTexture.ETDecal,
+  ETBlend = EggTexture.ETBlend,
+  ETReplace = EggTexture.ETReplace,
+  ETAdd = EggTexture.ETAdd,
+  ETBlendColorScale = EggTexture.ETBlendColorScale,
+  ETModulateGlow = EggTexture.ETModulateGlow,
+  ETModulateGloss = EggTexture.ETModulateGloss,
+  ETNormal = EggTexture.ETNormal,
+  ETNormalHeight = EggTexture.ETNormalHeight,
+  ETGlow = EggTexture.ETGlow,
+  ETGloss = EggTexture.ETGloss,
+  ETHeight = EggTexture.ETHeight,
+  ETSelector = EggTexture.ETSelector,
+)
+
+EggTexture_CombineMode_Enum = Enum(
+  CMUnspecified = EggTexture.CMUnspecified,
+  CMReplace = EggTexture.CMReplace,
+  CMModulate = EggTexture.CMModulate,
+  CMAdd = EggTexture.CMAdd,
+  CMAddSigned = EggTexture.CMAddSigned,
+  CMInterpolate = EggTexture.CMInterpolate,
+  CMSubtract = EggTexture.CMSubtract,
+  CMDot3Rgb = EggTexture.CMDot3Rgb,
+  CMDot3Rgba = EggTexture.CMDot3Rgba,
+)
+
+
 class ObjectEggTexture(ObjectEggBase):
   className = 'EggTexture'
   def __init__(self, parent, modelWrapper, eggTexture):
     ObjectEggBase.__init__(self, parent, modelWrapper, 'EggTexture')
     self.eggTexture = eggTexture
     self.possibleFunctions = ['save']
+    
+    self.mutableParameters['texture filename'] = [ P3Filepath,
+      self.eggTexture.getFilename,
+      self.eggTexture.setFilename,
+      None,
+      None ]
+    
+    '''self.mutableParameters['combine mode'] = [ EggTexture_CombineMode_Enum,
+      self.eggTexture.getCombineMode,
+      self.eggTexture.setCombineMode,
+      None,
+      None ]'''
+    self.mutableParameters['env type'] = [ EggTexture_EnvType_Enum,
+      self.eggTexture.getEnvType,
+      self.eggTexture.setEnvType,
+      None,
+      None ]
+    self.mutableParameters['u wrap mode'] = [ EggTexture_WrapMode_Enum,
+      self.eggTexture.getWrapU,
+      self.eggTexture.setWrapU,
+      None,
+      None ]
+    self.mutableParameters['v wrap mode'] = [ EggTexture_WrapMode_Enum,
+      self.eggTexture.getWrapV,
+      self.eggTexture.setWrapV,
+      None,
+      None ]
+    self.mutableParameters['w wrap mode'] = [ EggTexture_WrapMode_Enum,
+      self.eggTexture.getWrapW,
+      self.eggTexture.setWrapW,
+      None,
+      None ]
+    self.mutableParameters['min filter'] = [ EggTexture_Min_FilterType_Enum,
+      self.eggTexture.getMinfilter,
+      self.eggTexture.setMinfilter,
+      None,
+      None ]
+    self.mutableParameters['mag filter'] = [ EggTexture_Mag_FilterType_Enum,
+      self.eggTexture.getMagfilter,
+      self.eggTexture.setMagfilter,
+      None,
+      None ]
     
     self.editTexture = None
     self.editTextureFilename = None

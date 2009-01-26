@@ -203,7 +203,7 @@ class BaseWrapper(TreeNode):
     print "I: BaseWrapper.__del__:", self.__class__.__name__
     pass
   
-  def setEditmodeEnabled(self, recurseException=[]):
+  def setEditmodeEnabled(self):
     ''' enables the edit methods of this object
     makes it pickable etc.
     edit mode is enabled'''
@@ -211,16 +211,16 @@ class BaseWrapper(TreeNode):
       # make this a editable object
       self.nodePath.setTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG, '')
       self.nodePath.setTag(EDITABLE_OBJECT_TAG, self.id)
-      TreeNode.setEditmodeEnabled(self, recurseException)
+      TreeNode.setEditmodeEnabled(self)
   
-  def setEditmodeDisabled(self, recurseException=[]):
+  def setEditmodeDisabled(self):
     ''' disables the edit methods of this object
     -> performance increase
     edit mode is disabled'''
     if self.isEditmodeEnabled():
       self.nodePath.clearTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG)
       self.nodePath.clearTag(EDITABLE_OBJECT_TAG)
-      TreeNode.setEditmodeDisabled(self, recurseException)
+      TreeNode.setEditmodeDisabled(self)
   
   def destroy(self):
     modelIdManager.delObjectId( self.id )
@@ -242,17 +242,20 @@ class BaseWrapper(TreeNode):
     return instance
   
   def reparentTo(self, parent):
-    # save the old parent in case the nodepath.reparenting fails
-    #oldParent = self.getParent()
-    
+    ''' overload the reparenting of treeNode
+    the basewrapper also needs to reparent a nodePath '''
     # reparent
     TreeNode.reparentTo(self, parent)
     
-    # reparent this nodePath
+    if hasattr(self.getParent(), 'nodePath'):
+      parentNodepath = self.getParent().nodePath
+    else:
+      parentNodepath = render
+    '''# reparent this nodePath
     if parent is None:
       parentNodepath = render
     else:
-      parentNodepath = self.getParent().nodePath
+      parentNodepath = self.getParent().nodePath'''
     self.nodePath.wrtReparentTo(parentNodepath)
   
   ''' --- external reference saving / loading ---

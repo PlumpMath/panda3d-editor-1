@@ -52,6 +52,8 @@ class TreeNode(object):
     self.treeName = treeName
     #self.treeData = treeData
     self.editmodeStatus = int()
+    
+    # editable parameters of this class (by gui)
     self.mutableParameters = dict()
     self.mutableParameters['name'] = [ str,
       self.getName,
@@ -63,13 +65,28 @@ class TreeNode(object):
       self.reparentTo,
       None,
       None ]
+    
     # functions that can be done with this node
     self.possibleFunctions = [
         'destroy',
         'duplicate',
       ]
-    # do not define possible children here
+    
+    # this would define what type of node may be attached to this node,
+    # defining a empty list disallows any children from being attached
+    # not defining it will make it search in any parent node for this parameter
+    # add names of the classes to this list that may be attached
     # self.possibleChildrens = list()
+    
+    # path where this node is saved to, not defining it will make the function
+    # call getParentFilepath search any parent node for a defined filepath
+    # this data is used by child nodes to know which path they should save
+    # relative to
+    # self.treeFilepath = ''
+    
+    # a optional nodepath, allows any child nodepaths to find a place to attach
+    # themself to
+    # self.treeNodepath = Nodepath()
   
   def destroy(self):
     self.stopEdit()
@@ -111,7 +128,18 @@ class TreeNode(object):
     return self.treeParent
   
   def getRecParents(self):
-    ''' get a list of parent of this node (including self)'''
+    ''' get a list of parents of this node, ordered from children upwards'''
+    def rec(treeNode, parentList=list()):
+      parentNode = treeNode.getParent()
+      if parentNode is not None:
+        parentList.append(parentNode)
+        parentList = rec(parentNode, parentList)
+      return parentList
+    return rec(self)
+  
+  def getRecParentsAndSelf(self):
+    ''' get a list of parents of this node, ordered from children upwards
+    including self '''
     def rec(treeNode, parentList=list()):
       parentList.append(treeNode)
       parentNode = treeNode.getParent()
@@ -145,6 +173,26 @@ class TreeNode(object):
     for treeChild in self.treeChildren:
       treeChild.printTree(depth+1)
   
+  def getPossibleChildren(self):
+    parentList = self.getRecParentsAndSelf()
+    for parent in parentList:
+      if hasattr(parent, 'possibleChildren'):
+        return parent.possibleChildren
+    return []
+  
+  
+  # --- functions useful for the gui ---
+  def getPossibleFunctions(self):
+    '''includes functions like destroying of nodes, duplication of nodes
+    could be integrated into the mutableparameters once, but then it would
+    need a additional parameter if the data should be saved with the object
+    most of this functions are actually triggers'''
+    parentList = self.getRecParentsAndSelf()
+    for parent in parentList:
+      if hasattr(parent, 'possibleFunctions'):
+        return parent.possibleFunctions
+    return []
+  
   
   # --- name of the node ---
   def getName(self):
@@ -157,30 +205,59 @@ class TreeNode(object):
     text = "(%s) %s" % (str(self.className), str(self.getName()))
     return text
   
+  
+  # --- filepath operations ---
+  ''' the filepath stores where a object is saved to,
+  (absolue path including filename and extension)
+  this information can be used by child nodes to calculate relative path's
+  for theyr own files '''
+  def getParentFilepath(self):
+    # this gets a ordered list of our parents (upwards)
+    parents = self.getRecParents()
+    for parent in parents:
+      if hasattr(parent, 'treeFilepath'):
+        return parent.getFilepath()
+  
+  def setFilepath(self, filepath):
+    self.treeFilepath = filepath
+  def getFilepath(self):
+    return self.treeFilepath
+  '''def clearFilepath(self): # dont think that will be every used
+    del self.treeFilepath'''
+  
+  
+  # --- nodepath operations ---
+  ''' the nodepath stores any nodepath that child nodes should attach themself
+  to '''
+  def getParentNodepath(self):
+    # this gets a ordered list of our parents (upwards)
+    parents = self.getRecParents()
+    for parent in parents:
+      if hasattr(parent, 'treeNodepath'):
+        return parent.getNodepath()
+  
+  def setNodepath(self, nodepath):
+    self.treeNodepath = nodepath
+  
+  def getNodepath(self):
+    return self.treeNodepath
+  
   # --- EDIT MODE OF THE OBJECT ---
-  def setEditmodeEnabled(self, recurseException=[]):
+  def setEditmodeEnabled(self):
     # add the editmode flag (or)
     self.editmodeStatus = self.editmodeStatus | EDITMODE_ENABLED
     
+    # recursively set the editmode
     for child in self.getChildren():
       child.setEditmodeEnabled()
-      '''if recurseException is not None:
-        if type(child) in recurseException:
-          child.setEditmodeEnabled(None)
-        else:
-          child.setEditmodeEnabled(recurseException)'''
   
-  def setEditmodeDisabled(self, recurseException=[]):
+  def setEditmodeDisabled(self):
     # remove the editmode flag (xor)
     self.editmodeStatus = self.editmodeStatus ^ EDITMODE_ENABLED
     
+    # recursively set the editmode disabled
     for child in self.getChildren():
       child.setEditmodeDisabled()
-      '''if recurseException is not None:
-        if type(child) in recurseException:
-          child.setEditmodeDisabled(None)
-        else:
-          child.setEditmodeDisabled(recurseException)'''
   
   def isEditmodeEnabled(self):
     return (self.editmodeStatus & EDITMODE_ENABLED)
@@ -207,19 +284,6 @@ class TreeNode(object):
   def isEditmodeStarted(self):
     return (self.editmodeStatus & EDITMODE_STARTED)
   
-  def getPossibleChildren(self):
-    parentList = self.getRecParents()
-    for parent in parentList:
-      if hasattr(parent, 'possibleChildren'):
-        return parent.possibleChildren
-    return []
-  
-  def getPossibleFunctions(self):
-    parentList = self.getRecParents()
-    for parent in parentList:
-      if hasattr(parent, 'possibleFunctions'):
-        return parent.possibleFunctions
-    return []
   
   # --- PARAMETER LOADING AND SAVING ---
   def getParameter(self, name):
@@ -243,7 +307,7 @@ class TreeNode(object):
       print "E: core.TreeNode.getParameter: invalid value %s for enum %s" % (val, varType.__name__)
     elif isinstance(varType, Bitmask):
       return val
-    elif varType.__name__ == 'Filepath': #elif isinstance(varType, Filepath):
+    elif varType.__name__ == 'Filepath' or varType.__name__ == 'P3Filepath': #elif isinstance(varType, Filepath):
       return val
     elif varType.__name__ == 'Trigger':
       return val
@@ -286,8 +350,10 @@ class TreeNode(object):
           print "W: core.TreeNode.setParameter: invalid value %s for enum %s" % (value, varType.__name__)
         elif isinstance(varType, Bitmask):
           setFunc(value)
-        elif varType.__name__ == 'Filepath': #isinstance(varType, Filepath):
+        elif varType.__name__ == 'Filepath':
           setFunc(value)
+        elif varType.__name__ == 'P3Filepath':
+          setFunc(Filename(value))
         elif varType.__name__ == 'Trigger':
           setFunc()
         else:

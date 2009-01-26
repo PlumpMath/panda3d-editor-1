@@ -18,6 +18,9 @@ class ObjectEggData(ObjectEggBase):
     #  self.editModule.destroy()
     #  self.editModule = None
   
+  #def update(self):
+  #  return self.eggData
+  
   def destroy(self):
     ObjectEggBase.destroy(self)
     self.eggData = None

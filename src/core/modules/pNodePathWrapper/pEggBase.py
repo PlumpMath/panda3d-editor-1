@@ -20,11 +20,11 @@ class ObjectEggBase(TreeNode):
         'ObjectEggVertexPool',
       ]
   
-  def setEditmodeEnabled(self, recurseException=[]):
-    TreeNode.setEditmodeEnabled(self, recurseException)
+  def setEditmodeEnabled(self):
+    TreeNode.setEditmodeEnabled(self)
   
-  def setEditmodeDisabled(self, recurseException=[]):
-    TreeNode.setEditmodeDisabled(self, recurseException)
+  def setEditmodeDisabled(self):
+    TreeNode.setEditmodeDisabled(self)
   
   def startEdit(self):
     if TreeNode.isEditmodeEnabled(self):

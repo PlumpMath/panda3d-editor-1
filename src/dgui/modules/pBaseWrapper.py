@@ -116,8 +116,9 @@ class BaseWrapper(DirectObject):
           #yPos -= 0.05
           
           # --- ELEMENTS ---
-          paramType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[paramName]
+          paramType, _getFunc, _setFunc, _hasFunc, _clearFunc = self.mutableParameters[paramName]
           
+          # --- edit interface using a normal entry ---
           if paramType  in [str, float, int, Vec4, Vec3, Vec2, Point4, Point3, Point2]:
             paramEntry = DirectEntry(
                 #text = "",
@@ -141,6 +142,7 @@ class BaseWrapper(DirectObject):
               )
             yPos -= 0.06
           
+          # --- edit interface for checkboxes ---
           elif paramType == bool:
             paramEntry = DirectCheckButton(
                 scale=.04,
@@ -151,6 +153,7 @@ class BaseWrapper(DirectObject):
               )
             yPos -= 0.06
           
+          # --- edit interface for a reparenting (treenode type) ---
           elif paramType.__name__ == "TreeNode":
             #print "I: BaseWrapper.createEditWindow: is TreeNode"
             w = 8.3 # width of the entry field
@@ -170,40 +173,41 @@ class BaseWrapper(DirectObject):
                 frameSize=(-.3,w+.3,-.3,0.9),
                 state = DGG.DISABLED,
               )
-            def setParentCallback(newParent, setFunc, SGB):
-              #print "I: BaseWrapper.createEditWindow.setParentCallback:", setFunc, newParent
-              setFunc(newParent)
-              SGB.destroy()
+            def setParentCallback(newParent, object, parameterName, toDestroy):
+              object.setParameter(parameterName, newParent)
+              # this doesnt work, the dialogue can already be destroyed
+              #self.setEntry(parameterName, newParent)
+              for d in toDestroy:
+                d.destroy()
               messenger.send(EVENT_SCENEGRAPH_REFRESH)
-            def setParent(setFunc, getFunc):
+            def setParent(object, parameterName):
               #print "I: BaseWrapper.createEditWindow.setParent:", setFunc
-              #setParentCallback(entry, None)
+              window1 = DirectWindow( title='select new parent', pos = ( -0.5, 0.9), virtualSize=(0.8,1.2))
               SGB = SceneGraphBrowser(
-                parent=None, #self.scenegraphBrowserWindow, # where to attach SceneGraphBrowser frame
+                parent=window1,
                 treeWrapperRoot=self.editorInstance.editorInstance.treeParent, # display children under this root node
                 includeTag=ENABLE_SCENEGRAPHBROWSER_MODEL_TAG,
                 button1func=setParentCallback,
-                pos=(0,0,-1),
-                frameSize=(1,1.5)
+                pos=(0,0,-1.2),
+                frameSize=(0.8,1.2)
               )
-              currentParent = getFunc()
-              #print "  - highlight:", currentParent, getFunc
+              currentParent = object.getParameter(parameterName)
               SGB.highlight(currentParent)
               SGB.update()
-              SGB.button1extraArgs=[setFunc, SGB]
-              #FG.openFileBrowser()
-              #FG.accept('selectionMade', setPathCallback, [entry])
+              SGB.button1extraArgs=[object, parameterName, [SGB, window1]]
             button = DirectButton(
                 scale=.04,
                 pos = (xPos+0.42, 0, yPos+0.005),
                 parent = editWindowFrame,
                 command = setParent,
-                extraArgs = [setFunc, getFunc],
+                extraArgs = [self.object, paramName],
                 text = "reparent",
               )
+            #currentValue = self.object.getParameter(paramName)
             #paramEntry = [entry, button] # we dont need the button later on
             yPos -= 0.06
           
+          # --- edit interface using a optionmenu ---
           elif paramType.__name__ == "Enum":
             items = paramType.keys()
             # select the default item 0, this must be done because it
@@ -224,6 +228,7 @@ class BaseWrapper(DirectObject):
               )
             yPos -= 0.06
           
+          # --- edit interface for bitmasks (multiple selections of objects) ---
           elif paramType.__name__ == "Bitmask":
             paramEntry = dict()
             i = 0
@@ -242,6 +247,7 @@ class BaseWrapper(DirectObject):
               yPos -= 0.06
             items = paramType.keys()
           
+          # --- a trigger selector, aka button ---
           elif paramType.__name__ == "Trigger":
             button = DirectButton(
                 scale=.04,
@@ -253,7 +259,8 @@ class BaseWrapper(DirectObject):
               )
             yPos -= 0.06
           
-          elif paramType.__name__ == "Filepath":
+          # --- a filepath input, with button to filebrowser ---
+          elif paramType.__name__ == "Filepath" or paramType.__name__ == "P3Filepath":
             w = 9.8 # width of the entry field
             paramEntry = DirectEntry(
                 scale=.04,
@@ -271,24 +278,26 @@ class BaseWrapper(DirectObject):
                 frameSize=(-.3,w+0.3,-.3,0.9),
               )
             
-            def setPathCallback(entry, filepath):
-              entry.set(filepath)
+            def setPathCallback(object, parameterName, entry, filepath):
+              # on callback this interface may already be destroyed
+              object.setParameter(parameterName, filepath)
+              # still try to set in into the entry
+              #entry.set(filepath)
               # call the commandfunc, to store the value
-              entry.commandFunc(None)
+              #entry.commandFunc(None)
               # the path is modified internally, reloading the values fixes the entry
               self.updateAllEntires()
-            def setPath(entry):
+            def setPath(object, parameterName, entry):
               FG.openFileBrowser()
-              FG.accept('selectionMade', setPathCallback, [entry])
+              FG.accept('selectionMade', setPathCallback, [object, parameterName, entry])
             button = DirectButton(
                 scale=.04,
                 pos = (xPos+0.45, 0, yPos),
                 parent = editWindowFrame,
                 command=setPath,
-                extraArgs=[paramEntry],
+                extraArgs=[self.object, paramName, paramEntry],
                 text="load",
               )
-#            paramEntry = [entry, button] # we dont need the button later on
             yPos -= 0.06
           
           else:
@@ -310,8 +319,10 @@ class BaseWrapper(DirectObject):
         self.parameterEntries[paramName] = paramEntry
       
       title='editWindow-%s' % str(self.object.getName())
-      maxHeight = 0.95
-      if -yPos <= maxHeight:
+      maxHeight = 1.08
+      windowHeight = min(maxHeight, -yPos+0.05)
+      contentHeight = -yPos+0.03
+      '''if -yPos <= maxHeight:
         # dont use a scrolled frame
         self.buttonsWindow = DirectSidebar(
             frameSize=(0.9,-yPos+0.04),
@@ -325,10 +336,12 @@ class BaseWrapper(DirectObject):
           )
         editWindowFrame.reparentTo(self.buttonsWindow)
         editWindowFrame.setZ(-yPos-0.02)
-      else:
+      else:'''
+      if True:
         # use a scrolled frame
+        # the mouseclicks go trough the other frame, this helps to bugfix this
         self.buttonsWindow = DirectSidebar(
-            frameSize=(0.9,maxHeight),
+            frameSize=(0.9,windowHeight),
             align=ALIGN_RIGHT|ALIGN_BOTTOM,
             opendir=LEFT_OR_UP,
             orientation=VERTICAL,
@@ -347,24 +360,20 @@ class BaseWrapper(DirectObject):
           state=DGG.NORMAL, # to create a mouse watcher region
           manageScrollBars=0,
           enableEdit=0,
-          #suppressMouse=1,
+          suppressMouse=1,
           sortOrder=1000,
           frameColor=(0,0,0,0),
           borderWidth=(0.005,0.005),
-          frameSize=(0,0.9,0,maxHeight),
+          frameSize=(0,0.9,0,windowHeight),
           #frameSize =(0, self.frameWidth, 0, self.frameHeight),
-          canvasSize=(0,0.8,0,-yPos+0.04),
+          canvasSize=(0,0.8,0,contentHeight),
           verticalScroll_frameSize   = [0,itemScale,0,1],
           horizontalScroll_frameSize = [0,1,0,itemScale],
         )
         editWindowFrame.reparentTo(scrolledFrame.getCanvas())
-        editWindowFrame.setZ(-yPos-0.02)
+        editWindowFrame.setZ(-yPos-0.03)
       
       self.buttonsWindow.toggleCollapsed(self.editorInstance.getObjectEditwindowToggled())
-      # try to prevent the mouse going through the frame
-      #editWindowFrame['frameSize'] = (0,1.1,0,yPos+0.04)
-      #editWindowFrame['suppressMouse'] = 1
-      #editWindowFrame.resetFrameSize()
       
       self.updateAllEntires()
   
@@ -391,34 +400,36 @@ class BaseWrapper(DirectObject):
       if self.parameterEntries.has_key(paramName):
         if len(args) > 0:
           paramValue = args[0]
-        paramType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[paramName]
-        #self.object.setParameters( {paramName: paramValue} )
+        paramType, _getFunc, _setFunc, _hasFunc, _clearFunc = self.mutableParameters[paramName]
+        currentValue = self.object.getParameter(paramName)
         try:
           if paramType in [str, float, int] and clearFunc:
             if paramValue.strip() == '':
               paramValue = None
             else:
               paramValue = paramType(paramValue)
-            '''try:
-              
-            except:
-              if clearFunc:
-                # integer values defined as None with a clearfunc, will be cleared
-                paramValue = None'''
           elif paramType.__name__ == "TreeNode":
-            #print "I: BaseWrapper.setEntry: is TreeNode"
-            #paramValue = str(paramValue.className+paramValue.getName())
-            pass
+            # this is never called, check the actual implementation why
+            # it's using a callback function, inbetween call and callback
+            # this interface could be destroyed, so it's setting the
+            # values directly onto the object
+            pass 
           elif paramType.__name__ == "Enum":
             pass # doesnt need conversion
           elif paramType.__name__ == "Filename":
-            pass # dont know, but looks like it would work fine this way
+            # this may or may not be called on change
+            # check the actual implementation of the interface
+            # (on callback change this function is not used)
+            pass
           elif paramType.__name__ == "Trigger":
             pass # there is nothing to convert
             paramValue = 0 # we need a paramvalue for the following set function
           elif paramType.__name__ == "Bitmask":
+            # convert the input's into a bitmask, using the current value to
+            # add (or) or remove (xor) the bit
             paramIndex=args[1]
-            currentValue = getFunc()
+            #currentValue = getFunc()
+            currentValue = self.object.getParameter(paramName)
             # add the value (or)
             if paramValue: paramValue = currentValue | paramType[paramIndex]
             # remove the value (xor)
@@ -432,6 +443,8 @@ class BaseWrapper(DirectObject):
         except ValueError:
           print "E: dgui.BaseWrapper.setEntry: error"
           traceback.print_exc()
+        # call the setparameter function of the object,
+        # using the value that has just been converted to define it
         self.object.setParameters( {paramName: paramValue} )
       else:
         print "E: dgui.BaseWrapper.setEntry: unknown key", paramName
@@ -452,7 +465,7 @@ class BaseWrapper(DirectObject):
       objectParameters = self.object.getParameters()
       for paramName in self.parameterEntries:
         if paramName in self.mutableParameters:
-          [paramType, getFunc, setFunc, hasFunc, clearFunc] = self.mutableParameters[paramName]
+          [paramType, _getFunc, _setFunc, _hasFunc, _clearFunc] = self.mutableParameters[paramName]
           if paramName in objectParameters:
             if self.parameterEntries[paramName]:
               currentValue = objectParameters[paramName]
@@ -474,8 +487,9 @@ class BaseWrapper(DirectObject):
                   valueActive = bool(paramType[valueName] & currentValue)
                   valueEntry["indicatorValue"] = valueActive
                   valueEntry.setIndicatorValue()
+              elif paramType.__name__ == "P3Filepath":
+                paramEntry.enterText(currentValue.getFullpath())
               elif paramType.__name__ == "Filepath":
-                #entry = paramEntry
                 paramEntry.enterText(currentValue)
               elif paramType.__name__ == "Trigger":
                 pass # nothing needs to happen

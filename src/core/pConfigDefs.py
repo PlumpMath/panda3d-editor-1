@@ -137,6 +137,10 @@ class Bitmask(dict):
 class Filepath(str):
   __name__ = "Filepath"
 
+# A panda3d filename
+class P3Filepath(str):
+  __name__ = "Filepath"
+
 # does not really save values, but instead provides a interface to activate
 # a function in the core modules
 class Trigger(str):
