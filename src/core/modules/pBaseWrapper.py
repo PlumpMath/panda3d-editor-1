@@ -142,19 +142,28 @@ class BaseWrapper(TreeNode):
       self.setLightOff,
       None,
       self.clearLightOff ]
-    self.inheritTexture = None
-    self.mutableParameters['inheritTexOff'] = [ int,
-      self.getStopInheritTexture,
-      self.setStopInheritTexture,
-      None,
-      self.clearStopInheritTexture ]
+    
     self.colorOffPriority = None
     self.mutableParameters['colorOff'] = [ int,
       self.getColorOff,
       self.setColorOff,
       None,
       self.clearColorOff ]
+    
+    self.textureOffEnabled = False
+    self.mutableParameters['textureOffEnabled'] = [ bool,
+      self.getTextureOffEnabled,
+      self.setTextureOffEnabled,
+      None,
+      None ]
+    self.textureOffPriority = None
+    self.mutableParameters['textureOffPriority'] = [ int,
+      self.getTextureOffPriority,
+      self.setTextureOffPriority,
+      None,
+      self.clearTextureOffPriorty ]
   
+  # --- functions to stop inheriting shader ---
   def setShaderOff(self, priority):
     if priority != None:
       self.nodePath.setShaderOff(priority)
@@ -166,6 +175,7 @@ class BaseWrapper(TreeNode):
   def clearShader(self):
     self.nodePath.clearShader()
   
+  # --- functions to stop inheriting light ---
   def setLightOff(self, priority):
     self.lightOffPriority = priority
     if priority != None:
@@ -176,6 +186,7 @@ class BaseWrapper(TreeNode):
     self.lightOffPriority = None
     self.nodePath.clearLight()
   
+  # --- functions to stop inhertiting color ---
   def setColorOff(self, priority):
     self.colorOffPriority = priority
     if priority != None:
@@ -186,18 +197,34 @@ class BaseWrapper(TreeNode):
     self.colorOffPriority = None
     self.nodePath.clearColor()
   
-  def setStopInheritTexture(self, priority):
-    self.inheritTexture = priority
-    if priority != None:
-      self.nodePath.setTextureOff() #self.inheritTexture)
-  def getStopInheritTexture(self):
-    return self.inheritTexture
-  def clearStopInheritTexture(self):
-    self.inheritTexture = None
-    self.nodePath.clearTexture()
+  # --- functions to stop inheriting textures (and turning textures off) ---
+  def updateTextureOff(self):
+    if self.textureOffEnabled:
+      # set texture off
+      if self.textureOffPriority is None:
+        # stop inheriting textures (if they have not a too high priorty)
+        self.nodePath.setTextureOff()
+      else:
+        # clear textures anyway
+        self.nodePath.setTextureOff(self.textureOffPriority)
+    else:
+      # reset to the original state
+      self.nodePath.clearTexture()
   
+  def getTextureOffEnabled(self):
+    return self.textureOffEnabled
+  def setTextureOffEnabled(self, state):
+    self.textureOffEnabled = state
+    self.updateTextureOff()
   
-  
+  def getTextureOffPriority(self):
+    return self.textureOffPriority
+  def setTextureOffPriority(self, priority):
+    self.textureOffPriority = priority
+    self.updateTextureOff()
+  def clearTextureOffPriorty(self):
+    self.textureOffPriority = None
+    self.updateTextureOff()
   
   def __del__(self):
     print "I: BaseWrapper.__del__:", self.__class__.__name__
@@ -251,11 +278,6 @@ class BaseWrapper(TreeNode):
       parentNodepath = self.getParent().nodePath
     else:
       parentNodepath = render
-    '''# reparent this nodePath
-    if parent is None:
-      parentNodepath = render
-    else:
-      parentNodepath = self.getParent().nodePath'''
     self.nodePath.wrtReparentTo(parentNodepath)
   
   ''' --- external reference saving / loading ---

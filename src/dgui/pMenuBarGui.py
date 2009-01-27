@@ -167,7 +167,7 @@ class MenuBarGui(DirectObject):
       module = __import__("core.modules.p%s" % objectType, globals(), locals(), [objectType], -1)
       objectInstance = getattr(module, objectType).onCreateInstance(modelParent, filepath)
       if objectInstance is not None:
-        objectInstance.setEditmodeEnabled([])
+        objectInstance.setEditmodeEnabled()
       messenger.send(EVENT_SCENEGRAPH_REFRESH)
       modelController.selectObject(objectInstance)
   

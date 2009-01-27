@@ -60,6 +60,9 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
       None ]
   
   def startEdit(self):
+    print "I: GeoMipTerrainNodeWrapper.startEdit:"
+    print "  - terrain", self.terrain.heightfield()
+    print "  - scale", self.terrainNode.getScale(render)
     # the object is selected to be edited
     # creates a directFrame to edit this object
     BaseWrapper.startEdit(self)
@@ -80,7 +83,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
         self.highlightModel.removeNode()
         self.highlightModel = None
     BaseWrapper.stopEdit(self)
-    
+  
   def setTerrain(self, filepath):
     parent = self
     heightfield = filepath
@@ -95,7 +98,8 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
       self.terrainNode.detachNode()
     self.terrainNode = self.terrain.getRoot()
     self.terrain.getRoot().reparentTo(self.nodePath)
-    self.terrain.getRoot().setSz(25)
+    hf = self.terrain.heightfield()
+    self.terrain.getRoot().setScale(1./(hf.getXSize()-1)*100, 1./(hf.getYSize()-1)*100, 1.)
     self.terrain.generate()
   
   def getSaveData(self, relativeTo):
