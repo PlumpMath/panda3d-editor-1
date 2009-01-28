@@ -150,17 +150,17 @@ class ModelModificator(DirectObject):
         self.modelModeNode.reparentTo(render)
         self.modelModeNode.setMat(render, Mat4().identMat())
         
-        self.modelModeNode.setPos(render, modelController.getSelectedObject().nodePath.getPos(render))
+        self.modelModeNode.setPos(render, modelController.getSelectedObject().getNodepath().getPos(render))
         
         if modelController.getSelectedObject() == self.__relativeModificationTo:
           if self.__relativeModificationTo == render:
-            hpr = modelController.getSelectedObject().nodePath.getHpr()
+            hpr = modelController.getSelectedObject().getNodepath().getHpr()
           else:
-            hpr = modelController.getSelectedObject().nodePath.getHpr(render)
+            hpr = modelController.getSelectedObject().getNodepath().getHpr(render)
         elif self.__relativeModificationTo == render:
           hpr = Vec3(0,0,0)
         self.modelModeNode.setHpr(render, hpr)
-        self.modelModeNode.wrtReparentTo(modelController.getSelectedObject().nodePath)
+        self.modelModeNode.wrtReparentTo(modelController.getSelectedObject().getNodepath())
         
         self.modelModeNode.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
         self.modelModeNode.show()
@@ -174,13 +174,13 @@ class ModelModificator(DirectObject):
     
     selectedObject = modelController.getSelectedObject()
     if self.__relativeModificationTo == selectedObject:
-      self.__modificationNode = selectedObject.nodePath
+      self.__modificationNode = selectedObject.getNodepath()
     else:
       # we are moving relative to some other node
-      self.__origModelParent = selectedObject.nodePath.getParent()
+      self.__origModelParent = selectedObject.getNodepath().getParent()
       self.__modificationNode = self.__relativeModificationTo.attachNewNode('dummyNode')
-      self.__modificationNode.setPos(selectedObject.nodePath.getPos())
-      selectedObject.nodePath.wrtReparentTo(self.__modificationNode)
+      self.__modificationNode.setPos(selectedObject.getNodepath().getPos())
+      selectedObject.getNodepath().wrtReparentTo(self.__modificationNode)
     
     if type(self.__modificationNode) == NodePath:
       taskMgr.add(task, 'editToolTask', extraArgs = [task,transX, transY, rotX, rotY, scaleX, scaleY], uponDeath=self.editToolCleanup)
@@ -222,8 +222,8 @@ class ModelModificator(DirectObject):
     '''
     messenger.send(EVENT_MODELCONTROLLER_EDITTOOL_DESELECTED)
     # the modification node needs to be destroyed if it's not the __selectedModel
-    if self.__modificationNode != modelController.getSelectedObject().nodePath:
-        modelController.getSelectedObject().nodePath.wrtReparentTo(self.__origModelParent)
+    if self.__modificationNode != modelController.getSelectedObject().getNodepath():
+        modelController.getSelectedObject().getNodepath().wrtReparentTo(self.__origModelParent)
         self.__modificationNode.detachNode()
         self.__modificationNode.removeNode()
     

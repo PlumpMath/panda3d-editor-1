@@ -53,7 +53,12 @@ class TreeNode(object):
     #self.treeData = treeData
     self.editmodeStatus = int()
     
-    # editable parameters of this class (by gui)
+    # all values that can be changed require a entry in the mutableParameters
+    # when a value exists, it means that it's allowed to read/write the value
+    # hasFunc defines if it's a vital property of the object and must be saved
+    # into the comments
+    # valueType, getFunc vtion, setFunction, hasFunction, clearFunction
+    # hasFunction == None -> the value should be saved
     self.mutableParameters = dict()
     self.mutableParameters['name'] = [ str,
       self.getName,
@@ -235,6 +240,7 @@ class TreeNode(object):
     for parent in parents:
       if hasattr(parent, 'treeNodepath'):
         return parent.getNodepath()
+    return None
   
   def setNodepath(self, nodepath):
     self.treeNodepath = nodepath
@@ -316,6 +322,9 @@ class TreeNode(object):
     elif varType.__name__ == 'TreeNode':
       #print
       return val
+      '''
+    elif varType in [list, tuple]:
+      return val'''
     else:
       print "E: core.TreeNode.getParameter: unknown varType %s for %s" % (varType.__name__, name)
       print "  - value", str(val)
@@ -356,6 +365,10 @@ class TreeNode(object):
           setFunc(Filename(value))
         elif varType.__name__ == 'Trigger':
           setFunc()
+          '''
+        elif varType in [list, tuple]:
+          print "I: TreeNode.setParameter:"
+          setFunc(value)'''
         else:
           if isinstance(value, str) or isinstance(value, unicode):
             try:
@@ -413,7 +426,7 @@ class TreeNode(object):
     ''' create a copy of this instance
     '''
     newInstance = self(originalInstance.getParent(), originalInstance.getName()+"-copy")
-    newInstance.nodePath.setMat(originalInstance.nodePath.getMat())
+    newInstance.getNodepath().setMat(originalInstance.getNodepath().getMat())
     newInstance.setParameters(originalInstance.getParameters())
     return newInstance
   makeInstance = classmethod(makeInstance)

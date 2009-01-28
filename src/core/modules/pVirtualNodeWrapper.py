@@ -31,9 +31,9 @@ class VirtualNodeWrapper(BaseWrapper):
       # set the model invisible in the scenegraphbrowser
       self.virtualModel.setLightOff()
       # make the model visible
-      self.virtualModel.reparentTo(self.nodePath)
+      self.virtualModel.reparentTo(self.getNodepath())
       # enable picking of the object
-      self.nodePath.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
+      self.getNodepath().setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
       # edit mode is enabled
       BaseWrapper.setEditmodeEnabled(self)
   
@@ -47,7 +47,7 @@ class VirtualNodeWrapper(BaseWrapper):
       self.virtualModel.removeNode()
       self.virtualModel.detachNode()
       # disable picking of the object
-      self.nodePath.setCollideMask( BitMask32.allOff() )
+      self.getNodepath().setCollideMask( BitMask32.allOff() )
   
   def startEdit( self ):
     # the object is selected to be edited

@@ -117,13 +117,13 @@ class NodePathWrapper(BaseWrapper):
       print "W: NodePathWrapper.setModel: model could not be loaded, loading dummy"
       self.model = loader.loadModel(MODEL_NOT_FOUND_MODEL)
       # make the model visible
-      self.model.reparentTo(self.nodePath)
+      self.model.reparentTo(self.getNodepath())
     else:
       if self.isEditmodeEnabled():
         # reread the model from the egg-data
         self.updateModelFromEggData()
       else:
-        self.model.reparentTo(self.nodePath)
+        self.model.reparentTo(self.getNodepath())
   
   def enableSubNodes(self):
     # create the children treeNodes of the nodepath
@@ -152,7 +152,7 @@ class NodePathWrapper(BaseWrapper):
     egg = EggData()
     egg.read(StringStream(str(self.eggTreeParent.eggData)))
     self.model = NodePath(loadEggData(egg))
-    self.model.reparentTo(self.nodePath)
+    self.model.reparentTo(self.getNodepath())
   
   def getUpdateModelFromEggData(self):
     pass
@@ -175,14 +175,14 @@ class NodePathWrapper(BaseWrapper):
   def setEditmodeEnabled(self):
     # if it was inactive before
     if not self.isEditmodeEnabled():
-      self.nodePath.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
+      self.getNodepath().setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
       self.enableSubNodes()
     BaseWrapper.setEditmodeEnabled(self)
   
   def setEditmodeDisabled(self):
     # if it was active before
     if self.isEditmodeEnabled():
-      self.nodePath.setCollideMask(BitMask32.allOff())
+      self.getNodepath().setCollideMask(BitMask32.allOff())
       self.disableSubNodes()
     BaseWrapper.setEditmodeDisabled(self)
   
@@ -192,7 +192,7 @@ class NodePathWrapper(BaseWrapper):
     BaseWrapper.startEdit(self)
     if self.isEditmodeEnabled():
       if self.highlightModel is None:
-        self.highlightModel = self.model.copyTo(self.nodePath)
+        self.highlightModel = self.model.copyTo(self.getNodepath())
       self.highlightModel.setRenderModeWireframe(True)
       self.highlightModel.setLightOff(1000)
       self.highlightModel.setFogOff(1000)

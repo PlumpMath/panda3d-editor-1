@@ -10,7 +10,7 @@ DEBUG = False
 
 
 # model nodes
-from pNodePathWrapper import *
+'''from pNodePathWrapper import *
 from pGeoMipTerrainNodeWrapper import *
 
 # light nodes
@@ -25,7 +25,7 @@ from pParticleSystemWrapper import *
 from pSoundNodeWrapper import *
 #from pSceneNodeWrapper import *
 
-from pShaderWrapper import *
+from pShaderWrapper import *'''
 
 class SceneNodeWrapper(VirtualNodeWrapper):
   ''' this node contains a scene (so that a scene may contain other scenes)
@@ -58,6 +58,7 @@ class SceneNodeWrapper(VirtualNodeWrapper):
         'SoundNodeWrapper',
         'SceneNodeWrapper',
         'ShaderWrapper',
+        'CurveNodeWrapper'
       ]
     self.possibleFunctions = [
         'saveAs',
@@ -113,7 +114,7 @@ class SceneNodeWrapper(VirtualNodeWrapper):
             hasNodePath = BaseWrapper in object.__class__.__mro__
             if hasNodePath:
               # apply the transformation on the object
-              object.nodePath.setMat(transform)
+              object.getNodepath().setMat(transform)
               transform = Mat4.identMat()
             # if it contains additional childrens recurse into them
             for childData in eggParentData.getChildren()[1:]:
@@ -191,15 +192,20 @@ class SceneNodeWrapper(VirtualNodeWrapper):
           # been referenced (it's the root node). thus the childrens data
           # should not be included if False
           modelData = child.getSaveData(relativeTo)
-          eggParentData.addChild(modelData)
-          # if there is data of the model walk the childrens
-          if modelData:
-            # but not if it's a sceneNode
-            # (this would save the scene twice, once as linked scene and
-            # once the models within the scene referenced)
-            if not isSceneNode: 
-              # search childrens
-              saveRecursiveChildrens(child, modelData, relativeTo)
+          # XXX TODO, this must be done again, we may save stuff that is not
+          # supposed to be saved
+          if modelData is not None:
+            eggParentData.addChild(modelData)
+            # if there is data of the model walk the childrens
+            if modelData:
+              # but not if it's a sceneNode
+              # (this would save the scene twice, once as linked scene and
+              # once the models within the scene referenced)
+              if not isSceneNode:
+                # search childrens
+                saveRecursiveChildrens(child, modelData, relativeTo)
+          else:
+            print "I: SceneNodeWrapper.saveAs.saveRecursiveChildrens: got NodeData"
     
     # create a eggData to save the data
     eggData = EggData()

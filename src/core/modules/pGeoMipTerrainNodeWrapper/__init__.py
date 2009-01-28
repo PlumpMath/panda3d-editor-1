@@ -25,10 +25,10 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
   
   def setEditmodeEnabled(self):
     BaseWrapper.setEditmodeEnabled(self)
-    self.nodePath.setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
+    self.getNodepath().setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
   def setEditmodeDisabled(self):
     BaseWrapper.setEditmodeDisabled(self)
-    self.nodePath.setCollideMask(BitMask32.allOff())
+    self.getNodepath().setCollideMask(BitMask32.allOff())
   
   def __init__(self, parent=None, name=None):
     BaseWrapper.__init__(self, parent, name)
@@ -68,7 +68,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
     BaseWrapper.startEdit(self)
     if self.isEditmodeEnabled():
       if self.highlightModel is None:
-        self.highlightModel = self.terrainNode.copyTo(self.nodePath)
+        self.highlightModel = self.terrainNode.copyTo(self.getNodepath())
       self.highlightModel.setRenderModeWireframe(True)
       self.highlightModel.setLightOff(1000)
       self.highlightModel.setFogOff(1000)
@@ -97,7 +97,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper):
     if self.terrainNode is not None:
       self.terrainNode.detachNode()
     self.terrainNode = self.terrain.getRoot()
-    self.terrain.getRoot().reparentTo(self.nodePath)
+    self.terrain.getRoot().reparentTo(self.getNodepath())
     hf = self.terrain.heightfield()
     self.terrain.getRoot().setScale(1./(hf.getXSize()-1)*100, 1./(hf.getYSize()-1)*100, 1.)
     self.terrain.generate()

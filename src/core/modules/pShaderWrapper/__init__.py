@@ -174,7 +174,7 @@ class ShaderWrapper(BaseWrapper):
       self.shader = None
     
     if self.shader is None:
-      self.shader = ShaderNode(self.nodePath)
+      self.shader = ShaderNode(self.getNodepath())
       
       if self.relativePath is None:
         # read the filepath of this node
@@ -264,7 +264,7 @@ class ShaderWrapper(BaseWrapper):
       if texPath in self.shader.loadedMaps:
         self.paintTex = self.shader.loadedMaps[texPath]
         #texturePainter.startEdit(self.paintTex)
-        success = texturePainter.enableEditor(self.nodePath, self.paintTex)
+        success = texturePainter.enableEditor(self.getNodepath(), self.paintTex)
         if success:
           texturePainter.startEdit()
           self.paintActive = True
@@ -303,7 +303,7 @@ class ShaderWrapper(BaseWrapper):
     ''' create a copy of this instance
     '''
     newInstance = self(originalInstance.getParent(), originalInstance.getName()+"-copy")
-    newInstance.nodePath.setMat(originalInstance.nodePath.getMat())
+    newInstance.getNodepath().setMat(originalInstance.getNodepath().getMat())
     newInstance.setParameters(originalInstance.getParameters())
     newInstance.setUpdateShader()
     return newInstance

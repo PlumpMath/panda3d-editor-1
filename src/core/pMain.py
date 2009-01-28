@@ -252,7 +252,7 @@ class EditorClass(DirectObject): #, FSM):
     for obj in modelIdManager.getAllObjects():
       if type(obj) != NodePath:
         print "  -", obj
-        #if node.nodePath.hasTag(EDITABLE_OBJECT_TAG):
+        #if node.getNodepath().hasTag(EDITABLE_OBJECT_TAG):
           #node.destroy()
           #del node
     '''

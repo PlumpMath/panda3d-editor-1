@@ -403,8 +403,8 @@ class BaseWrapper(DirectObject):
         paramType, _getFunc, _setFunc, _hasFunc, _clearFunc = self.mutableParameters[paramName]
         currentValue = self.object.getParameter(paramName)
         try:
-          if paramType in [str, float, int] and _clearFunc:
-            if paramValue.strip() == '':
+          if paramType in [str, float, int]:
+            if paramValue.strip() == '' and _clearFunc:
               paramValue = None
             else:
               paramValue = paramType(paramValue)

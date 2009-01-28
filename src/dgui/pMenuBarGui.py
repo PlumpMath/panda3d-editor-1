@@ -65,6 +65,10 @@ class MenuBarGui(DirectObject):
       nodeButtonDefinitions.append( ['sound', self.createFilebrowserModelWrapper, ['SoundNodeWrapper']] )
     if 'SceneNodeWrapper' in possibleChildren:
       nodeButtonDefinitions.append( ['scene', self.createFilebrowserModelWrapper, ['SceneNodeWrapper']] )
+    if 'ShaderWrapper' in possibleChildren:
+      nodeButtonDefinitions.append( ['paintshader', self.createModelWrapper, ['ShaderWrapper']] )
+    if 'CurveNodeWrapper' in possibleChildren:
+      nodeButtonDefinitions.append( ['curvenode', self.createModelWrapper, ['CurveNodeWrapper']] )
     self.nodeButtons = self.createInterface(nodeButtonDefinitions, 'nodes', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.85,0,0))
     
     lightButtonDefinitions = list()
@@ -76,8 +80,6 @@ class MenuBarGui(DirectObject):
       lightButtonDefinitions.append( ['ambientlight', self.createModelWrapper, ['AmbientLightNodeWrapper']] )
     if 'PointLightNodeWrapper' in possibleChildren:
       lightButtonDefinitions.append( ['paintlight', self.createModelWrapper, ['PointLightNodeWrapper']] )
-    if 'ShaderWrapper' in possibleChildren:
-      lightButtonDefinitions.append( ['paintshader', self.createModelWrapper, ['ShaderWrapper']] )
     self.lightButtons = self.createInterface(lightButtonDefinitions, 'lights', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.45,0,0))
     
     editButtonDefinitions = list()
@@ -177,7 +179,7 @@ class MenuBarGui(DirectObject):
     modelParent = modelController.getSelectedObject()
     objectInstance = getattr(module, type).onCreateInstance(modelParent)
     if objectInstance is not None:
-      objectInstance.setEditmodeEnabled([])
+      objectInstance.setEditmodeEnabled()
     messenger.send(EVENT_SCENEGRAPH_REFRESH)
     modelController.selectObject(objectInstance)
   

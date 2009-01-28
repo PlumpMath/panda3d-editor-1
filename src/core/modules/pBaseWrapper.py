@@ -81,52 +81,44 @@ class BaseWrapper(TreeNode):
     # store this object
     modelIdManager.setObject(self, self.id)
     # create a node for this object
-    self.nodePath = NodePath(name)
-    
+    self.setNodepath(NodePath(name))
     self.reparentTo(parent)
     
-    # all values that can be changed require a entry in the mutableParameters
-    
-    # when a value exists, it means that it's allowed to read/write the value
-    # hasFunc defines if it's a vital property of the object and must be saved
-    # into the comments
-    
-    # valueType, getFunc vtion, setFunction, hasFunction, clearFunction, saveToComments
-    # hasFunction == None -> the value should be saved
+    nodePath = self.getNodepath()
     self.mutableParameters['color'] = [ Vec4,
-      self.nodePath.getColor,
-      self.nodePath.setColor,
-      self.nodePath.hasColor,
-      self.nodePath.clearColor ]
+      nodePath.getColor,
+      nodePath.setColor,
+      nodePath.hasColor,
+      nodePath.clearColor ]
     self.mutableParameters['colorScale'] = [ Vec4,
-      self.nodePath.getColorScale,
-      self.nodePath.setColorScale,
-      self.nodePath.hasColorScale,
-      self.nodePath.clearColorScale ]
+      nodePath.getColorScale,
+      nodePath.setColorScale,
+      nodePath.hasColorScale,
+      nodePath.clearColorScale ]
     self.mutableParameters['transparency'] = [ TransparencyEnum,
-      self.nodePath.getTransparency,
-      self.nodePath.setTransparency,
-      self.nodePath.hasTransparency,
-      self.nodePath.clearTransparency ]
+      nodePath.getTransparency,
+      nodePath.setTransparency,
+      nodePath.hasTransparency,
+      nodePath.clearTransparency ]
     self.mutableParameters['antialias'] = [ AntialiasEnum,
-      self.nodePath.getAntialias,
-      self.nodePath.setAntialias,
-      self.nodePath.hasAntialias,
-      self.nodePath.clearAntialias ]
+      nodePath.getAntialias,
+      nodePath.setAntialias,
+      nodePath.hasAntialias,
+      nodePath.clearAntialias ]
     # should not be saved into the comments, but available to the gui-editor
     self.mutableParameters['position'] = [ Vec3,
-      self.nodePath.getPos,
-      self.nodePath.setPos,
+      nodePath.getPos,
+      nodePath.setPos,
       None,
       None ]
     self.mutableParameters['rotation'] = [ Vec3,
-      self.nodePath.getHpr,
-      self.nodePath.setHpr,
+      nodePath.getHpr,
+      nodePath.setHpr,
       None,
       None ]
     self.mutableParameters['scale'] = [ Vec3,
-      self.nodePath.getScale,
-      self.nodePath.setScale,
+      nodePath.getScale,
+      nodePath.setScale,
       None,
       None ]
     
@@ -163,39 +155,63 @@ class BaseWrapper(TreeNode):
       None,
       self.clearTextureOffPriorty ]
   
+  def reparentTo(self, parent):
+    ''' overload the reparenting of treeNode
+    the basewrapper also needs to reparent a nodePath '''
+    # reparent
+    TreeNode.reparentTo(self, parent)
+    
+    '''parentNodepath = self.getParentNodepath()
+    if parentNodepath:
+      self.getNodepath().reparentTo(parentNodepath)
+    else:
+      self.getNodepath().reparentTo(render) # <- XXX TODO, this should not be render'''
+    
+    parentNodepath = self.getParentNodepath()
+    if parentNodepath:
+      self.getNodepath().wrtReparentTo(parentNodepath)
+    else:
+      self.getNodepath().wrtReparentTo(render) # <- XXX TODO, this should not be render
+    
+    '''if hasattr(self.getParent(), 'nodePath'):
+      parentNodepath = self.getParent().getNodepath()
+    else:
+      parentNodepath = render
+    self.getNodepath().wrtReparentTo(parentNodepath)'''
+  
   # --- functions to stop inheriting shader ---
   def setShaderOff(self, priority):
     if priority != None:
-      self.nodePath.setShaderOff(priority)
+      self.getNodepath().setShaderOff(priority)
   def getShaderOff(self):
-    hasShader, shaderPriority, shaderAuto, shaderFilename = getShaderAttrib(self.nodePath)
+    hasShader, shaderPriority, shaderAuto, shaderFilename = getShaderAttrib(self.getNodepath())
     if hasShader and shaderAuto is 0 and shaderFilename is None:
       return shaderPriority
     return None
   def clearShader(self):
-    self.nodePath.clearShader()
+    self.getNodepath().clearShader()
   
   # --- functions to stop inheriting light ---
   def setLightOff(self, priority):
     self.lightOffPriority = priority
     if priority != None:
-      self.nodePath.setLightOff(priority)
+      self.getNodepath().setLightOff(priority)
   def getLightOff(self):
     return self.lightOffPriority
   def clearLightOff(self):
     self.lightOffPriority = None
-    self.nodePath.clearLight()
+    self.getNodepath().clearLight()
   
   # --- functions to stop inhertiting color ---
   def setColorOff(self, priority):
     self.colorOffPriority = priority
     if priority != None:
-      self.nodePath.setColorOff(priority)
+      self.getNodepath().setColorOff(priority)
   def getColorOff(self):
     return self.colorOffPriority
   def clearColorOff(self):
     self.colorOffPriority = None
-    self.nodePath.clearColor()
+    self.getNodepath().clearColor()
   
   # --- functions to stop inheriting textures (and turning textures off) ---
   def updateTextureOff(self):
@@ -203,13 +219,13 @@ class BaseWrapper(TreeNode):
       # set texture off
       if self.textureOffPriority is None:
         # stop inheriting textures (if they have not a too high priorty)
-        self.nodePath.setTextureOff()
+        self.getNodepath().setTextureOff()
       else:
         # clear textures anyway
-        self.nodePath.setTextureOff(self.textureOffPriority)
+        self.getNodepath().setTextureOff(self.textureOffPriority)
     else:
       # reset to the original state
-      self.nodePath.clearTexture()
+      self.getNodepath().clearTexture()
   
   def getTextureOffEnabled(self):
     return self.textureOffEnabled
@@ -236,8 +252,8 @@ class BaseWrapper(TreeNode):
     edit mode is enabled'''
     if not self.isEditmodeEnabled():
       # make this a editable object
-      self.nodePath.setTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG, '')
-      self.nodePath.setTag(EDITABLE_OBJECT_TAG, self.id)
+      self.getNodepath().setTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG, '')
+      self.getNodepath().setTag(EDITABLE_OBJECT_TAG, self.id)
       TreeNode.setEditmodeEnabled(self)
   
   def setEditmodeDisabled(self):
@@ -245,20 +261,20 @@ class BaseWrapper(TreeNode):
     -> performance increase
     edit mode is disabled'''
     if self.isEditmodeEnabled():
-      self.nodePath.clearTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG)
-      self.nodePath.clearTag(EDITABLE_OBJECT_TAG)
+      self.getNodepath().clearTag(ENABLE_SCENEGRAPHBROWSER_MODEL_TAG)
+      self.getNodepath().clearTag(EDITABLE_OBJECT_TAG)
       TreeNode.setEditmodeDisabled(self)
   
   def destroy(self):
     modelIdManager.delObjectId( self.id )
     TreeNode.destroy(self)
-    self.nodePath.detachNode()
-    self.nodePath.removeNode()
+    self.getNodepath().detachNode()
+    self.getNodepath().removeNode()
   
   def getSaveData(self, relativeTo):
     instance = TreeNode.getSaveData(self, relativeTo)
     # convert the matrix, very ugly right now
-    om = self.nodePath.getMat()
+    om = self.getNodepath().getMat()
     nm = Mat4D()
     for x in xrange(4):
       for y in xrange(4):
@@ -267,18 +283,6 @@ class BaseWrapper(TreeNode):
     instance.setGroupType(EggGroup.GTInstance)
     instance.setTransform3d(nm)
     return instance
-  
-  def reparentTo(self, parent):
-    ''' overload the reparenting of treeNode
-    the basewrapper also needs to reparent a nodePath '''
-    # reparent
-    TreeNode.reparentTo(self, parent)
-    
-    if hasattr(self.getParent(), 'nodePath'):
-      parentNodepath = self.getParent().nodePath
-    else:
-      parentNodepath = render
-    self.nodePath.wrtReparentTo(parentNodepath)
   
   ''' --- external reference saving / loading ---
   these are used by if a wrapper uses a external file
