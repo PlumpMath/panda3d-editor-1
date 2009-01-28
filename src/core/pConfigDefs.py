@@ -9,6 +9,10 @@ EDITOR_MODE_DISABLED = 'pandaEditorDisabledMode'
 EDITOR_MODE_WORLD_EDIT = 'pandaEditorWorldEditMode'
 EDITOR_MODE_OBJECT_EDIT = 'pandaEditorObjectEditMode'
 
+# this event is sent (every frame), with the pivot of the camera relative to render
+# this is used to set the focal point of the terrain
+EVENT_CAMERAPIVOT_POSITION = 'eventCameraPivot'
+
 EVENT_SCENEGRAPH_REFRESH = 'refreshSceneGraph'
 EVENT_SCENEGRAPH_CHANGE_ROOT = 'changeSceneRoot'
 # this event set's the modelcontroller object, it will yield:

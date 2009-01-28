@@ -119,7 +119,7 @@ class BaseWrapper(DirectObject):
           paramType, _getFunc, _setFunc, _hasFunc, _clearFunc = self.mutableParameters[paramName]
           
           # --- edit interface using a normal entry ---
-          if paramType  in [str, float, int, Vec4, Vec3, Vec2, Point4, Point3, Point2]:
+          if paramType  in [str, float, int, Vec4, Vec3, Vec2, Point4, Point3, Point2, list, tuple]:
             paramEntry = DirectEntry(
                 #text = "",
                 scale=.04,
@@ -434,7 +434,7 @@ class BaseWrapper(DirectObject):
             if paramValue: paramValue = currentValue | paramType[paramIndex]
             # remove the value (xor)
             else:          paramValue = currentValue ^ paramType[paramIndex]
-          elif paramType in [Vec4, Vec3, Vec2, Point4, Point3, Point2]:
+          elif paramType in [Vec4, Vec3, Vec2, Point4, Point3, Point2, list, tuple]:
             paramValue = str2type(paramValue, tuple)
           elif paramType == bool:
             pass

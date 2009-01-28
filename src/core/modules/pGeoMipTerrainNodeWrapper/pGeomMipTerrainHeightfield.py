@@ -102,17 +102,21 @@ class GeoMipTerrainHeightfield(TreeNode):
       
       if self.renderMode == 0:
         # update terrain height using geoMip.generate
-        texturePainter.enableEditor(self.geoMipTerrain.terrainNode, self.geoMipTerrain.terrain.heightfield())
+        texturePainter.enableEditor(self.geoMipTerrain.terrain.getRoot(), self.geoMipTerrain.terrain.heightfield())
         texturePainter.startEdit()
       if self.renderMode == 1:
-        # rendering using a shader
+        # --- rendering using a shader ---
+        # backup bruteforce state
+        self.bruteforceState =self.geoMipTerrain.terrain.getBruteforce()
+        self.geoMipTerrain.terrain.setBruteforce(True)
+        self.geoMipTerrain.terrain.update()
         self.paintImage = self.geoMipTerrain.terrain.heightfield()
         self.paintTexture = Texture()
         self.paintTexture.load(self.paintImage)
-        texturePainter.enableEditor(self.geoMipTerrain.terrainNode, self.paintImage)
+        texturePainter.enableEditor(self.geoMipTerrain.terrain.getRoot(), self.paintImage)
         texturePainter.startEdit()
-        self.geoMipTerrain.terrainNode.setShaderInput("heightmap", self.paintTexture)
-        self.geoMipTerrain.terrainNode.setShader(COMPILED_SHADER)
+        self.geoMipTerrain.terrain.getRoot().setShaderInput("heightmap", self.paintTexture)
+        self.geoMipTerrain.terrain.getRoot().setShader(COMPILED_SHADER)
         # also apply the shader on the paint-model, hmm how to keep the texture?
         texturePainter.paintModel.setShaderInput("heightmap", self.paintTexture)
         texturePainter.paintModel.setShader(COMPILED_BACKGROUND_SHADER)
@@ -126,7 +130,7 @@ class GeoMipTerrainHeightfield(TreeNode):
       self.lastUpdateTime = task.time
       if self.renderMode == 0:
           print "I: GeoMipTerrainHeightfield.updateTask: updating terrain", task.time
-          self.geoMipTerrain.terrain.generate()
+          self.geoMipTerrain.terrain.update()
       elif self.renderMode == 1:
         texturePainter.paintModel.setShader(COMPILED_BACKGROUND_SHADER)
         texturePainter.paintModel.setShaderInput("heightmap", self.paintTexture)
@@ -145,8 +149,10 @@ class GeoMipTerrainHeightfield(TreeNode):
       if self.renderMode == 0:
         pass
       elif self.renderMode == 1:
-        self.geoMipTerrain.terrainNode.clearShader()
-        self.geoMipTerrain.terrain.generate()
+        # restore bruteforce state
+        self.geoMipTerrain.terrain.setBruteforce(self.bruteforceState)
+        self.geoMipTerrain.terrain.getRoot().clearShader()
+        self.geoMipTerrain.terrain.update()
       
       # stop painting
       texturePainter.stopEdit()

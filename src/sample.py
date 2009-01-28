@@ -21,7 +21,7 @@ KEYBINDINGS = {
 class Player(DirectObject):
   def __init__(self, editorInstance):
     self.terrain = modelIdManager.getObjectByName('terrain.png')[0]
-    #self.terrain.terrainNode.setRenderModeWireframe()
+    #self.terrain.terrain.getRoot().setRenderModeWireframe()
     self.playerNode = render.attachNewNode('playerPos')
     self.playerNode.setPos(0,0,0)
     self.focalPoint = self.playerNode.attachNewNode('focalPoint')
@@ -52,18 +52,13 @@ class Player(DirectObject):
         self.playerNode.setHpr(self.playerNode, rot*dt)
     
     # get elevation of the player on the terrain
-    playerPos = self.playerNode.getPos(self.terrain.terrainNode)
-    terrainZ = self.terrain.terrain.getElevation(playerPos[0], playerPos[1])
-    playerZ = render.getRelativePoint( self.terrain.terrainNode, Vec3(0,0,terrainZ) )
-    self.playerNode.setZ(render, playerZ.getZ() + 3)
+    elevation = self.terrain.getHeight(self.playerNode.getPos(render))
+    self.playerNode.setZ( render, elevation + 3 )
     
     return task.cont
   
   def focusUpdate(self, task):
-    # set the focal point
-    focalPos = self.focalPoint.getPos(self.terrain.terrainNode)
-    self.terrain.terrain.setFocalPoint(focalPos)
-    self.terrain.terrain.update()
+    self.terrain.cameraFocusUpdate(self.focalPoint.getPos(render))
     
     return task.again
 

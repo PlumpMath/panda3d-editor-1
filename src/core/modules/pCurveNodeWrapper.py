@@ -1,7 +1,6 @@
 __all__ = ['CurveNodeWrapper', 'CurveNodePointWrapper']
 
 from pandac.PandaModules import *
-from direct.showbase.DirectObject import DirectObject
 
 from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.pConfigDefs import *
@@ -10,14 +9,14 @@ from pCurveNodePointWrapper import CurveNodePointWrapper
 
 class CurveNodeWrapper(VirtualNodeWrapper):
   className = 'Curve'
-  def __init__(self, parent, name='CurveNode'):
-    curveNodeModel = 'data/models/misc/sphere.egg'
+  def __init__(self, parent, name='Curve', curveNodeModel='data/models/misc/sphere.egg'):
+    #curveNodeModel = 
     VirtualNodeWrapper.__init__(self, parent, name, curveNodeModel)
     #self.nurbsCurveNodes = list()
     self.nurbsCurveEvaluator = NurbsCurveEvaluator()
     self.nurbsCurveDetail = 4
-    self.setNodepath(NodePath('curveNodeWrapper'))
-    self.getNodepath().reparentTo(self.getParentNodepath())
+    #self.setNodepath(NodePath('curveNodeWrapper'))
+    #self.getNodepath().reparentTo(self.getParentNodepath())
     self.lineRenderNp = self.getNodepath().attachNewNode('lineRender')
     self.possibleChildren = ['CurveNodePointWrapper']
     
@@ -43,6 +42,7 @@ class CurveNodeWrapper(VirtualNodeWrapper):
   def destroy(self):
     self.lineRenderNp.detachNode()
     self.lineRenderNp.removeNode()
+    VirtualNodeWrapper.destroy(self)
   
   def getAddNode(self):
     pass
@@ -85,7 +85,9 @@ class CurveNodeWrapper(VirtualNodeWrapper):
     return nurbsCurveLen
   
   def setCurveDetail(self, detail):
+    detail = max(1, detail)
     self.nurbsCurveDetail = detail
+    self.update()
   
   def getCurveDetail(self):
     return self.nurbsCurveDetail

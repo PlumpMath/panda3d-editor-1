@@ -28,8 +28,12 @@ class VirtualNodeWrapper(BaseWrapper):
     if not self.isEditmodeEnabled(): # variable will be changed by basewrapper
       # load a dummy model
       self.virtualModel = loader.loadModel(self.virtualModelpath)
-      # set the model invisible in the scenegraphbrowser
-      self.virtualModel.setLightOff()
+      # disable inherited settings
+      self.virtualModel.setLightOff(10000)
+      self.virtualModel.setShaderOff(10000)
+      self.virtualModel.setTextureOff(10000)
+      self.virtualModel.setColorOff(10000)
+      self.virtualModel.setColorScaleOff(10000)
       # make the model visible
       self.virtualModel.reparentTo(self.getNodepath())
       # enable picking of the object

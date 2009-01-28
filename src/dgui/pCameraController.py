@@ -152,6 +152,7 @@ class CameraController(DirectObject, FSM):
     cam = WindowManager.getDefaultCamera()
     relVec = self.cameraPosPivot.getRelativeVector(cam, moveVec)
     self.cameraPosPivot.setPos( self.cameraPosPivot, relVec*globalClock.getDt() )
+    messenger.send(EVENT_CAMERAPIVOT_POSITION, [self.cameraPosPivot.getPos(render)])
     return task.cont
   
   def setCameraRotation(self, rotation):

@@ -68,7 +68,9 @@ class MenuBarGui(DirectObject):
     if 'ShaderWrapper' in possibleChildren:
       nodeButtonDefinitions.append( ['paintshader', self.createModelWrapper, ['ShaderWrapper']] )
     if 'CurveNodeWrapper' in possibleChildren:
-      nodeButtonDefinitions.append( ['curvenode', self.createModelWrapper, ['CurveNodeWrapper']] )
+      nodeButtonDefinitions.append( ['curve', self.createModelWrapper, ['CurveNodeWrapper']] )
+    if 'CurveSurfaceNodeWrapper' in possibleChildren:
+      nodeButtonDefinitions.append( ['surfaceCurve', self.createModelWrapper, ['CurveSurfaceNodeWrapper']] )
     self.nodeButtons = self.createInterface(nodeButtonDefinitions, 'nodes', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.85,0,0))
     
     lightButtonDefinitions = list()
@@ -79,7 +81,7 @@ class MenuBarGui(DirectObject):
     if 'AmbientLightNodeWrapper' in possibleChildren:
       lightButtonDefinitions.append( ['ambientlight', self.createModelWrapper, ['AmbientLightNodeWrapper']] )
     if 'PointLightNodeWrapper' in possibleChildren:
-      lightButtonDefinitions.append( ['paintlight', self.createModelWrapper, ['PointLightNodeWrapper']] )
+      lightButtonDefinitions.append( ['pointlight', self.createModelWrapper, ['PointLightNodeWrapper']] )
     self.lightButtons = self.createInterface(lightButtonDefinitions, 'lights', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.45,0,0))
     
     editButtonDefinitions = list()

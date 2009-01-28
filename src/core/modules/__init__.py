@@ -17,3 +17,4 @@ from pSceneNodeWrapper import *
 from pShaderWrapper import *
 
 from pCurveNodeWrapper import *
+from pCurveSurfaceNodeWrapper import *

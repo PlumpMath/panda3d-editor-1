@@ -55,10 +55,12 @@ class SceneNodeWrapper(VirtualNodeWrapper):
         'SpotLightNodeWrapper',
         'CodeNodeWrapper',
         'ParticleSystemWrapper',
+        'PointLightNodeWrapper',
         'SoundNodeWrapper',
         'SceneNodeWrapper',
         'ShaderWrapper',
-        'CurveNodeWrapper'
+        'CurveNodeWrapper',
+        'CurveSurfaceNodeWrapper'
       ]
     self.possibleFunctions = [
         'saveAs',

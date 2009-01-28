@@ -240,7 +240,7 @@ if __name__ == '__main__':
   a.AddAlphaMap(tex3, tex0, alphamapchannel = "b", texscale = 50)
   terrain = GeoMipTerrain('test')
   terrain.setHeightfield(Filename('examples/height.png'))
-  terrainNode = terrain.getRoot()
+#  terrainNode = terrain.getRoot()
   terrain.getRoot().reparentTo(n)
   terrain.getRoot().setSz(25)
   terrain.generate()

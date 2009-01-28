@@ -322,9 +322,8 @@ class TreeNode(object):
     elif varType.__name__ == 'TreeNode':
       #print
       return val
-      '''
     elif varType in [list, tuple]:
-      return val'''
+      return val
     else:
       print "E: core.TreeNode.getParameter: unknown varType %s for %s" % (varType.__name__, name)
       print "  - value", str(val)
@@ -365,10 +364,9 @@ class TreeNode(object):
           setFunc(Filename(value))
         elif varType.__name__ == 'Trigger':
           setFunc()
-          '''
         elif varType in [list, tuple]:
           print "I: TreeNode.setParameter:"
-          setFunc(value)'''
+          setFunc(value)
         else:
           if isinstance(value, str) or isinstance(value, unicode):
             try:
