@@ -17,7 +17,7 @@ class TestObjectExtension(DirectObject):
     allNodes = modelIdManager.getAllObjects()
     for node in allNodes:
       try:
-        if node.nodePath.getName() == 'teapot.egg.pz':
+        if node.getNodepath().getName() == 'teapot.egg.pz':
           if DEBUG:
             print "  - found teapot", node
       except:
