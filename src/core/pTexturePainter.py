@@ -84,7 +84,7 @@ class TexturePainter(DirectObject):
       win = WindowManager.activeWindow.win
     if self.buffer.getXSize() != win.getXSize() or self.buffer.getXSize() != win.getYSize():
       self.updateBackRender(win)
-    self.updateModel()
+    self.updateModel(self.overlayTexture)
   
   def updateBackRender(self, win):
     print "I: TexturePainter.updateBackRender"
@@ -103,23 +103,7 @@ class TexturePainter(DirectObject):
       self.backcam.node().setScene(self.backgroundRender)
       self.backcam.reparentTo(self.backgroundRender)
   
-  def updateModel(self):
-    print "I: TexturePainter.updateModel", self.origModel
-    if self.origModel:
-      # create a image with the same size of the texture
-      textureSize = (self.paintTexture.getXSize(), self.paintTexture.getYSize())
-      createPickingImage( textureSize )
-      
-      # instance the model
-      if self.paintModel:
-        self.paintModel.removeNode()
-      self.paintModel = self.origModel.copyTo(self.backgroundRender)
-      self.paintModel.clearTexture()
-      self.paintModel.clearShader()
-      self.paintModel.setTexture(loader.loadTexture("textures/index-%i-%i.png" % (textureSize[0], textureSize[1])),1)
-      self.paintModel.setMat(render, self.origModel.getMat(render))
-  
-  def enableEditor(self, paintModel, paintTexture):
+  def enableEditor(self, paintModel, paintTexture, overlayTexture=None):
     print "I: TexturePainter.enableEditor"
     self.origModel = paintModel
     self.paintTexture = paintTexture
@@ -157,12 +141,49 @@ class TexturePainter(DirectObject):
     self.painter = PNMPainter(self.workLayer)
     self.brush = PNMBrush.makeSpot(VBase4D(1, 0, 0, 1), 7, True, PNMBrush.BEBlend)
     
-    self.updateModel()
+    self.overlayTexture = overlayTexture
+    self.updateModel(self.overlayTexture)
     
     self.accept("window-event", self.windowEvent)
+    # some debugging stuff
+    self.accept("v", base.bufferViewer.toggleEnable)
+    self.accept("V", base.bufferViewer.toggleEnable)
     
     self.initialized = True
     return True
+  
+  def updateModel(self, overlayTexture=None):
+    print "I: TexturePainter.updateModel", self.origModel
+    if self.origModel:
+      # create a image with the same size of the texture
+      textureSize = (self.paintTexture.getXSize(), self.paintTexture.getYSize())
+      createPickingImage( textureSize )
+      
+      # instance the model
+      if self.paintModel:
+        self.paintModel.removeNode()
+      self.paintModel = self.origModel.copyTo(self.backgroundRender)
+      self.paintModel.clearTexture()
+      self.paintModel.clearShader()
+      #self.paintModel.setTextureOff(10000)
+      # tex stage for picking texture
+      colorTextureStage = TextureStage("color")
+      colorTextureStage.setSort(1) # the color texture is on sort 1
+      # load picking texture
+      tex = loader.loadTexture("textures/index-%i-%i.png" % (textureSize[0], textureSize[1]))
+      tex.setMinfilter(Texture.FTNearest)
+      tex.setMagfilter(Texture.FTNearest)
+      tex.setWrapU(Texture.WMMirror)
+      tex.setWrapV(Texture.WMMirror)
+      
+      # define it
+      if overlayTexture:
+        heightTextureStage = TextureStage("height")
+        heightTextureStage.setSort(2) # the color texture is on sort 1
+        self.paintModel.setTexture(heightTextureStage,overlayTexture,10001)
+      
+      self.paintModel.setTexture(colorTextureStage,tex,10001)
+      self.paintModel.setMat(render, self.origModel.getMat(render))
   
   def setBrushSettings(self, color, size, smooth, effect):
     print "I: TexturePainter.setBrushSettings", color, size, smooth, effect
@@ -197,6 +218,7 @@ class TexturePainter(DirectObject):
       self.paintModel = None
     self.workLayer = None
     self.painter = None
+    self.overlayTexture = None
     
     self.initialized = False
     

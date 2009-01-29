@@ -8,8 +8,6 @@ class CurveNodePointWrapper(VirtualNodeWrapper, DirectObject):
     print "I: CurveNodePointWrapper.__init__"
     curveNodeModel = 'data/models/misc/sphere.egg'
     VirtualNodeWrapper.__init__(self, parent, name, curveNodeModel)
-    #self.accept(EVENT_MODELCONTROLLER_FAST_REFRESH, self.parent.update)
-    #self.getParent().update()
   
   def startEdit(self):
     VirtualNodeWrapper.startEdit(self)
@@ -24,5 +22,3 @@ class CurveNodePointWrapper(VirtualNodeWrapper, DirectObject):
   
   def destroy(self):
     VirtualNodeWrapper.destroy(self)
-  #def getSaveData(self, relativeTo):
-  #  return None

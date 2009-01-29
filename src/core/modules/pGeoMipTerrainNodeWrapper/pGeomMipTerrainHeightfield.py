@@ -12,62 +12,77 @@ from core.pConfigDefs import *
 # color is on tex0
 # height is on tex1
 SHADER = """//Cg
-
-void vshader(in  varying float4 vtx_position : POSITION,
-             in  varying float2 vtx_texcoord0 : TEXCOORD0,
-             in  varying float3 vtx_normal,
-             in  uniform sampler2D k_heightmap,
-             in  uniform float4x4 mat_modelproj,
-             in  uniform float4x4 mat_projection,
-             out varying float4 l_position : POSITION,
-             out varying float4 l_bright)
-{
-  // vertex height
-  float a = tex2D(k_heightmap, vtx_texcoord0).r;
-  vtx_position.z = a;
-  l_position=mul(mat_modelproj, vtx_position);
-  // color
-  float b = tex2D(k_heightmap, vtx_texcoord0+float2(1./128,0)).r;
-  float c = tex2D(k_heightmap, vtx_texcoord0+float2(0,1./128)).r;
-  float multiplier = float(8.0);
-  l_bright = float4(0.5+multiplier*(a-b), .5+multiplier*(a-b)+4*(a-c), .5+multiplier*(a-c), 1);
-}
-
-void fshader(in float4 l_bright,
-             in float4 l_position : POSITION,
-             out float4 o_color:COLOR)
-{
-  o_color = l_bright;
-} """
-
+  
+  void vshader(
+          in  varying float4 vtx_position : POSITION,
+          in  varying float2 vtx_texcoord0 : TEXCOORD0,
+          in  varying float3 vtx_normal,
+          in  uniform sampler2D tex_0,
+          in  uniform sampler2D tex_1,
+          //in  uniform sampler2D k_heightmap,
+          in  uniform float4x4 mat_modelproj,
+          in  uniform float4x4 mat_projection,
+          out varying float4 l_position : POSITION,
+          out varying float4 l_bright)
+  {
+    // vertex height
+    float a = tex2D(tex_1, vtx_texcoord0).r;
+    vtx_position.z = a;
+    l_position=mul(mat_modelproj, vtx_position);
+    // color
+    float b = tex2D(tex_1, vtx_texcoord0+float2(1./128,0)).r;
+    float c = tex2D(tex_1, vtx_texcoord0+float2(0,1./128)).r;
+    float multiplier = float(8.0);
+    l_bright = float4(0.5+multiplier*(a-b), .5+multiplier*(a-b)+4*(a-c), .5+multiplier*(a-c), 1);
+  }
+  
+  void fshader(
+          in float4 l_bright,
+          in float4 l_position : POSITION,
+          out float4 o_color:COLOR)
+  {
+    o_color = l_bright;
+  }
+  """
 COMPILED_SHADER = Shader.make(SHADER)
 
 BACKGROUND_SHADER = """//Cg
-
-void vshader(in  varying float4 vtx_position : POSITION,
-             in  varying float2 vtx_texcoord0 : TEXCOORD0,
-             in  varying float3 vtx_normal,
-             in  uniform sampler2D k_heightmap,
-             in  uniform sampler2D tex_0,
-             in  uniform float4x4 mat_modelproj,
-             in  uniform float4x4 mat_projection,
-             out varying float4 l_position : POSITION,
-             out varying float4 l_bright)
-{
-  // vertex height
-  float a = tex2D(k_heightmap, vtx_texcoord0);
-  vtx_position.z = a;
-  l_position=mul(mat_modelproj, vtx_position);
-  // coloring
-  l_bright = tex2D(tex_0, vtx_texcoord0);
-}
-
-void fshader(in float4 l_bright,
-             in float4 l_position : POSITION,
-             out float4 o_color:COLOR)
-{
-  o_color = l_bright;
-} """
+  
+  void vshader(
+          in  varying float4 vtx_position : POSITION,
+          in  varying float2 vtx_texcoord0 : TEXCOORD0,
+          in  varying float3 vtx_normal,
+          in  uniform sampler2D tex_0,
+          in  uniform sampler2D tex_1,
+          in  uniform float4x4 mat_modelproj,
+          in  uniform float4x4 mat_projection,
+          out varying float4 l_position : POSITION,
+          out varying float4 l_bright,
+          out float2 l_texcoord0 : TEXCOORD0
+        )
+  {
+    // vertex height
+    float a = tex2D(tex_1, vtx_texcoord0);
+    vtx_position.z = a;
+    l_position=mul(mat_modelproj, vtx_position);
+    // coloring
+    l_texcoord0 = vtx_texcoord0;
+    
+    // this is somehow required..........
+    l_bright = tex2D(tex_0, vtx_texcoord0);
+  }
+  
+  void fshader(
+          in float4 l_bright,
+          in float2 l_texcoord0 : TEXCOORD0,
+          uniform sampler2D tex_0 : TEXUNIT0,
+          uniform sampler2D tex_1 : TEXUNIT1,
+          in float4 l_position : POSITION,
+          out float4 o_color:COLOR)
+  {
+    o_color = tex2D(tex_1, l_texcoord0);
+  }
+  """
 COMPILED_BACKGROUND_SHADER = Shader.make(BACKGROUND_SHADER)
 
 class GeoMipTerrainHeightfield(TreeNode):
@@ -91,9 +106,25 @@ class GeoMipTerrainHeightfield(TreeNode):
       self.setRenderMode,
       None,
       None]
+    self.shaderColor = 8.0
+    self.mutableParameters['colorstrength'] = [ float,
+      self.getShaderColor,
+      self.setShaderColor,
+      None,
+      None]
     
     self.possibleChildren = []
     self.possibleFunctions = ['save']
+  
+  def getShaderColor(self):
+    return self.shaderColor
+  def setShaderColor(self, color):
+    color = max(0.1, min(64., color))
+    self.shaderColor = color
+    if TreeNode.isEditmodeStarted(self) and self.renderMode == 1:
+      self.geoMipTerrain.terrain.getRoot().setShaderInput("heightmapSize",
+          float(self.geoMipTerrain.terrain.heightfield().getXSize()),
+          float(self.geoMipTerrain.terrain.heightfield().getYSize()), self.shaderColor, 0 )
   
   def startEdit(self):
     if not TreeNode.isEditmodeStarted(self):
@@ -107,21 +138,38 @@ class GeoMipTerrainHeightfield(TreeNode):
         texturePainter.enableEditor(self.geoMipTerrain.terrain.getRoot(), self.geoMipTerrain.terrain.heightfield())
         texturePainter.startEdit()
       if self.renderMode == 1:
-        # --- rendering using a shader ---
-        # backup bruteforce state
+        # backup bruteforce state, and activate it
         self.bruteforceState =self.geoMipTerrain.terrain.getBruteforce()
         self.geoMipTerrain.terrain.setBruteforce(True)
         self.geoMipTerrain.terrain.update()
+        
+        # get the paint texture
         self.paintImage = self.geoMipTerrain.terrain.heightfield()
         self.paintTexture = Texture()
         self.paintTexture.load(self.paintImage)
-        texturePainter.enableEditor(self.geoMipTerrain.terrain.getRoot(), self.paintImage)
+        
+        # prepare the shader inputs
+        colorTextureStage = TextureStage("color")
+        colorTextureStage.setSort(1) # the color texture is on sort 1
+        heightTextureStage = TextureStage("height")
+        heightTextureStage.setSort(2) # the color texture is on sort 1
+        # create a copy of the terrain and update it with a shader
+        self.geoMipTerrainCopy = self.geoMipTerrain.terrain.getRoot().copyTo(self.getParentNodepath())
+        self.geoMipTerrainCopy.setTextureOff(10000)
+        self.geoMipTerrainCopy.setTexture(heightTextureStage, self.paintTexture, 10001)
+        self.geoMipTerrainCopy.setTexture(colorTextureStage, self.paintTexture, 10001)
+        self.geoMipTerrainCopy.setShader(COMPILED_SHADER)
+        
+        # start the texture painter
+        texturePainter.enableEditor(self.geoMipTerrain.terrain.getRoot(), self.paintImage, self.paintTexture)
         texturePainter.startEdit()
-        self.geoMipTerrain.terrain.getRoot().setShaderInput("heightmap", self.paintTexture)
-        self.geoMipTerrain.terrain.getRoot().setShader(COMPILED_SHADER)
-        # also apply the shader on the paint-model, hmm how to keep the texture?
-        texturePainter.paintModel.setShaderInput("heightmap", self.paintTexture)
-        texturePainter.paintModel.setShader(COMPILED_BACKGROUND_SHADER)
+        
+        # restore bruteforce state
+        self.geoMipTerrain.terrain.setBruteforce(self.bruteforceState)
+        self.geoMipTerrain.terrain.getRoot().clearShader()
+        self.geoMipTerrain.terrain.update()
+        # hide the original terrain
+        self.geoMipTerrain.terrain.getRoot().hide()
       
       self.lastUpdateTime = 0
       taskMgr.add(self.updateTask, 'geoMipUpdateTask')
@@ -134,8 +182,8 @@ class GeoMipTerrainHeightfield(TreeNode):
           print "I: GeoMipTerrainHeightfield.updateTask: updating terrain", task.time
           self.geoMipTerrain.terrain.update()
       elif self.renderMode == 1:
-        texturePainter.paintModel.setShader(COMPILED_BACKGROUND_SHADER)
-        texturePainter.paintModel.setShaderInput("heightmap", self.paintTexture)
+        if base.mouseWatcherNode.hasMouse(): # the mouse leaving the window makes shaders crash, maybe this fixes it?
+          texturePainter.paintModel.setShader(COMPILED_BACKGROUND_SHADER)
     if self.renderMode == 1:
       self.paintTexture.load(self.geoMipTerrain.terrain.heightfield())
     return task.cont
@@ -151,10 +199,10 @@ class GeoMipTerrainHeightfield(TreeNode):
       if self.renderMode == 0:
         pass
       elif self.renderMode == 1:
-        # restore bruteforce state
-        self.geoMipTerrain.terrain.setBruteforce(self.bruteforceState)
-        self.geoMipTerrain.terrain.getRoot().clearShader()
-        self.geoMipTerrain.terrain.update()
+        pass
+      # restore the real terrain
+      self.geoMipTerrainCopy.removeNode()
+      self.geoMipTerrain.terrain.getRoot().show()
       
       # stop painting
       texturePainter.stopEdit()
