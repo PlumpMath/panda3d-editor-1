@@ -53,6 +53,15 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
       self.terrain.setBlockSize,
       None,
       None ]
+    # defines the maximum update rate of the terrain
+    self.maxTerrainUpdateRate = 30
+    # stores the last update time
+    self.lastTerrainUpdateTime = globalClock.getRealTime()
+    self.mutableParameters['update rate'] = [ float,
+      self.getMaxTerrainUpdateRate,
+      self.setMaxTerrainUpdateRate,
+      None,
+      None]
   
   def setEditmodeEnabled(self):
     BaseWrapper.setEditmodeEnabled(self)
@@ -65,17 +74,14 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
     self.getNodepath().setCollideMask(BitMask32.allOff())
   
   def startEdit(self):
-    print "I: GeoMipTerrainNodeWrapper.startEdit:"
-    print "  - terrain", self.terrain.heightfield()
-    print "  - scale", self.terrain.getRoot().getScale(render)
-    # the object is selected to be edited
-    # creates a directFrame to edit this object
+    ''' the object is selected to be edited
+    creates a directFrame to edit this object '''
     BaseWrapper.startEdit(self)
     if self.isEditmodeEnabled():
       self.updateHighlightModel()
   
   def stopEdit(self):
-    # the object is deselected from being edited
+    ''' the object is deselected from being edited '''
     if self.isEditmodeEnabled():
       if self.highlightModel is not None:
         self.highlightModel.removeNode()
@@ -98,13 +104,25 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
       )
     return pixelPos
   
+  def getMaxTerrainUpdateRate(self):
+    return self.maxTerrainUpdateRate
+  def setMaxTerrainUpdateRate(self, rate):
+    # limit from 1 (every second) to 100 (100 times per second)
+    rate = max(0.01, min(100, rate))
+    self.maxTerrainUpdateRate = rate
+  
   def cameraFocusUpdate(self, focusPoint):
-    ''' update the focus point of the terrain, focusPoint mumst be relative to render '''
+    ''' update the focus point of the terrain, focusPoint must be relative to render
+    update rate is limited by the maxTerrainUpdateRate
+    '''
     pixelPos = self.getPixelPosScaled(focusPoint)
     self.terrain.setFocalPoint(pixelPos)
-    changed = self.terrain.update()
-    if changed and self.isEditmodeEnabled():
-      self.updateHighlightModel()
+    currentTime = globalClock.getRealTime()
+    if (currentTime - self.lastTerrainUpdateTime) > 1./self.maxTerrainUpdateRate:
+      self.lastTerrainUpdateTime = currentTime
+      changed = self.terrain.update()
+      if changed and self.isEditmodeEnabled():
+        self.updateHighlightModel()
   
   def getHeight(self, playerPos):
     ''' get elevation of the terrain at the given position
@@ -118,6 +136,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
     return elevation
   
   def updateHighlightModel(self):
+    ''' update the wireframe model of the heightfield '''
     if self.isEditmodeStarted():
       if self.highlightModel is not None:
         self.highlightModel.removeNode()
@@ -129,10 +148,10 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
       self.highlightModel.setShaderOff(1000)
       self.highlightModel.setColorScaleOff(1000)
       self.highlightModel.setColorOff(1000)
-      #self.highlightModel.clearColorScale()
       self.highlightModel.setColor(HIGHLIGHT_COLOR[0], HIGHLIGHT_COLOR[1], HIGHLIGHT_COLOR[2], 1000)
   
   def setTerrain(self, filepath):
+    ''' define a new heightmap '''
     parent = self
     heightfield = filepath
     node = self
@@ -141,6 +160,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
     self.update()
   
   def update(self):
+    ''' update the terrain using the new/modified heighfield '''
     self.terrain.setHeightfield(Filename(self.geoMipTerrainHeightfield.heightfield))
     if self.terrain.getRoot() is not None:
       self.terrain.getRoot().detachNode()

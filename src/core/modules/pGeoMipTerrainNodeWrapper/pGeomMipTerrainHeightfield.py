@@ -7,6 +7,10 @@ from core.pTexturePainter import texturePainter, PNMBrush_BrushEffect_Enum
 from core.pTreeNode import *
 from core.pConfigDefs import *
 
+# uniform float4 texpix_x contains the same as i manually input using k_heightmapSize
+# thuogh k_heightmapSize adds another value, the color scaling
+# color is on tex0
+# height is on tex1
 SHADER = """//Cg
 
 void vshader(in  varying float4 vtx_position : POSITION,
@@ -18,16 +22,15 @@ void vshader(in  varying float4 vtx_position : POSITION,
              out varying float4 l_position : POSITION,
              out varying float4 l_bright)
 {
-  //l_bright = float4(0,0,0,vtx_position.z); // +vtx_normal.x,vtx_normal.y,0
+  // vertex height
   float a = tex2D(k_heightmap, vtx_texcoord0).r;
-  float b = tex2D(k_heightmap, vtx_texcoord0+float2(1./128,1./128)).r;
-  float c = tex2D(k_heightmap, vtx_texcoord0+float2(0,1./128)).r;
-  float d = tex2D(k_heightmap, vtx_texcoord0+float2(1./128,0)).r;
-  l_bright = float4(a-b,b-c,c-d,d-a)*2 + float4(.5,.5,.5,.5)*a; //mul(mat_projection, 
-// THE ONLY IMPORTANT LINE:
   vtx_position.z = a;
-// THAT WAS THE ONLY IMPORTANT LINE
   l_position=mul(mat_modelproj, vtx_position);
+  // color
+  float b = tex2D(k_heightmap, vtx_texcoord0+float2(1./128,0)).r;
+  float c = tex2D(k_heightmap, vtx_texcoord0+float2(0,1./128)).r;
+  float multiplier = float(8.0);
+  l_bright = float4(0.5+multiplier*(a-b), .5+multiplier*(a-b)+4*(a-c), .5+multiplier*(a-c), 1);
 }
 
 void fshader(in float4 l_bright,
@@ -51,12 +54,11 @@ void vshader(in  varying float4 vtx_position : POSITION,
              out varying float4 l_position : POSITION,
              out varying float4 l_bright)
 {
+  // vertex height
   float a = tex2D(k_heightmap, vtx_texcoord0);
-// THE ONLY IMPORTANT LINE:
   vtx_position.z = a;
-// THAT WAS THE ONLY IMPORTANT LINE
   l_position=mul(mat_modelproj, vtx_position);
-// coloring
+  // coloring
   l_bright = tex2D(tex_0, vtx_texcoord0);
 }
 
