@@ -85,7 +85,7 @@ class CurveNodeWrapper(VirtualNodeWrapper):
     return nurbsCurveLen
   
   def setCurveDetail(self, detail):
-    detail = max(1, detail)
+    detail = max(4, detail)
     self.nurbsCurveDetail = detail
     self.update()
   
@@ -104,11 +104,12 @@ class CurveNodeWrapper(VirtualNodeWrapper):
     
     if nurbsCurveLen >= 4:
       # update the curve with the points in nurbsCurvePositions
+      print "writing", nurbsCurveLen
       self.nurbsCurveEvaluator.reset(nurbsCurveLen)
       for i in xrange(nurbsCurveLen):
         position = nurbsCurveNodes[i].getNodepath().getPos(self.getNodepath())
-        posVec = Vec4(position.getX(),position.getY(),position.getZ(),1)
-        self.nurbsCurveEvaluator.setVertex(i, posVec)
+        vtxPos = Vec4(position.getX(),position.getY(),position.getZ(),1)
+        self.nurbsCurveEvaluator.setVertex(i, vtxPos)
       nurbsCurveResult = self.nurbsCurveEvaluator.evaluate()
       
       # setup the line segments for rendering
@@ -116,11 +117,15 @@ class CurveNodeWrapper(VirtualNodeWrapper):
       lineSegs.setThickness(1)
       
       # create the line segments
-      uDetail = nurbsCurveLen * self.nurbsCurveDetail
-      for i in xrange(uDetail+1):
-        u = i/float(uDetail) * nurbsCurveLen
+      startT = nurbsCurveResult.getStartT()
+      endT = nurbsCurveResult.getEndT()
+      stepT = (endT - startT) / (self.nurbsCurveDetail-1)
+      for i in xrange(self.nurbsCurveDetail):
+        # which point in the curve are we at
+        curT = startT+stepT*i
+        # determine the point
         p = Point3()
-        nurbsCurveResult.evalPoint(u,p)
+        nurbsCurveResult.evalPoint(curT,p)
         if i == 0:
           # 
           lineSegs.moveTo(p)
@@ -132,6 +137,7 @@ class CurveNodeWrapper(VirtualNodeWrapper):
       lineSegsNodePath.reparentTo(self.lineRenderNp)
     else:
       print "I: CurveNodeWrapper.update: requires at least 4 nodes to render"
+    print
   
   def loadFromData(self, eggGroup, filepath):
     VirtualNodeWrapper.loadFromData(self, eggGroup, filepath)
