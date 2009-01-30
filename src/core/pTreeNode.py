@@ -238,7 +238,8 @@ class TreeNode(object):
     # this gets a ordered list of our parents (upwards)
     parents = self.getRecParents()
     for parent in parents:
-      if hasattr(parent, 'treeNodepath'):
+      if parent.hasNodepath():
+      #if hasattr(parent, 'treeNodepath'):
         return parent.getNodepath()
     return None
   
@@ -247,6 +248,11 @@ class TreeNode(object):
   
   def getNodepath(self):
     return self.treeNodepath
+  
+  def hasNodepath(self):
+    if hasattr(self, 'treeNodepath'):
+      return True
+    return False
   
   # --- EDIT MODE OF THE OBJECT ---
   def setEditmodeEnabled(self):

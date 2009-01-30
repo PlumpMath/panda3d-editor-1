@@ -53,6 +53,7 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
     try:
       #Start of the code from steam.ptf
       self.particleSystem.loadConfig(Filename(filepath))
+      self.setFilepath(filepath)
     except:
       print "W: particleSystemWrapper.setParticleConfig: Error loading file"
       print "  -", filepath
@@ -69,6 +70,7 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
       particles.setEmitter("SphereVolumeEmitter")
       particles.enable()
       self.particleSystem.addParticles(particles)
+      self.clearFilepath()
     #Sets particles to birth relative to the teapot, but to render at toplevel
     self.particleSystem.start(self.getNodepath())
   

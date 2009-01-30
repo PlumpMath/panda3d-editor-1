@@ -105,6 +105,7 @@ class NodePathWrapper(BaseWrapper):
       # the path to the model we handle
       self.modelFilepath = modelFilepath
       
+#      print "I: NodePathWrapper.setModel:", filepath
       # load the model
       self.model = loader.loadModel(filepath)
       #self.update()
@@ -112,17 +113,23 @@ class NodePathWrapper(BaseWrapper):
       if self.isEditmodeEnabled():
         self.enableSubNodes()
     
-    # if the model loading fails or no path given, use a dummy object
     if self.model is None:
+      # if the model loading fails or no path given, use a dummy object
       print "W: NodePathWrapper.setModel: model could not be loaded, loading dummy"
       self.model = loader.loadModel(MODEL_NOT_FOUND_MODEL)
       # make the model visible
       self.model.reparentTo(self.getNodepath())
+      # delete the filepath
+      self.clearFilepath()
     else:
+      # store the full filepath of the model
+      self.setFilepath(filepath)
       if self.isEditmodeEnabled():
-        # reread the model from the egg-data
+        # reread the model from the egg-data, this reloads the model when
+        # editmode is enabled
         self.updateModelFromEggData()
       else:
+        # parent the model to out nodepath
         self.model.reparentTo(self.getNodepath())
   
   def enableSubNodes(self):

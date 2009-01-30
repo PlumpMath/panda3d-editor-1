@@ -121,6 +121,7 @@ class SoundNodeWrapper(VirtualNodeWrapper):
       
       # the path to the model we handle
       self.soundFilepath = soundFilepath
+      self.setFilepath(soundFilepath)
       # load the model
       self.soundEffect = soundManager.get3dManager().loadSfx(soundFilepath)
     

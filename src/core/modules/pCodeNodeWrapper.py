@@ -47,6 +47,7 @@ class CodeNodeWrapper(VirtualNodeWrapper):
           print "W: CodeNodeWrapper.setScript: finding module failed"
           traceback.print_exc()
       self.scriptFilepath = filepath
+      self.setFilepath(self.scriptFilepath)
   
   def destroy(self):
     VirtualNodeWrapper.destroy(self)

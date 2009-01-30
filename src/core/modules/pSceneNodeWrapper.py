@@ -93,6 +93,7 @@ class SceneNodeWrapper(VirtualNodeWrapper):
           transform = mat4 * transform
         
         if eggParentData.hasTag(MODEL_WRAPPER_TYPE_TAG):
+          # if the eggData contains a tag that specifies the type of the object
           wrapperType = eggParentData.getTag(MODEL_WRAPPER_TYPE_TAG)
           wrapperTypeDecap = wrapperType[0].lower() + wrapperType[1:]
           try:
@@ -113,8 +114,7 @@ class SceneNodeWrapper(VirtualNodeWrapper):
             object = None
           
           if object is not None:
-            hasNodePath = BaseWrapper in object.__class__.__mro__
-            if hasNodePath:
+            if object.hasNodepath():
               # apply the transformation on the object
               object.getNodepath().setMat(transform)
               transform = Mat4.identMat()
@@ -150,6 +150,8 @@ class SceneNodeWrapper(VirtualNodeWrapper):
       # to this path
       filepath = p3filename.getDirname()
       
+      # store the full filepath of the model
+      self.setFilepath(p3filename)
       # add the path to the model-path
       from pandac.PandaModules import getModelPath
       getModelPath().appendPath(filepath)

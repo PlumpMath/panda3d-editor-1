@@ -8,6 +8,10 @@ from core.pConfigDefs import *
 
 from pCurveNodeWrapper import CurveNodeWrapper
 
+# ----
+# maybe we should use HermiteCurve instead, which gives more control of the
+# curve parameters (in and out tangent)
+# ----
 
 class PlaneProfile:
   ''' defines a profile for the curve '''
@@ -177,40 +181,86 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
     nurbsCurveLen = len(nurbsCurveNodes)
     
     if nurbsCurveLen >= 4:
-      # update the curve with the points in nurbsCurvePositions
-      nurbsCurveEvaluator = NurbsCurveEvaluator()
-      nurbsCurveEvaluator.reset(nurbsCurveLen)
+      # update the curve position with the points in nurbsCurvePositions
+      nurbsCurvePosEvaluator = NurbsCurveEvaluator()
+      nurbsCurvePosEvaluator.reset(nurbsCurveLen)
+      # update the curve position with the points in nurbsCurvePositions
+      nurbsCurveRotEvaluator = NurbsCurveEvaluator()
+      nurbsCurveRotEvaluator.reset(nurbsCurveLen)
+      # update the curve position with the points in nurbsCurvePositions
+      nurbsCurveScaleEvaluator = NurbsCurveEvaluator()
+      nurbsCurveScaleEvaluator.reset(nurbsCurveLen)
       for i in xrange(nurbsCurveLen):
-        position = nurbsCurveNodes[i].getNodepath().getPos(self.getNodepath())
-        posVec = Vec4(position.getX(),position.getY(),position.getZ(),1)
-        nurbsCurveEvaluator.setVertex(i, posVec)
-      nurbsCurveResult = nurbsCurveEvaluator.evaluate()
+        # the nodepath we are reading the pos/hpr/scale from
+        curveNodepath = nurbsCurveNodes[i].getNodepath()
+        # set position
+        position = curveNodepath.getPos(self.getNodepath())
+        posVec = Vec4(position.getX(), position.getY(), position.getZ(),1)
+        nurbsCurvePosEvaluator.setVertex(i, posVec)
+        # set rotation (to calculate the normal)
+        #hpr = curveNodepath.getHpr(self.getNodepath())
+        hpr = self.getNodepath().getRelativeVector(curveNodepath, Vec3(0,0,1))
+        hprVec = Vec4(hpr.getX(), hpr.getY(), hpr.getZ(),1)
+        nurbsCurveRotEvaluator.setVertex(i, hprVec)
+        # set scale
+        scale = curveNodepath.getScale(self.getNodepath())
+        scaleVec = Vec4(scale.getX(), scale.getY(), scale.getZ(),1)
+        nurbsCurveScaleEvaluator.setVertex(i, scaleVec)
+        print "nurbsCurve", posVec, hprVec, scaleVec
+      nurbsCurvePosResult = nurbsCurvePosEvaluator.evaluate()
+      nurbsCurveRotResult = nurbsCurveRotEvaluator.evaluate()
+      nurbsCurveScaleResult = nurbsCurveScaleEvaluator.evaluate()
       
       # store into the surface
       nurbsSurfaceEvaluator = NurbsSurfaceEvaluator()
       nurbsSurfaceEvaluator.reset(self.nurbsCurveDetail,self.profileDetail)
       
-      # setps for evaulating the nurbsCurve
-      startT = nurbsCurveResult.getStartT()
-      endT = nurbsCurveResult.getEndT()
+      # step's for evaulating the nurbsCurve (is the same for all results)
+      startT = nurbsCurvePosResult.getStartT()
+      endT = nurbsCurvePosResult.getEndT()
       stepT = (endT - startT) / (self.nurbsCurveDetail-1)
       
       for xi in xrange(self.nurbsCurveDetail):
         curT = startT+stepT*xi
-        # read from the curve
-        point = Point3()
-        nurbsCurveResult.evalPoint(curT,point)
-        tangent = Point3()
-        nurbsCurveResult.evalTangent(curT,tangent)
-        tangent.normalize()
-        widthVec = tangent.cross(Vec3(0,0,1)) / 2.0
+        # read from the curve position
+        posPoint = Point3()
+        nurbsCurvePosResult.evalPoint(curT,posPoint)
+        posTangent = Point3()
+        nurbsCurvePosResult.evalTangent(curT,posTangent)
+        posTangent.normalize()
+        
+        # read from the curve rotation
+        hprPoint = Point3()
+        nurbsCurveRotResult.evalPoint(curT,hprPoint)
+        hprTangent = Point3()
+        nurbsCurveRotResult.evalTangent(curT,hprTangent)
+        hprTangent.normalize()
+        
+        # read from the curve scale
+        scalePoint = Point3()
+        nurbsCurveRotResult.evalPoint(curT,scalePoint)
+        scaleTangent = Point3()
+        nurbsCurveRotResult.evalTangent(curT,scaleTangent)
+        scaleTangent.normalize()
+        
+        '''planeNormal = NodePath()
+        planeNormal.setPos(0,0,1)
+        planeNormal.setHpr(hprPoint)
+        print "planeNormal", planeNormal.getPos()'''
+        planeNormal = hprPoint
+        print "planeNormal", planeNormal
+        
+        widthVec = posTangent.cross(planeNormal)
+        widthVec.normalize()
+        widthVec = widthVec / 2.0
+        width = scalePoint.length() #self.surfaceWidth
         
         for yi in xrange(self.profileDetail):
           # read from the profile
           w = ((yi/float(self.profileDetail-1)) - 0.5) * 2
           h = self.profile.getH(w) # input must be -1..1
           #  center + side              + height
-          p = point + widthVec * w * self.surfaceWidth + Vec3(0,0,1) * h
+          p = posPoint + widthVec * w * width * self.surfaceWidth + Vec3(0,0,1) * h
           
           surfaceVtx = Vec4(p.getX(),p.getY(),p.getZ(),1)
           nurbsSurfaceEvaluator.setVertex(xi, yi, surfaceVtx)
