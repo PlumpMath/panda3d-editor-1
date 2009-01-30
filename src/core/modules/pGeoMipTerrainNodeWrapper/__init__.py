@@ -43,11 +43,14 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
       self.terrain.setBruteforce,
       None,
       None ]
+    # this doesnt work with 1.6 anymore (getFactor missing)
+    self.terrainFactor = 1.0
     self.mutableParameters['factor'] = [ float,
-      self.terrain.getFactor,
-      self.terrain.setFactor,
+      self.getFactor,
+      self.setFactor,
       None,
       None ]
+    
     self.mutableParameters['blocksize'] = [ int,
       self.terrain.getBlockSize,
       self.terrain.setBlockSize,
@@ -62,6 +65,12 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
       self.setMaxTerrainUpdateRate,
       None,
       None]
+  
+  def getFactor(self):
+    return self.terrainFactor
+  def setFactor(self, factor):
+    self.terrainFactor = factor
+    self.terrain.setFactor(self.terrainFactor)
   
   def setEditmodeEnabled(self):
     BaseWrapper.setEditmodeEnabled(self)

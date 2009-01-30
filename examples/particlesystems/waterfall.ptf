@@ -43,7 +43,7 @@ p0.renderer.setAlphaDisable(0)
 p0.emitter.setEmissionType(BaseParticleEmitter.ETCUSTOM)
 p0.emitter.setAmplitude(1.0000)
 p0.emitter.setAmplitudeSpread(0.0000)
-p0.emitter.setOffsetForce(Vec3(6.0000, 0.0000, 5.0000))
+p0.emitter.setOffsetForce(Vec3(3.0000, 0.0000, 5.0000))
 p0.emitter.setExplicitLaunchVector(Vec3(1.0000, 0.0000, 0.0000))
 p0.emitter.setRadiateOrigin(Point3(0.0000, 0.0000, 0.0000))
 # Disc parameters

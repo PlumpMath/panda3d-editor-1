@@ -33,10 +33,10 @@ AntialiasEnum = Enum(
 )
 
 def getShaderAttrib(nodepath):
-  if hasattr(ShaderAttrib, 'getClassSlot'): # 1.6 uses getClassSlot ??? not checked
-    shaderAttrib = nodepath.getAttrib(ShaderAttrib.getClassSlot())
-  elif hasattr(ShaderAttrib, 'getClassType'): # 1.5.4 uses getClassType ??? not checked
+  if hasattr(ShaderAttrib, 'getClassType'): # 1.5.4 uses getClassType ??? not checked
     shaderAttrib = nodepath.getAttrib(ShaderAttrib.getClassType())
+  elif hasattr(ShaderAttrib, 'getClassSlot'): # 1.6 uses getClassSlot ??? not checked
+    shaderAttrib = nodepath.getAttrib(ShaderAttrib.getClassSlot())
   hasShader = None
   shaderPriority = None
   shaderAuto = None
