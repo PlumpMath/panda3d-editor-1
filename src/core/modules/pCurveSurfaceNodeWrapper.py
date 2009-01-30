@@ -13,6 +13,8 @@ from pCurveNodeWrapper import CurveNodeWrapper
 # curve parameters (in and out tangent)
 # ----
 
+DEBUG = True
+
 class PlaneProfile:
   ''' defines a profile for the curve '''
   def __init__(self):
@@ -118,6 +120,9 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
         None,
         None
       ]
+    
+    if DEBUG:
+      self.debugNode = self.getNodepath().attachNewNode('debugNode')
   
   def destroy(self):
     self.lineRenderNp.detachNode()
@@ -177,39 +182,60 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
     for child in self.surfaceRenderNP.getChildrenAsList():
       child.removeNode()
     
+    if DEBUG:
+      self.debugNode.removeNode()
+      self.debugNode = self.getNodepath().attachNewNode('debugNode')
+    
     nurbsCurveNodes = self.getChildren()
     nurbsCurveLen = len(nurbsCurveNodes)
     
     if nurbsCurveLen >= 4:
+      '''#
+      hermitePosCurve = HermiteCurve()
+      #hermitePosCurve.removeAllCvs()'''
+      
       # update the curve position with the points in nurbsCurvePositions
       nurbsCurvePosEvaluator = NurbsCurveEvaluator()
       nurbsCurvePosEvaluator.reset(nurbsCurveLen)
       # update the curve position with the points in nurbsCurvePositions
-      nurbsCurveRotEvaluator = NurbsCurveEvaluator()
-      nurbsCurveRotEvaluator.reset(nurbsCurveLen)
+      nurbsCurveHprEvaluator = NurbsCurveEvaluator()
+      nurbsCurveHprEvaluator.reset(nurbsCurveLen)
       # update the curve position with the points in nurbsCurvePositions
       nurbsCurveScaleEvaluator = NurbsCurveEvaluator()
       nurbsCurveScaleEvaluator.reset(nurbsCurveLen)
       for i in xrange(nurbsCurveLen):
         # the nodepath we are reading the pos/hpr/scale from
         curveNodepath = nurbsCurveNodes[i].getNodepath()
-        # set position
         position = curveNodepath.getPos(self.getNodepath())
+        hpr      = curveNodepath.getHpr(self.getNodepath())
+        scale    = curveNodepath.getScale(self.getNodepath())
+        #print "nodepath", position, hpr, scale
+        
+        # convert
         posVec = Vec4(position.getX(), position.getY(), position.getZ(),1)
+        hprVec = Vec4(hpr.getX(), hpr.getY(), hpr.getZ(),1)
+        scaleVec = Vec4(scale.getX(), scale.getY(), scale.getZ(),1)
+        #print "converted", posVec, hprVec, scaleVec
+        
+        # set position
         nurbsCurvePosEvaluator.setVertex(i, posVec)
         # set rotation (to calculate the normal)
-        #hpr = curveNodepath.getHpr(self.getNodepath())
-        hpr = self.getNodepath().getRelativeVector(curveNodepath, Vec3(0,0,1))
-        hprVec = Vec4(hpr.getX(), hpr.getY(), hpr.getZ(),1)
-        nurbsCurveRotEvaluator.setVertex(i, hprVec)
+        nurbsCurveHprEvaluator.setVertex(i, hprVec)
         # set scale
-        scale = curveNodepath.getScale(self.getNodepath())
-        scaleVec = Vec4(scale.getX(), scale.getY(), scale.getZ(),1)
         nurbsCurveScaleEvaluator.setVertex(i, scaleVec)
-        print "nurbsCurve", posVec, hprVec, scaleVec
+        
+        '''# some other method testing
+        hermitePosCurve.insertCv(i) # is required, else it's invalid
+        hermitePosCurve.setCvPoint(i, position)
+        inVec = self.getNodepath().getRelativeVector(curveNodepath, Vec3(1,0,0))
+        hermitePosCurve.setCvIn(i, inVec)
+        outVec = self.getNodepath().getRelativeVector(curveNodepath, Vec3(-1,0,0))
+        hermitePosCurve.setCvOut(i, inVec)'''
+      
       nurbsCurvePosResult = nurbsCurvePosEvaluator.evaluate()
-      nurbsCurveRotResult = nurbsCurveRotEvaluator.evaluate()
+      nurbsCurveHprResult = nurbsCurveHprEvaluator.evaluate()
       nurbsCurveScaleResult = nurbsCurveScaleEvaluator.evaluate()
+      '''hermitePosCurve.recompute()'''
       
       # store into the surface
       nurbsSurfaceEvaluator = NurbsSurfaceEvaluator()
@@ -220,51 +246,64 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
       endT = nurbsCurvePosResult.getEndT()
       stepT = (endT - startT) / (self.nurbsCurveDetail-1)
       
+      '''sT = 0 #hermitePosCurve.getStartT()
+      eT = hermitePosCurve.getMaxT()
+      dT = (eT - sT) / (self.nurbsCurveDetail-1)'''
+      
+      dummyNode = self.getNodepath().attachNewNode('dummy')
+      dummyParent = self.getParentNodepath()
+      
       for xi in xrange(self.nurbsCurveDetail):
         curT = startT+stepT*xi
         # read from the curve position
         posPoint = Point3()
         nurbsCurvePosResult.evalPoint(curT,posPoint)
-        posTangent = Point3()
+        '''posTangent = Point3()
         nurbsCurvePosResult.evalTangent(curT,posTangent)
-        posTangent.normalize()
+        posTangent.normalize()'''
+        
+        '''# testing
+        hermitePoint = Point3()
+        hermiteTangent = Point3()
+        cT = sT+dT*xi
+        hermitePosCurve.getPt(cT, hermitePoint, hermiteTangent)
+        hermiteTangent.normalize()'''
         
         # read from the curve rotation
         hprPoint = Point3()
-        nurbsCurveRotResult.evalPoint(curT,hprPoint)
-        hprTangent = Point3()
-        nurbsCurveRotResult.evalTangent(curT,hprTangent)
-        hprTangent.normalize()
+        nurbsCurveHprResult.evalPoint(curT,hprPoint)
+        '''hprTangent = Point3()
+        nurbsCurveHprResult.evalTangent(curT,hprTangent)
+        hprTangent.normalize()'''
         
         # read from the curve scale
         scalePoint = Point3()
-        nurbsCurveRotResult.evalPoint(curT,scalePoint)
-        scaleTangent = Point3()
-        nurbsCurveRotResult.evalTangent(curT,scaleTangent)
-        scaleTangent.normalize()
-        
-        '''planeNormal = NodePath()
-        planeNormal.setPos(0,0,1)
-        planeNormal.setHpr(hprPoint)
-        print "planeNormal", planeNormal.getPos()'''
-        planeNormal = hprPoint
-        print "planeNormal", planeNormal
-        
-        widthVec = posTangent.cross(planeNormal)
-        widthVec.normalize()
-        widthVec = widthVec / 2.0
-        width = scalePoint.length() #self.surfaceWidth
+        nurbsCurveScaleResult.evalPoint(curT,scalePoint)
+        '''scaleTangent = Point3()
+        nurbsCurveScaleResult.evalTangent(curT,scaleTangent)
+        scaleTangent.normalize()'''
         
         for yi in xrange(self.profileDetail):
+          dummyNode.setPos(dummyParent, posPoint)
+          dummyNode.setScale(dummyParent, scalePoint)
+          dummyNode.setHpr(dummyParent, hprPoint)
+          
           # read from the profile
           w = ((yi/float(self.profileDetail-1)) - 0.5) * 2
           h = self.profile.getH(w) # input must be -1..1
-          #  center + side              + height
-          p = posPoint + widthVec * w * width * self.surfaceWidth + Vec3(0,0,1) * h
+          
+          # calculate the profile position in 3d space
+          dummyNode.setPos(dummyNode, Vec3(0,-w * self.surfaceWidth,h))
+          p = dummyNode.getPos(dummyParent)
           
           surfaceVtx = Vec4(p.getX(),p.getY(),p.getZ(),1)
           nurbsSurfaceEvaluator.setVertex(xi, yi, surfaceVtx)
+      
       nurbsSurfaceResult = nurbsSurfaceEvaluator.evaluate()
+      dummyNode.removeNode() # destroy the dummy
+      
+      if DEBUG:
+        self.debugNode.flattenStrong()
       
       # egg data
       data = EggData()
@@ -397,7 +436,10 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
       if ANIMATED_TEXTURE:
         self.mdl.setShaderAuto()
         
-        taskMgr.remove('surfaceTextureTask'+str(self))
+        taskName = 'surfaceTextureTask'+str(hash(self))
+        
+        taskMgr.remove(taskName) #'surfaceTextureTask'+str(self.__module__.__hash__()))
+        print "removing texture animation task", taskName #'surfaceTextureTask'+str(self.__module__.__hash__())
         
         #self.diffuseTextureStage = self.mdl.findTextureStage('diffuse')
         self.normalTextureStage = self.mdl.findTextureStage('normal')
@@ -407,9 +449,10 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
           waterNormalTex = loader.loadTexture('examples/water-render/%04i.png' % i)
           self.normalTextures.append(waterNormalTex)
         #self.waterDiffuseTexture = loader.loadTexture('examples/water.png')
-        taskMgr.add(self.textureTask, 'surfaceTextureTask'+str(self))
+        taskMgr.add(self.textureTask, taskName) #'surfaceTextureTask'+str(self.__module__.__hash__()))
+        print "starting texture animation task", taskName #, 'surfaceTextureTask'+str(hash(self)) #self.__module__.__hash__())
   
-  def updataUsingCurves(self):
+  """def updataUsingCurves(self):
     ''' override the curveRendering
     calculate the curve, using it's point and tangent and a defined normal vector
     we calculate a profile
@@ -583,7 +626,7 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
         
         # task to change the texture
         taskMgr.remove('surfaceTextureTask'+str(self))
-        taskMgr.add(self.textureTask, 'surfaceTextureTask'+str(self))
+        taskMgr.add(self.textureTask, 'surfaceTextureTask'+str(self))"""
   
   def textureTask(self, task):
     t = task.time
