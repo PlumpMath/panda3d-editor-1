@@ -227,8 +227,8 @@ class TreeNode(object):
     self.treeFilepath = filepath
   def getFilepath(self):
     return self.treeFilepath
-  '''def clearFilepath(self): # dont think that will be every used
-    del self.treeFilepath'''
+  def clearFilepath(self):
+    del self.treeFilepath
   
   
   # --- nodepath operations ---
