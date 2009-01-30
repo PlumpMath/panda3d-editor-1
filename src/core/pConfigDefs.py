@@ -11,7 +11,7 @@ EDITOR_MODE_OBJECT_EDIT = 'pandaEditorObjectEditMode'
 
 # this event is sent (every frame), with the pivot of the camera relative to render
 # this is used to set the focal point of the terrain
-EVENT_CAMERAPIVOT_POSITION = 'eventCameraPivot'
+EVENT_CAMERAPIVOT_POSITION_CHANGE = 'eventCameraPivotModification'
 
 EVENT_SCENEGRAPH_REFRESH = 'refreshSceneGraph'
 EVENT_SCENEGRAPH_CHANGE_ROOT = 'changeSceneRoot'

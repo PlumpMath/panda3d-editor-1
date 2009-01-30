@@ -35,7 +35,7 @@ class ShaderWrapper(BaseWrapper):
     BaseWrapper.__init__(self, parent, name)
     #BaseWrapper.reparentTo(self, parent)
     
-    self.possibleFunctions = ['save']
+    self.possibleFunctions = ['save', 'destroy']
     # all values that can be changed require a entry in the mutableParameters
     
     # when a value exists, it means that it's allowed to read/write the value

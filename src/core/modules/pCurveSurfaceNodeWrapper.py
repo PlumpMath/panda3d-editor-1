@@ -13,7 +13,7 @@ from pCurveNodeWrapper import CurveNodeWrapper
 # curve parameters (in and out tangent)
 # ----
 
-DEBUG = True
+DEBUG = False
 
 class PlaneProfile:
   ''' defines a profile for the curve '''
@@ -127,6 +127,8 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
   def destroy(self):
     self.lineRenderNp.detachNode()
     self.lineRenderNp.removeNode()
+    taskName = 'surfaceTextureTask'+str(hash(self))
+    taskMgr.remove(taskName)
     CurveNodeWrapper.destroy(self)
   
   def setSurfaceWidth(self, width):

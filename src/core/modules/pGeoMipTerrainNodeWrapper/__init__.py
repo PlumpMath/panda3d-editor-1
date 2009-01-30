@@ -1,5 +1,7 @@
 __all__=['GeoMipTerrainNodeWrapper']
 
+import gc
+
 from pandac.PandaModules import *
 
 from direct.showbase.DirectObject import DirectObject
@@ -12,6 +14,7 @@ from core.pConfigDefs import *
 
 DEBUG = False
 
+GEOMIPTERRAIN_USE_HIGHLIGHTMODEL = True
 
 class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
   className = 'GeoMipTerrain'
@@ -43,6 +46,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
       self.terrain.setBruteforce,
       None,
       None ]
+    
     # this doesnt work with 1.6 anymore (getFactor missing)
     self.terrainFactor = 1.0
     self.mutableParameters['factor'] = [ float,
@@ -56,6 +60,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
       self.terrain.setBlockSize,
       None,
       None ]
+    
     # defines the maximum update rate of the terrain
     self.maxTerrainUpdateRate = 30
     # stores the last update time
@@ -75,10 +80,10 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
   def setEditmodeEnabled(self):
     BaseWrapper.setEditmodeEnabled(self)
     self.getNodepath().setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
-    self.accept(EVENT_CAMERAPIVOT_POSITION, self.cameraFocusUpdate)
+    self.accept(EVENT_CAMERAPIVOT_POSITION_CHANGE, self.cameraFocusUpdate)
   
   def setEditmodeDisabled(self):
-    self.ignore(EVENT_CAMERAPIVOT_POSITION)
+    self.ignore(EVENT_CAMERAPIVOT_POSITION_CHANGE)
     BaseWrapper.setEditmodeDisabled(self)
     self.getNodepath().setCollideMask(BitMask32.allOff())
   
@@ -124,14 +129,29 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
     ''' update the focus point of the terrain, focusPoint must be relative to render
     update rate is limited by the maxTerrainUpdateRate
     '''
-    pixelPos = self.getPixelPosScaled(focusPoint)
-    self.terrain.setFocalPoint(pixelPos)
+    ''' # the code that i'd like to use
     currentTime = globalClock.getRealTime()
     if (currentTime - self.lastTerrainUpdateTime) > 1./self.maxTerrainUpdateRate:
       self.lastTerrainUpdateTime = currentTime
+      
+      pixelPos = self.getPixelPosScaled(focusPoint)
+      self.terrain.setFocalPoint(pixelPos)
+      
       changed = self.terrain.update()
-      if changed and self.isEditmodeEnabled():
-        self.updateHighlightModel()
+      if changed:
+        self.updateHighlightModel()'''
+    
+    # code to figure out what's slowing down the application
+    pixelPos = self.getPixelPosScaled(focusPoint)
+    #t1 = globalClock.getRealTime()
+    self.terrain.setFocalPoint(pixelPos)
+    #self.terrain.setFocalPoint(Point2(0.3,0.1))
+    #t2 = globalClock.getRealTime()
+    #self.terrain.update()
+    #t3 = globalClock.getRealTime()
+    #del focusPoint
+    #del pixelPos
+    #print "I: GeoMipTerrainNodeWrapper.cameraFocusUpdate:", focusPoint, t2-t1, t3-t2
   
   def getHeight(self, playerPos):
     ''' get elevation of the terrain at the given position
@@ -146,7 +166,8 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
   
   def updateHighlightModel(self):
     ''' update the wireframe model of the heightfield '''
-    if self.isEditmodeStarted():
+    if self.isEditmodeStarted() and GEOMIPTERRAIN_USE_HIGHLIGHTMODEL:
+      print "I: GeoMipTerrainNodeWrapper.updateHighlightModel:"
       if self.highlightModel is not None:
         self.highlightModel.removeNode()
       self.highlightModel = self.terrain.getRoot().copyTo(self.getNodepath())

@@ -105,10 +105,11 @@ class NodePathWrapper(BaseWrapper):
       # the path to the model we handle
       self.modelFilepath = modelFilepath
       
-#      print "I: NodePathWrapper.setModel:", filepath
-      # load the model
-      self.model = loader.loadModel(filepath)
-      #self.update()
+      try:
+        # load the model
+        self.model = loader.loadModel(filepath)
+      except:
+        self.model = None
       
       if self.isEditmodeEnabled():
         self.enableSubNodes()
