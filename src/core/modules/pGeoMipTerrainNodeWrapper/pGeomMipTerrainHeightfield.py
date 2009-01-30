@@ -115,6 +115,8 @@ class GeoMipTerrainHeightfield(TreeNode):
     
     self.possibleChildren = []
     self.possibleFunctions = ['save']
+    
+    self.lastUpdateTime = 0
   
   def getShaderColor(self):
     return self.shaderColor
@@ -171,7 +173,6 @@ class GeoMipTerrainHeightfield(TreeNode):
         # hide the original terrain
         self.geoMipTerrain.terrain.getRoot().hide()
       
-      self.lastUpdateTime = 0
       taskMgr.add(self.updateTask, 'geoMipUpdateTask')
   
   def updateTask(self, task):

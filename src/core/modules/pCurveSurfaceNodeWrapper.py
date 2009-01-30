@@ -338,14 +338,8 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
           uvY = yi/float(self.profileDetail-1) * self.vTexScale
           uv = Point2D(uvX, uvY)
           
-          # not yet correct
-          #normal = Vec3D(0,0,1)
-          #tangent = -Vec3D(0,0,1)
-          #binormal = -Vec3D(0,0,1)
-          #print uv
-          
           eggVtxUv = EggVertexUV('a', uv)
-          # not needed to define the tangent and binormal
+          # not needed to define the tangent and binormal, will calculated automatically
           #eggVtxUv.setTangent(tangent)
           #eggVtxUv.setBinormal(binormal)
           #eggVtxUv.setUv(uv)
@@ -356,9 +350,6 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
           eggVtx = EggVertex()
           eggVtx.setPos(vtxPoint)
           eggVtx.setNormal(vtxNormal)
-          #eggVtx.setTangent(tangent)
-          #eggVtx.setBinormal(binormal)
-          #eggVtx.setUv(uv)
           
           eggVtx.setUvObj(eggVtxUv)
           
@@ -380,7 +371,6 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
       tex1.setMagfilter( EggTexture.FTLinearMipmapLinear )
       tex1.setMinfilter( EggTexture.FTNearestMipmapLinear )
       tex1.setUvName('a')
-      #eggGroup.addChild(tex)
       
       texBase = 'normal'
       texFn = 'examples/water-render/0001.png'
@@ -421,12 +411,6 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
       # --- calc done ---
       
       eggGroup.recomputeTangentBinormalAuto()
-      #raise()
-      
-      #print "saving egg"
-      #data.writeEgg(Filename('test.egg'))
-      
-      #print data
       
       # To load the egg file and render it immediately, use this:
       self.mdl = NodePath(loadEggData(data))
@@ -439,7 +423,6 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
         taskName = 'surfaceTextureTask'+str(hash(self))
         
         taskMgr.remove(taskName) #'surfaceTextureTask'+str(self.__module__.__hash__()))
-        print "removing texture animation task", taskName #'surfaceTextureTask'+str(self.__module__.__hash__())
         
         #self.diffuseTextureStage = self.mdl.findTextureStage('diffuse')
         self.normalTextureStage = self.mdl.findTextureStage('normal')
@@ -450,7 +433,6 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
           self.normalTextures.append(waterNormalTex)
         #self.waterDiffuseTexture = loader.loadTexture('examples/water.png')
         taskMgr.add(self.textureTask, taskName) #'surfaceTextureTask'+str(self.__module__.__hash__()))
-        print "starting texture animation task", taskName #, 'surfaceTextureTask'+str(hash(self)) #self.__module__.__hash__())
   
   """def updataUsingCurves(self):
     ''' override the curveRendering
