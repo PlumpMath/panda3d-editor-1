@@ -33,6 +33,18 @@ TexturePainter_PaintMode_Enum = Enum(
   ReadColor = TEXTUREPAINTER_FUNCTION_READ,
 )
 
+def createOffscreenBuffer(sort, xsize, ysize):
+  winprops = WindowProperties.size(xsize,ysize)
+  props = FrameBufferProperties()
+  props.setRgbColor(1)
+  props.setAlphaBits(1)
+  props.setDepthBits(1)
+  return base.graphicsEngine.makeOutput(
+      base.pipe, "offscreenBuffer",
+      sort, props, winprops,
+      GraphicsPipe.BFRefuseWindow,
+      base.win.getGsg(), base.win) 
+
 def createPickingImage(size):
   ''' create a picking image with uniq colors for each point in the image
   '''
@@ -61,6 +73,54 @@ TEXTURE_PAINTER_STATUS_INITIALIZED = 2
 TEXTURE_PAINTER_STATUS_RUNNING = 3
 
 
+COLOR_PICKER_SHADER = '''//Cg
+  
+  void vshader(
+      uniform float4x4 mat_modelproj,
+      in float4 vtx_position : POSITION,
+      in float2 vtx_texcoord0 : TEXCOORD0,
+      out float2 l_my : TEXCOORD0,
+      out float4 l_position : POSITION)
+  {
+      l_position = mul(mat_modelproj, vtx_position);
+      l_my = vtx_texcoord0;
+  }
+  
+  void fshader(
+      uniform sampler2D k_paintmap,
+      uniform float4 k_mousepos,
+      out float4 o_color : COLOR)
+  {
+      o_color = tex2D(k_paintmap, float2(k_mousepos.r, k_mousepos.g));
+  }
+  '''
+
+MODEL_COLOR_SHADER = '''//Cg
+  
+  void vshader(
+      uniform float4x4 mat_modelproj,
+      in float4 vtx_position : POSITION,
+      in float2 vtx_texcoord0 : TEXCOORD0,
+      out float2 l_my : TEXCOORD0,
+      out float4 l_position : POSITION)
+  {
+      l_position = mul(mat_modelproj, vtx_position);
+      l_my = vtx_texcoord0;
+  }
+  
+  void fshader(
+      uniform float4 k_texsize,
+      in float2 l_my : TEXCOORD0,
+      out float4 o_color : COLOR)
+  {
+      int x = int((k_texsize.r) * l_my.x);
+      int y = int(k_texsize.g)-int((k_texsize.g) * l_my.y);
+      float r = float((x%256)/float(255));
+      float g = float((y%256)/float(255));
+      float b = float( (int(x/256) + int(y/256) * 16) / float(255) );
+      o_color = float4(r, g, b, 1);
+  }
+  '''
 
 class TexturePainter(DirectObject):
   def __init__(self):
@@ -69,20 +129,13 @@ class TexturePainter(DirectObject):
     
     self.texturePainterStatus = TEXTURE_PAINTER_STATUS_DISABLED
     
-    '''self.paintModel = None
-    
-    self.enabled = False
-    self.paintModelSetup = False
-    self.buffer = None
-    self.backcam = None
-    
-    self.initialized = False'''
-    
     self.paintColor = VBase4D(1,1,1,1)
     self.paintSize = 10
     self.paintEffect = PNMBrush.BEBlend
     self.paintSmooth = True
     self.paintMode = TEXTUREPAINTER_FUNCTION_PAINT_POINT
+    
+    self.painter = None
   
   # --- creation and destroying of the whole editor ---
   def enableEditor(self):
@@ -151,7 +204,8 @@ class TexturePainter(DirectObject):
     self.paintSmooth = smooth
     if effect in [PNMBrush.BESet, PNMBrush.BEBlend, PNMBrush.BEDarken, PNMBrush.BELighten]:
       self.brush = PNMBrush.makeSpot(color, size, smooth, effect)
-      if self.paintModel:
+      #if self.paintModel:
+      if self.painter:
         self.painter.setPen(self.brush)
   
   def getBrushSettings(self):
@@ -172,24 +226,13 @@ class TexturePainter(DirectObject):
   def __enableEditor(self):
     ''' create the background rendering etc., but the model is not yet defined '''
     print "I: TexturePainter.__enableEditor"
-    # setup an offscreen buffer for the colour index
-    self.pickLayer = PNMImage()
-    self.pickTex = Texture()
-    
-    self.backgroundRender = NodePath("backgroundRender")
-    self.backgroundRender.setLightOff(10000)
-    self.backgroundRender.setFogOff(10000)
-    self.backgroundRender.setTextureOff(10000)
-    self.backgroundRender.setShaderOff(10000)
-    self.backgroundRender.setColorScaleOff(10000)
-    self.backgroundRender.setColorOff(10000)
-    '''self.backgroundRender.setShaderOff(10000)
-    self.backgroundRender.setTextureOff(10000)
-    self.backgroundRender.setLightOff(10000)
-    self.backgroundRender.setFogOff(10000)'''
-    
-    self.buffer = None
-    self.backcam = None
+    # the buffer the model with the color texture is rendered into
+    self.modelColorBuffer = None
+    self.modelColorCam = None
+    # the buffer the picked position color is rendered into
+    self.colorPickerBuffer = None
+    self.colorPickerCam = None
+    # create the buffers
     self.__createBuffer()
     
     # when the window is resized, the background buffer etc must be updated.
@@ -207,8 +250,34 @@ class TexturePainter(DirectObject):
     # ignore window-event and debug
     self.ignoreAll()
   
+  def __windowEvent(self, win=None):
+    ''' when the editor is enabled, update the buffers etc. when the window
+    is resized '''
+    print "I: TexturePainter.windowEvent"
+    #if self.texturePainterStatus != TEXTURE_PAINTER_STATUS_DISABLED:
+    if self.modelColorBuffer:
+      if WindowManager.activeWindow:
+        # on window resize there seems to be never a active window
+        win = WindowManager.activeWindow.win
+      else:
+        win = base.win
+      #if self.modelColorBuffer.getXSize() != win.getXSize() or self.modelColorBuffer.getYSize() != win.getYSize():
+        '''print "  - window resized",\
+            self.modelColorBuffer.getXSize(),\
+            win.getXSize(),\
+            self.modelColorBuffer.getYSize(),\
+            win.getYSize()'''
+      # if the buffer size doesnt match the window size (window has been resized)
+      self.__destroyBuffer()
+      self.__createBuffer()
+      self.__updateModel()
+    else:
+      print "W: TexturePainter.__windowEvent: no buffer"
+      self.__createBuffer()
+  
   def __createBuffer(self):
     ''' create the buffer we render in the background into '''
+    print "I: TexturePainter.__createBuffer"
     # the window has been modified
     if WindowManager.activeWindow:
       # on window resize there seems to be never a active window
@@ -216,47 +285,64 @@ class TexturePainter(DirectObject):
     else:
       win = base.win
     
-    # Create the buffer
-    self.buffer = win.makeTextureBuffer("pickBuffer", win.getXSize(), win.getYSize())
-    self.buffer.addRenderTexture(self.pickTex, GraphicsOutput.RTMCopyRam)
-    # Create the camera again
-    self.backcam = base.makeCamera(self.buffer, sort = -10)
-    self.backcam.node().setScene(self.backgroundRender)
-    self.backcam.reparentTo(self.backgroundRender)
-    '''else:
-      print "W: TexturePainter.__createBuffer: no win"'''
+    # get the window size
+    self.windowSizeX = win.getXSize()
+    self.windowSizeY = win.getYSize()
+    
+    # create a buffer in which we render the model using a shader
+    self.paintMap = Texture()
+    self.modelColorBuffer = createOffscreenBuffer(-3, self.windowSizeX, self.windowSizeY)
+    self.modelColorBuffer.addRenderTexture(self.paintMap, GraphicsOutput.RTMBindOrCopy, GraphicsOutput.RTPColor)
+    self.modelColorCam = base.makeCamera(self.modelColorBuffer, lens=base.cam.node().getLens(), sort=1)
+    
+    # Create a small buffer for the shader program that will fetch the point from the texture made
+    # by the self.modelColorBuffer
+    self.colorPickerImage = PNMImage()
+    self.colorPickerTex = Texture()
+    self.colorPickerBuffer = base.win.makeTextureBuffer("color picker buffer", 2, 2, self.colorPickerTex, True)
+    
+    self.colorPickerScene = NodePath('color picker scene')
+    
+    self.colorPickerCam = base.makeCamera(self.colorPickerBuffer, lens=base.cam.node().getLens(), sort=2)
+    self.colorPickerCam.reparentTo(self.colorPickerScene)
+    self.colorPickerCam.setY(-2)
+    
+    cm = CardMaker('color picker scene card')
+    cm.setFrameFullscreenQuad()
+    pickerCard = self.colorPickerScene.attachNewNode(cm.generate())
+    
+    loadPicker = NodePath(PandaNode('pointnode'))
+    loadPicker.setShader(Shader.make(COLOR_PICKER_SHADER), 10001)
+    
+    # Feed the paintmap from the paintBuffer to the shader and initial mouse positions
+    self.colorPickerScene.setShaderInput('paintmap', self.paintMap)
+    self.colorPickerScene.setShaderInput('mousepos', 0, 0, 0, 1)
+    self.colorPickerCam.node().setInitialState(loadPicker.getState())
   
   def __destroyBuffer(self):
-    print "I: TexturePainter.__destroyBuffer:", self.buffer
-    if self.buffer:
+    print "I: TexturePainter.__destroyBuffer"
+    if self.modelColorBuffer:
+      
       # Destroy the buffer
-      base.graphicsEngine.removeWindow(self.buffer)
-      self.buffer = None
+      base.graphicsEngine.removeWindow(self.modelColorBuffer)
+      self.modelColorBuffer = None
       # Remove the camera
-      self.backcam.removeNode()
-      del self.backcam
-      self.backcam = None
-  
-  def __windowEvent(self, win=None):
-    ''' when the editor is enabled, update the buffers etc. when the window
-    is resized '''
-    print "I: TexturePainter.windowEvent"
-    #if self.texturePainterStatus != TEXTURE_PAINTER_STATUS_DISABLED:
-    if self.buffer:
-      if WindowManager.activeWindow:
-        # on window resize there seems to be never a active window
-        win = WindowManager.activeWindow.win
-      else:
-        win = base.win
-      if self.buffer.getXSize() != win.getXSize() or self.buffer.getXSize() != win.getYSize():
-        # if the buffer size doesnt match the window size (window has been resized)
-        self.__destroyBuffer()
-        self.__createBuffer()
-    else:
-      print "W: TexturePainter.__windowEvent: no buffer"
-      self.__createBuffer()
-  
-  
+      self.modelColorCam.removeNode()
+      del self.modelColorCam
+      
+      
+      self.colorPickerScene.removeNode()
+      del self.colorPickerScene
+      # remove cam
+      self.colorPickerCam.removeNode()
+      del self.colorPickerCam
+      # Destroy the buffer
+      base.graphicsEngine.removeWindow(self.colorPickerBuffer)
+      self.colorPickerBuffer = None
+      
+      del self.colorPickerTex
+      del self.colorPickerImage
+      
   
   def __startEditor(self, editModel, editTexture):
     #print "I: TexturePainter.__startEditor:", editModel, editTexture
@@ -269,20 +355,17 @@ class TexturePainter(DirectObject):
     self.editImage = None
     
     if type(self.editTexture) == Texture:
-      #print "  - is texture"
       # if the image to modify is a texture, create a pnmImage which we modify
       self.editImage = PNMImage()
       # copy the image from the texture to the working layer
       self.editTexture.store(self.editImage)
     else:
-      #print "  - is image"
       self.editImage = self.editTexture
     
-    #print "  -", self.editImage
+    # create the brush for painting
     self.painter = PNMPainter(self.editImage)
-    self.brush = PNMBrush.makeSpot(VBase4D(1, 0, 0, 1), 7, True, PNMBrush.BEBlend)
+    self.setBrushSettings( *self.getBrushSettings() )
     
-    self.paintModel = None
     self.__updateModel()
     
     self.__startEdit()
@@ -297,49 +380,31 @@ class TexturePainter(DirectObject):
     self.editTexture = None
     self.painter = None
     self.brush = None
+    
+    self.editModel.show()
   
   def __updateModel(self): #, overlayTexture=None):
-    #print "I: TexturePainter.__updateModel", self.editModel
     if self.editModel:
       # create a image with the same size of the texture
       textureSize = (self.editTexture.getXSize(), self.editTexture.getYSize())
-      createPickingImage( textureSize )
       
-      # instance the model
-      if self.paintModel:
-        self.paintModel.removeNode()
-      self.paintModel = self.editModel.copyTo(self.backgroundRender)
-      # the backgroundRender should disable all shaders etc.
-      self.paintModel.setLightOff(10000)
-      self.paintModel.setFogOff(10000)
-      self.paintModel.setTextureOff(10000)
-      self.paintModel.setShaderOff(10000)
-      self.paintModel.setColorScaleOff(10000)
-      self.paintModel.setColorOff(10000)
-      #self.paintModel.clearTexture()
-      #self.paintModel.clearShader()
-      #self.paintModel.setTextureOff(10000)
-      # tex stage for picking texture
-      colorTextureStage = TextureStage("color")
-      colorTextureStage.setSort(1) # the color texture is on sort 1
-      # load picking texture
-      tex = loader.loadTexture("textures/index-%i-%i.png" % (textureSize[0], textureSize[1]))
-      tex.setMinfilter(Texture.FTNearest)
-      tex.setMagfilter(Texture.FTNearest)
-      tex.setWrapU(Texture.WMMirror)
-      tex.setWrapV(Texture.WMMirror)
-      self.paintModel.setTexture(colorTextureStage,tex,10001)
-      self.paintModel.setMat(render, self.editModel.getMat(render))
+      # create a dummy node, where we setup the parameters for the background rendering
+      loadPaintNode = NodePath(PandaNode('paintnode'))
+      loadPaintNode.setShader(Shader.make(MODEL_COLOR_SHADER), 10001)
+      loadPaintNode.setShaderInput('texsize', textureSize[0], textureSize[1], 0, 0)
       
-      # define a second texture (may be needed for shaders)
-      if False:
-        if overlayTexture:
-          heightTextureStage = TextureStage("height")
-          heightTextureStage.setSort(2) # the color texture is on sort 1
-          self.paintModel.setTexture(heightTextureStage,overlayTexture,10001)
+      # copy the state onto the camera
+      self.modelColorCam.node().setInitialState(loadPaintNode.getState())
+      
+      # try to hide all models
+      #self.modelColorCam.node().setCameraMask(BitMask32.bit(1)) #,BitMask32.allOn(),BitMask32.allOn())
+      self.modelColorCam.node().adjustDrawMask(BitMask32.allOff(),BitMask32.allOn(),BitMask32.allOff())
+      
+      self.editModel.show(BitMask32.bit(1))
   
   # --- modification of the textures ---
   def __startEdit(self):
+    print "I: TexturePainter.__startEdit"
     messenger.send(EVENT_TEXTUREPAINTER_STARTEDIT)
     # start paint events
     self.accept("mouse1", self.__startPaint)
@@ -356,77 +421,84 @@ class TexturePainter(DirectObject):
     self.accept("control-alt-mouse1-up", self.__stopPaint)
     self.accept("shift-control-mouse1-up", self.__stopPaint)
     self.accept("shift-control-alt-mouse1-up", self.__stopPaint)
+    
+    self.modelColorCam.node().copyLens(WindowManager.activeWindow.camera.node().getLens())
+    taskMgr.add(self.__paintTask, 'paintTask')
+    
+    self.isPainting = False
   
   def __stopEdit(self):
+    print "I: TexturePainter.__stopEdit"
     messenger.send(EVENT_TEXTUREPAINTER_STOPEDIT)
     self.ignore("mouse1")
     self.ignore("mouse1-up")
+    
+    taskMgr.remove('paintTask')
   
   # --- start the paint tasks ---
   def __startPaint(self):
-    self.backcam.node().copyLens(WindowManager.activeWindow.camera.node().getLens())
-    self.paintFunction = TEXTUREPAINTER_FUNCTION_PAINT_POINT
-    
-    # the modification task, which reads the mousepos and modifies the image
-    taskMgr.add(self.__paintTask, 'paintTask')
-    
-    if type(self.editTexture) == Texture:
-      # if the image to modify is a texture, start a task up update the image
-      taskMgr.doMethodLater(1.0/30, self.__textureUpdateTask, 'textureUpdateTask')
+    self.isPainting = True
   
   def __stopPaint(self):
-    taskMgr.remove('paintTask')
-    taskMgr.remove('textureUpdateTask')
+    self.isPainting = False
   
   # --- modification tasks ---
-  def __textureUpdateTask(self, task):
+  def __textureUpdateTask(self, task=None):
     ''' modify the texture using the edited image
     '''
     self.editTexture.load(self.editImage)
-    return task.again
+    
+    if task: # task may be None
+      return task.again
   
   def __paintTask(self, task):
+    #print "I: TexturePainter.__paintTask:"
+    
     if not WindowManager.activeWindow or not WindowManager.activeWindow.mouseWatcherNode.hasMouse():
-      return
+      '''print "  - abort:", WindowManager.activeWindow
+      if WindowManager.activeWindow:
+        print "  - mouse:", WindowManager.activeWindow.mouseWatcherNode.hasMouse()'''
+      return task.cont
     
-    if not self.paintModel:
-      print "E: TexturePainter.paintTask: no paintModel"
-      return
+    
     # update the camera according to the active camera
-    self.backcam.setMat(render, WindowManager.activeWindow.camera.getMat(render))
-    # update the mat of the model we currently paint on
-    self.paintModel.setMat(render, self.editModel.getMat(render))
-    # save the rendering as texture
-    #base.graphicsEngine.renderFrame() # not needed anymore
-    try:
-      self.pickTex.store(self.pickLayer)
-    except:
-      print "E: TexturePainter.paintTask: cannot store pickTex"
-      return
+    self.modelColorCam.setMat(render, WindowManager.activeWindow.camera.getMat(render))
     
-    # get window size
-    win = WindowManager.activeWindow.win
-    self.windowSize = win.getXSize(), win.getYSize()
+    mpos = base.mouseWatcherNode.getMouse()
+    x_ratio = min( max( ((mpos.getX()+1)/2), 0), 1)
+    y_ratio = min( max( ((mpos.getY()+1)/2), 0), 1)
+    mx = int(x_ratio*self.windowSizeX)
+    my = self.windowSizeY - int(y_ratio*self.windowSizeY)
     
-    # convert mouse coordinates to image coordinates
-    mx, my = mouseHandler.getMousePos()
-    mx = int(((mx+1)/2)*self.windowSize[0])
-    my = self.windowSize[1] - int(((my+1)/2)*self.windowSize[1])
+    self.colorPickerScene.setShaderInput('mousepos', x_ratio, y_ratio, 0, 1)
     
-    # get the color below the mousepick from the rendered frame
-    r = self.pickLayer.getRedVal(mx,my)
-    g = self.pickLayer.getGreenVal(mx,my)
-    b = self.pickLayer.getBlueVal(mx,my)
-    # calculate uv-texture position from the color
-    x = r + ((b%16)*256)
-    y = g + ((b//16)*256)
-    
-    self.__paintPixel(x,y)
+    if self.colorPickerTex.hasRamImage():
+      self.colorPickerTex.store(self.colorPickerImage)
+   
+      # get the color below the mousepick from the rendered frame
+      r = self.colorPickerImage.getRedVal(0,0)
+      g = self.colorPickerImage.getGreenVal(0,0)
+      b = self.colorPickerImage.getBlueVal(0,0)
+      # calculate uv-texture position from the color
+      x = r + ((b%16)*256)
+      y = g + ((b//16)*256)
+      
+      if self.isPainting:
+        
+        self.__paintPixel(x,y)
+        
+        self.__textureUpdateTask()
+    else:
+      # this might happen if no frame has been rendered yet since creation of the texture
+      print "W: TexturePainter.__paintTask: colorPickerTex.hasRamMipmapImage() =", self.colorPickerTex.hasRamImage()
     
     return task.cont
   
   def __paintPixel(self, x, y):
     ''' paint at x/y with the defined settings '''
+    
+    #print "I: TexturePainter.__paintPixel:", x, y
+    
     if x > self.editImage.getXSize() or y > self.editImage.getYSize():
       pass
     else:
