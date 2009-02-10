@@ -116,7 +116,7 @@ class BaseWrapper(DirectObject):
           #yPos -= 0.05
           
           # --- ELEMENTS ---
-          paramType, _getFunc, _setFunc, _hasFunc, _clearFunc = self.mutableParameters[paramName]
+          paramType, _getFunc, _setFunc, _hasFunc, _clearFunc, _saveVar = self.mutableParameters[paramName]
           
           # --- edit interface using a normal entry ---
           if paramType  in [str, float, int, Vec4, Vec3, Vec2, Point4, Point3, Point2, list, tuple]:
@@ -381,8 +381,10 @@ class BaseWrapper(DirectObject):
     if self.buttonsWindow:
       for paramName, paramEntry in self.parameterEntries.items():
         if paramName in self.mutableParameters:
-          paramType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[paramName]
-          if paramType == 'str' or paramType == 'float' or paramType == 'int':
+          varType, getFunc, setFunc, hasFunc, clearFunc, saveVar = self.mutableParameters[paramName]
+          if varType == 'str' or varType == 'float' or varType == 'int':
+            # XXX TODO: this doesnt work, does it?
+            print "I: dgui.BaseWrapper.destroyEditWindow: i think this can be removed"
             if paramEntry:
               paramEntry.removeNode()
               paramEntry.detachNode()
@@ -400,7 +402,7 @@ class BaseWrapper(DirectObject):
       if self.parameterEntries.has_key(paramName):
         if len(args) > 0:
           paramValue = args[0]
-        paramType, _getFunc, _setFunc, _hasFunc, _clearFunc = self.mutableParameters[paramName]
+        paramType, _getFunc, _setFunc, _hasFunc, _clearFunc, _saveVar = self.mutableParameters[paramName]
         currentValue = self.object.getParameter(paramName)
         try:
           if paramType in [str, float, int]:
@@ -465,7 +467,7 @@ class BaseWrapper(DirectObject):
       objectParameters = self.object.getParameters()
       for paramName in self.parameterEntries:
         if paramName in self.mutableParameters:
-          [paramType, _getFunc, _setFunc, _hasFunc, _clearFunc] = self.mutableParameters[paramName]
+          [paramType, _getFunc, _setFunc, _hasFunc, _clearFunc, _saveVar] = self.mutableParameters[paramName]
           if paramName in objectParameters:
             if self.parameterEntries[paramName]:
               currentValue = objectParameters[paramName]

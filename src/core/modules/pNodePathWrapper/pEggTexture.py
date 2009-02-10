@@ -1,8 +1,11 @@
+import posixpath
+
 from pandac.PandaModules import *
 
 from core.pTexturePainter import texturePainter
 from core.pConfigDefs import * # imports Enum
 from core.modules.pNodePathWrapper.pEggBase import *
+from core.pCommonPath import relpath
 
 class TextureLayer:
   ''' a texturelayer consists of a texture and a stage
@@ -275,13 +278,14 @@ class ObjectEggTexture(ObjectEggBase):
   def __init__(self, parent, modelWrapper, eggTexture):
     ObjectEggBase.__init__(self, parent, modelWrapper, 'EggTexture')
     self.eggTexture = eggTexture
-    self.possibleFunctions = ['save']
+    self.possibleFunctions = ['save', 'saveAs', 'revert']
     
     self.mutableParameters['texture filename'] = [ P3Filepath,
-      self.eggTexture.getFilename,
-      self.eggTexture.setFilename,
-      None,
-      None ]
+        self.eggTexture.getFilename,
+        self.setTexture,
+        None,
+        None,
+        False ]
     
     '''self.mutableParameters['combine mode'] = [ EggTexture_CombineMode_Enum,
       self.eggTexture.getCombineMode,
@@ -289,38 +293,56 @@ class ObjectEggTexture(ObjectEggBase):
       None,
       None ]'''
     self.mutableParameters['env type'] = [ EggTexture_EnvType_Enum,
-      self.eggTexture.getEnvType,
-      self.eggTexture.setEnvType,
-      None,
-      None ]
+        self.eggTexture.getEnvType,
+        self.eggTexture.setEnvType,
+        None,
+        None,
+        False ]
     self.mutableParameters['u wrap mode'] = [ EggTexture_WrapMode_Enum,
-      self.eggTexture.getWrapU,
-      self.eggTexture.setWrapU,
-      None,
-      None ]
+        self.eggTexture.getWrapU,
+        self.eggTexture.setWrapU,
+        None,
+        None,
+        False ]
     self.mutableParameters['v wrap mode'] = [ EggTexture_WrapMode_Enum,
-      self.eggTexture.getWrapV,
-      self.eggTexture.setWrapV,
-      None,
-      None ]
+        self.eggTexture.getWrapV,
+        self.eggTexture.setWrapV,
+        None,
+        None,
+        False ]
     self.mutableParameters['w wrap mode'] = [ EggTexture_WrapMode_Enum,
-      self.eggTexture.getWrapW,
-      self.eggTexture.setWrapW,
-      None,
-      None ]
+        self.eggTexture.getWrapW,
+        self.eggTexture.setWrapW,
+        None,
+        None,
+        False ]
     self.mutableParameters['min filter'] = [ EggTexture_Min_FilterType_Enum,
-      self.eggTexture.getMinfilter,
-      self.eggTexture.setMinfilter,
-      None,
-      None ]
+        self.eggTexture.getMinfilter,
+        self.eggTexture.setMinfilter,
+        None,
+        None,
+        False ]
     self.mutableParameters['mag filter'] = [ EggTexture_Mag_FilterType_Enum,
-      self.eggTexture.getMagfilter,
-      self.eggTexture.setMagfilter,
-      None,
-      None ]
+        self.eggTexture.getMagfilter,
+        self.eggTexture.setMagfilter,
+        None,
+        None,
+        False ]
     
     self.editTexture = None
     self.editTextureFilename = None
+  
+  def setTexture(self, filename):
+    assert(type(filename) == Filename)
+    filename = filename.getFullpath()
+    if filename:
+      if filename[0] == '/':
+        relativePath = posixpath.dirname(self.getParentFilepath())
+        filename = relpath(relativePath, posixpath.abspath(filename))
+    print "I: ObjectEggTexture.setTexture:", filename
+    self.eggTexture.setFilename(Filename(filename))
+    # update the visual model
+    self.modelWrapper.updateModelFromEggData()
   
   def destroy(self):
     print "I: ObjectEggTexture.destroy"
@@ -364,8 +386,9 @@ class ObjectEggTexture(ObjectEggBase):
         #texturePainter.selectPaintModel()
         self.editTexture = editTexture
         self.editTextureFilename = tex.texture.getFullpath()
-        texturePainter.enableEditor(self.modelWrapper.model, editTexture)
-        texturePainter.startEdit()
+        texturePainter.enableEditor()
+        texturePainter.startEditor(self.modelWrapper.model, editTexture)
+        #texturePainter.startEdit()
       else:
         print "I: ObjectEggTexture.startEdit: texture not found", eggTextureFilename
         print "  - fullpath", [tex.texture.getFullpath() for tex in modelTextureLayers]
@@ -376,16 +399,20 @@ class ObjectEggTexture(ObjectEggBase):
   def stopEdit(self):
     if ObjectEggBase.isEditmodeEnabled(self):
       ObjectEggBase.stopEdit(self)
-      texturePainter.stopEdit()
+      texturePainter.stopEditor()
       texturePainter.disableEditor()
     else:
       print "W: ObjectEggTexture.stopEdit: editmode not enabled"
   
+  def revert(self):
+    self.setTexture(self.editTextureFilename)
+  
   def save(self):
+    self.saveAs(self.editTextureFilename)
+  
+  def saveAs(self, filename):
+    print "I: ObjectEggTexture.saveAs:", filename
     if self.editTexture:
       saveTex = PNMImage()
       self.editTexture.store(saveTex)
-      savePath = self.editTextureFilename #posixpath.join(self.relativePath, self.tex1Path)
-      print "I: ObjectEggTexture.save:", savePath
-      saveTex.write(Filename(savePath))
-
+      saveTex.write(Filename(filename))

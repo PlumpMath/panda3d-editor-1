@@ -319,7 +319,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
   def enablePaint(self):
     self.paint.Value = True
     modelController.disableEditmode(deselect = False)
-    texturePainter.enableEditor(self.object, self.selection.tex)
+    texturePainter.startEditor(self.object, self.selection.tex)
     #texturePainter.selectPaintModel()
     texturePainter.startEdit()
     self.updatePreview()
@@ -362,7 +362,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
       if layer == None:
         self.disablePaint()
       else:
-        texturePainter.stopEdit()
+        texturePainter.stopEditor()
         self.onPaint()
     # Update the controls.
     if layer == None:

@@ -14,7 +14,7 @@ from core.pConfigDefs import *
 
 DEBUG = False
 
-GEOMIPTERRAIN_USE_HIGHLIGHTMODEL = True
+GEOMIPTERRAIN_USE_HIGHLIGHTMODEL = False
 
 class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
   className = 'GeoMipTerrain'
@@ -31,45 +31,61 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
   
   def __init__(self, parent=None, name=None):
     BaseWrapper.__init__(self, parent, name)
+    # the actual geomipterrainheightfield
     self.terrain = GeoMipTerrain("GeoMipTerrainNodeWrapper")
     
     # model used to show highlighting of this node
     self.highlightModel = None
     
+    # node which we use to paint the heightfield
+    self.geoMipTerrainHeightfield = None
+    
     self.mutableParameters['minlevel'] = [ int,
-      self.terrain.getMinLevel,
-      self.terrain.setMinLevel,
-      None,
-      None ]
+        self.terrain.getMinLevel,
+        self.terrain.setMinLevel,
+        None,
+        None,
+        True ]
     self.mutableParameters['bruteforce'] = [ bool,
-      self.terrain.getBruteforce,
-      self.terrain.setBruteforce,
-      None,
-      None ]
+        self.terrain.getBruteforce,
+        self.terrain.setBruteforce,
+        None,
+        None,
+        True ]
     
     # this doesnt work with 1.6 anymore (getFactor missing)
     self.terrainFactor = 1.0
     self.mutableParameters['factor'] = [ float,
-      self.getFactor,
-      self.setFactor,
-      None,
-      None ]
+        self.getFactor,
+        self.setFactor,
+        None,
+        None,
+        True ]
     
     self.mutableParameters['blocksize'] = [ int,
-      self.terrain.getBlockSize,
-      self.terrain.setBlockSize,
-      None,
-      None ]
+        self.terrain.getBlockSize,
+        self.terrain.setBlockSize,
+        None,
+        None,
+        True ]
+    
+    self.mutableParameters['heightfield'] = [ Filepath,
+        self.getHeightfield,
+        self.setHeightfield,
+        None,
+        None,
+        True ]
     
     # defines the maximum update rate of the terrain
     self.maxTerrainUpdateRate = 30
     # stores the last update time
     self.lastTerrainUpdateTime = globalClock.getRealTime()
     self.mutableParameters['update rate'] = [ float,
-      self.getMaxTerrainUpdateRate,
-      self.setMaxTerrainUpdateRate,
-      None,
-      None]
+        self.getMaxTerrainUpdateRate,
+        self.setMaxTerrainUpdateRate,
+        None,
+        None,
+        True ]
   
   def getFactor(self):
     return self.terrainFactor
@@ -129,29 +145,31 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
     ''' update the focus point of the terrain, focusPoint must be relative to render
     update rate is limited by the maxTerrainUpdateRate
     '''
-    ''' # the code that i'd like to use
-    currentTime = globalClock.getRealTime()
-    if (currentTime - self.lastTerrainUpdateTime) > 1./self.maxTerrainUpdateRate:
-      self.lastTerrainUpdateTime = currentTime
-      
+    if True:
+      # the code that i'd like to use
+      currentTime = globalClock.getRealTime()
+      if (currentTime - self.lastTerrainUpdateTime) > 1./self.maxTerrainUpdateRate:
+        self.lastTerrainUpdateTime = currentTime
+        
+        pixelPos = self.getPixelPosScaled(focusPoint)
+        self.terrain.setFocalPoint(pixelPos)
+        
+        changed = self.terrain.update()
+        if changed:
+          self.updateHighlightModel()
+    else:
+      # code to figure out what's slowing down the application
       pixelPos = self.getPixelPosScaled(focusPoint)
+      #t1 = globalClock.getRealTime()
       self.terrain.setFocalPoint(pixelPos)
-      
-      changed = self.terrain.update()
-      if changed:
-        self.updateHighlightModel()'''
-    
-    # code to figure out what's slowing down the application
-    pixelPos = self.getPixelPosScaled(focusPoint)
-    #t1 = globalClock.getRealTime()
-    self.terrain.setFocalPoint(pixelPos)
-    #self.terrain.setFocalPoint(Point2(0.3,0.1))
-    #t2 = globalClock.getRealTime()
-    #self.terrain.update()
-    #t3 = globalClock.getRealTime()
-    #del focusPoint
-    #del pixelPos
-    #print "I: GeoMipTerrainNodeWrapper.cameraFocusUpdate:", focusPoint, t2-t1, t3-t2
+      #self.terrain.setFocalPoint(Point2(0.3,0.1))
+      #t2 = globalClock.getRealTime()
+      self.terrain.update()
+      #self.updateHighlightModel()
+      #t3 = globalClock.getRealTime()
+      #del focusPoint
+      #del pixelPos
+      #print "I: GeoMipTerrainNodeWrapper.cameraFocusUpdate:", focusPoint, t2-t1, t3-t2
   
   def getHeight(self, playerPos):
     ''' get elevation of the terrain at the given position
@@ -180,35 +198,48 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
       self.highlightModel.setColorOff(1000)
       self.highlightModel.setColor(HIGHLIGHT_COLOR[0], HIGHLIGHT_COLOR[1], HIGHLIGHT_COLOR[2], 1000)
   
-  def setTerrain(self, filepath):
+  def setHeightfield(self, filepath):
     ''' define a new heightmap '''
-    parent = self
-    heightfield = filepath
-    node = self
-    self.geoMipTerrainHeightfield = GeoMipTerrainHeightfield(parent, node)
-    self.geoMipTerrainHeightfield.setHeightfield(heightfield)
+    
+    if filepath:
+      # it's a absolute filepath, convert it to a relative
+      if filepath[0] == '/':
+        relativePath = posixpath.dirname(self.getParentFilepath())
+        filepath = relpath(relativePath, posixpath.abspath(filepath))
+    
+    if self.geoMipTerrainHeightfield:
+      self.geoMipTerrainHeightfield.destroy()
+    self.geoMipTerrainHeightfield = GeoMipTerrainHeightfield(parent=self, geoMipTerrain=self)
+    self.geoMipTerrainHeightfield.heightfield = filepath
+    self.geoMipTerrainHeightfield.setEditmodeEnabled()
     self.update()
+  
+  def getHeightfield(self):
+    if self.geoMipTerrainHeightfield:
+      return self.geoMipTerrainHeightfield.heightfield
+    # in case there was no valid heightfield on creation
+    return ''
   
   def update(self):
     ''' update the terrain using the new/modified heighfield '''
-    self.terrain.setHeightfield(Filename(self.geoMipTerrainHeightfield.heightfield))
-    if self.terrain.getRoot() is not None:
-      self.terrain.getRoot().detachNode()
-    #self.terrain.getRoot() = self.terrain.getRoot()
+    print "I: GeoMipTerrainNodeWrapper.update"
+    fullHeightfieldPath = posixpath.join(posixpath.dirname(self.getParentFilepath()), self.geoMipTerrainHeightfield.heightfield)
+    self.terrain.setHeightfield(Filename(fullHeightfieldPath))
+    
+    # destroy a old terrain
+    #if self.terrain.getRoot() is not None:
+    #  self.terrain.getRoot().detachNode()
+    
+    # reparent to our node
     self.terrain.getRoot().reparentTo(self.getNodepath())
+    
+    # scale so it's 100x100 units large and of 10 units height
     hf = self.terrain.heightfield()
-    self.terrain.getRoot().setScale(1./(hf.getXSize()-1)*100, 1./(hf.getYSize()-1)*100, 1.)
-    self.terrain.update()
-  
-  def getSaveData(self, relativeTo):
-    objectInstance = BaseWrapper.getSaveData(self, relativeTo)
-    self.setExternalReference(self.geoMipTerrainHeightfield.heightfield, relativeTo, objectInstance)
-    return objectInstance
-  
-  def loadFromData(self, eggGroup, filepath):
-    extRefFilename = self.getExternalReference(eggGroup, filepath)
-    self.setTerrain(extRefFilename)
-    BaseWrapper.loadFromData(self, eggGroup, filepath)
+    self.terrain.getRoot().setScale(1./(hf.getXSize()-1)*100, 1./(hf.getYSize()-1)*100, 10.)
+    
+    self.terrain.generate()
+    
+    self.updateHighlightModel()
   
   def makeInstance(self, original):
     objectInstance = super(GeoMipTerrainNodeWrapper, self).makeInstance(original)

@@ -28,10 +28,11 @@ class SoundNodeWrapper(VirtualNodeWrapper):
     self.soundFilepath = None
     
     self.mutableParameters['volume']    = [ float,
-      self.getVolume,
-      self.setVolume,
-      None,
-      None ]
+        self.getVolume,
+        self.setVolume,
+        None,
+        None,
+        True ]
     '''self.mutableParameters['loop']      = [ bool,
       self.getLoop,
       self.setLoop,
@@ -43,25 +44,29 @@ class SoundNodeWrapper(VirtualNodeWrapper):
       None,
       None ]'''
     self.mutableParameters['playRate']  = [ float,
-      self.getPlayRate,
-      self.setPlayRate,
-      None,
-      None ]
+        self.getPlayRate,
+        self.setPlayRate,
+        None,
+        None,
+        True ]
     self.mutableParameters['priority']  = [ int,
-      self.getPriority,
-      self.setPriority,
-      None,
-      None ]
+        self.getPriority,
+        self.setPriority,
+        None,
+        None,
+        True ]
     self.mutableParameters['minDistance']  = [ float,
-      self.getSoundMinDistance,
-      self.setSoundMinDistance,
-      None,
-      None ]
+        self.getSoundMinDistance,
+        self.setSoundMinDistance,
+        None,
+        None,
+        True ]
     self.mutableParameters['maxDistance']  = [ float,
-      self.getSoundMaxDistance,
-      self.setSoundMaxDistance,
-      None,
-      None ]
+        self.getSoundMaxDistance,
+        self.setSoundMaxDistance,
+        None,
+        None,
+        True ]
   
   def getVolume(self, *args, **kwargs):
     self.soundEffect.getVolume(*args, **kwargs)

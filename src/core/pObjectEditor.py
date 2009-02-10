@@ -2,8 +2,6 @@ from pandac.PandaModules import *
 
 from modules import *
 
-#import objectEditorModules
-
 class ObjectEditor:
   def __init__(self):
     self.editObject = None
@@ -27,9 +25,6 @@ class ObjectEditor:
   def saveChanges(self):
     if self.editModule:
       self.editModule.getEggData()
-  
-  #def disableEditor(self):
-  #  self.editObject.stopEdit()
   
   def getTextureLayers(self):
     if self.editObject:

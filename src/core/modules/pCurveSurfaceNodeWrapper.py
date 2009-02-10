@@ -81,7 +81,8 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
         self.getProfile,
         self.setProfile,
         None,
-        None
+        None,
+        True
       ]
     
     self.profileDetail = 6
@@ -89,14 +90,16 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
         self.getProfileDetail,
         self.setProfileDetail,
         None,
-        None
+        None,
+        True
       ]
     self.surfaceDetail = 6
     self.mutableParameters['surface detail'] = [ int,
         self.getSurfaceDetail,
         self.setSurfaceDetail,
         None,
-        None
+        None,
+        True
       ]
     
     self.surfaceWidth = 1
@@ -104,21 +107,24 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
         self.getSurfaceWidth,
         self.setSurfaceWidth,
         None,
-        None
+        None,
+        True
       ]
     self.uTexScale = 1.0
     self.mutableParameters['uTexScale'] = [ float,
         self.getUTexScale,
         self.setUTexScale,
         None,
-        None
+        None,
+        True
       ]
     self.vTexScale = 1.0
     self.mutableParameters['vTexScale'] = [ float,
         self.getVTexScale,
         self.setVTexScale,
         None,
-        None
+        None,
+        True
       ]
     
     if DEBUG:

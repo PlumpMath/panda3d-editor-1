@@ -3,7 +3,7 @@ import posixpath
 from pandac.PandaModules import *
 
 from core.pTexturePainter import texturePainter, PNMBrush_BrushEffect_Enum
-
+from core.pCommonPath import relpath
 from core.pTreeNode import *
 from core.pConfigDefs import *
 
@@ -46,7 +46,7 @@ SHADER = """//Cg
   """
 COMPILED_SHADER = Shader.make(SHADER)
 
-BACKGROUND_SHADER = """//Cg
+BACKGROUND_SHADER_OLD = """//Cg
   
   void vshader(
           in  varying float4 vtx_position : POSITION,
@@ -83,6 +83,56 @@ BACKGROUND_SHADER = """//Cg
     o_color = tex2D(tex_1, l_texcoord0);
   }
   """
+BACKGROUND_SHADER = """//Cg
+  
+  void vshader(
+          in  varying float4 vtx_position : POSITION,
+          in  varying float2 vtx_texcoord0 : TEXCOORD0,
+          in  varying float3 vtx_normal,
+          in  uniform sampler2D tex_0,
+          in  uniform sampler2D tex_1,
+          in  uniform float4x4 mat_modelproj,
+          in  uniform float4x4 mat_projection,
+          out varying float4 l_position : POSITION,
+          out varying float4 l_bright,
+          out float2 l_texcoord0 : TEXCOORD0
+        )
+  {
+    // vertex height
+    float a = tex2D(tex_1, vtx_texcoord0);
+    vtx_position.z = a;
+    l_position=mul(mat_modelproj, vtx_position);
+    // coloring
+    l_texcoord0 = vtx_texcoord0;
+    
+    // this is somehow required..........
+    //l_bright = tex2D(tex_0, vtx_texcoord0);
+  }
+  
+  void fshader(
+      uniform float4 k_texsize,
+      in float2 l_texcoord0 : TEXCOORD0,
+      out float4 o_color : COLOR)
+  {
+      int x = int((k_texsize.r) * l_texcoord0.x);
+      int y = int(k_texsize.g)-int((k_texsize.g) * l_texcoord0.y);
+      float r = float((x%256)/float(255));
+      float g = float((y%256)/float(255));
+      float b = float( (int(x/256) + int(y/256) * 16) / float(255) );
+      o_color = float4(r, g, b, 1);
+  }
+  
+  /*void fshader(
+          in float4 l_bright,
+          in float2 l_texcoord0 : TEXCOORD0,
+          uniform sampler2D tex_0 : TEXUNIT0,
+          uniform sampler2D tex_1 : TEXUNIT1,
+          in float4 l_position : POSITION,
+          out float4 o_color:COLOR)
+  {
+    o_color = tex2D(tex_1, l_texcoord0);
+  }*/
+  """
 COMPILED_BACKGROUND_SHADER = Shader.make(BACKGROUND_SHADER)
 
 class GeoMipTerrainHeightfield(TreeNode):
@@ -95,26 +145,23 @@ class GeoMipTerrainHeightfield(TreeNode):
     TreeNode.__init__(self, name)
     TreeNode.reparentTo(self, parent)
     
-    self.mutableParameters['heightfield'] = [ Filepath,
-      self.getHeightfield,
-      self.setHeightfield,
-      None,
-      None ]
     self.renderMode = 1
     self.mutableParameters['paint mode (shader)'] = [ int,
-      self.getRenderMode,
-      self.setRenderMode,
-      None,
-      None]
+        self.getRenderMode,
+        self.setRenderMode,
+        None,
+        None,
+        False ] # should not be saved into the parameters, as it's compuer dependant
     self.shaderColor = 8.0
     self.mutableParameters['colorstrength'] = [ float,
-      self.getShaderColor,
-      self.setShaderColor,
-      None,
-      None]
+        self.getShaderColor,
+        self.setShaderColor,
+        None,
+        None,
+        True]
     
     self.possibleChildren = []
-    self.possibleFunctions = ['save']
+    self.possibleFunctions = ['save', 'saveAs']
     
     self.lastUpdateTime = 0
   
@@ -137,8 +184,8 @@ class GeoMipTerrainHeightfield(TreeNode):
       
       if self.renderMode == 0:
         # update terrain height using geoMip.generate
-        texturePainter.enableEditor(self.geoMipTerrain.terrain.getRoot(), self.geoMipTerrain.terrain.heightfield())
-        texturePainter.startEdit()
+        texturePainter.startEditor(self.geoMipTerrain.terrain.getRoot(), self.geoMipTerrain.terrain.heightfield())
+        #texturePainter.startEdit()
       if self.renderMode == 1:
         # backup bruteforce state, and activate it
         self.bruteforceState =self.geoMipTerrain.terrain.getBruteforce()
@@ -163,13 +210,18 @@ class GeoMipTerrainHeightfield(TreeNode):
         self.geoMipTerrainCopy.setShader(COMPILED_SHADER)
         
         # start the texture painter
-        texturePainter.enableEditor(self.geoMipTerrain.terrain.getRoot(), self.paintImage, self.paintTexture)
-        texturePainter.startEdit()
+        #texturePainter.setEditTexture(self.paintImage)
+        #texturePainter.setEditModel(self.geoMipTerrain.terrain.getRoot())
+        texturePainter.enableEditor()
+        texturePainter.startEditor(self.geoMipTerrainCopy, self.geoMipTerrain.terrain.heightfield(), BACKGROUND_SHADER) #, self.paintTexture)
+        #texturePainter.startPaint()
+        heightTextureStage = TextureStage("height")
+        heightTextureStage.setSort(2) # the color texture is on sort 1
+        #texturePainter.backgroundRender.setTexture(heightTextureStage,self.paintTexture,10001)
+        #texturePainter.backgroundRender.setShader(COMPILED_BACKGROUND_SHADER,10001)
+        #texturePainter.paintModel.setTexture(heightTextureStage,self.paintTexture,10001)
+        #texturePainter.paintModel.setShader(COMPILED_BACKGROUND_SHADER,10001)
         
-        # restore bruteforce state
-        self.geoMipTerrain.terrain.setBruteforce(self.bruteforceState)
-        self.geoMipTerrain.terrain.getRoot().clearShader()
-        self.geoMipTerrain.terrain.update()
         # hide the original terrain
         self.geoMipTerrain.terrain.getRoot().hide()
       
@@ -183,10 +235,19 @@ class GeoMipTerrainHeightfield(TreeNode):
           print "I: GeoMipTerrainHeightfield.updateTask: updating terrain", task.time
           self.geoMipTerrain.terrain.update()
       elif self.renderMode == 1:
-        if base.mouseWatcherNode.hasMouse(): # the mouse leaving the window makes shaders crash, maybe this fixes it?
-          texturePainter.paintModel.setShader(COMPILED_BACKGROUND_SHADER)
+        pass
+        '''if base.mouseWatcherNode.hasMouse(): # the mouse leaving the window makes shaders crash, maybe this fixes it?
+          texturePainter.paintModel.setShader(COMPILED_BACKGROUND_SHADER)'''
+        #heightTextureStage = TextureStage("height")
+        #heightTextureStage.setSort(2) # the color texture is on sort 1
+        #texturePainter.paintModel.setTexture(heightTextureStage,self.paintTexture,10001)
+        #texturePainter.paintModel.setShader(COMPILED_BACKGROUND_SHADER,10001)
+        self.paintTexture.load(self.paintImage)
     if self.renderMode == 1:
       self.paintTexture.load(self.geoMipTerrain.terrain.heightfield())
+      '''heightTextureStage = TextureStage("height")
+      heightTextureStage.setSort(2) # the color texture is on sort 1
+      texturePainter.backgroundRender.setTexture(heightTextureStage,self.paintTexture,10001)'''
     return task.cont
   
   def stopEdit(self):
@@ -201,33 +262,34 @@ class GeoMipTerrainHeightfield(TreeNode):
         pass
       elif self.renderMode == 1:
         pass
-      # restore the real terrain
-      self.geoMipTerrainCopy.removeNode()
-      self.geoMipTerrain.terrain.getRoot().show()
       
       # stop painting
-      texturePainter.stopEdit()
+      editedImage = texturePainter.stopEditor()
       texturePainter.disableEditor()
+      
+      print "editedImage", editedImage
+      
+      # restore bruteforce state
+      #self.geoMipTerrain.terrain.colorMap().copyFrom(editedImage)
+      self.geoMipTerrain.terrain.setBruteforce(self.bruteforceState)
+      self.geoMipTerrain.terrain.getRoot().clearShader()
+      #self.geoMipTerrain.terrain.update()
+      # restore the real terrain
+      self.geoMipTerrainCopy.removeNode()
+      # must use generate, update is not recognizing the chagnes
+      self.geoMipTerrain.terrain.generate()
+      self.geoMipTerrain.terrain.getRoot().show()
       
       TreeNode.stopEdit(self)
   
   def save(self):
     # saving the texture
-    print "saving the heightfield to", self.heightfield
+    print "I: GeoMipTerrainHeightfield.save: saving as:", self.heightfield
     self.geoMipTerrain.terrain.heightfield().write(Filename(self.heightfield))
   
-  def getHeightfield(self):
-    return self.heightfield
-  
-  def setHeightfield(self, heightfield):
-    # backup editing
-    editStarted = TreeNode.isEditmodeStarted(self)
-    if editStarted:  self.stopEdit()
-    # change stuff
-    self.heightfield = heightfield
-    self.geoMipTerrain.update()
-    # restore editing
-    if editStarted:  self.startEdit()
+  def saveAs(self, filename):
+    print "I: GeoMipTerrainHeightfield.save: saving as:", self.heightfield
+    self.geoMipTerrain.terrain.heightfield().write(Filename(filename))
   
   def getRenderMode(self):
     return self.renderMode

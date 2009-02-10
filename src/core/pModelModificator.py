@@ -116,7 +116,8 @@ class ModelModificator(DirectObject):
   def __unsetMode(self):
     if self.modelModeNode is not None:
       self.modelModeNode.hide()
-      self.modelModeNode.reparentTo(render)
+      self.modelModeNode.detachNode()
+      #self.modelModeNode.reparentTo(render)
       self.modelModeNode.setCollideMask(BitMask32.allOff())
       self.__relativeModificationTo = None
   

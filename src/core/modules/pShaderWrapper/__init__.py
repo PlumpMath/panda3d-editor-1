@@ -46,100 +46,118 @@ class ShaderWrapper(BaseWrapper):
     # hasFunction == None -> the value should be saved
     #self.mutableParameters = dict()
     self.mutableParameters['mixmap'] = [ Filepath,
-      self.getTex1,
-      self.setTex1,
-      None,
-      self.clearTex1 ]
+        self.getTex1,
+        self.setTex1,
+        None,
+        self.clearTex1,
+        True ]
     
     self.mutableParameters['detailmap1'] = [ Filepath,
-      self.getTex2,
-      self.setTex2,
-      None,
-      self.clearTex2 ]
+        self.getTex2,
+        self.setTex2,
+        None,
+        self.clearTex2,
+        True ]
     self.mutableParameters['tex1scale'] = [ float,
-      self.getTex2Scale,
-      self.setTex2Scale,
-      None,
-      None ]
+        self.getTex2Scale,
+        self.setTex2Scale,
+        None,
+        None,
+        True ]
     self.mutableParameters['tex1 mag filter'] = [ Texture_Mag_FilterType_Enum,
-      self.getTex2MagFiltertype,
-      self.setTex2MagFiltertype,
-      None,
-      None ]
+        self.getTex2MagFiltertype,
+        self.setTex2MagFiltertype,
+        None,
+        None,
+        True ]
     self.mutableParameters['tex1 min filter'] = [ Texture_Min_FilterType_Enum,
-      self.getTex2MinFiltertype,
-      self.setTex2MinFiltertype,
-      None,
-      None ]
+        self.getTex2MinFiltertype,
+        self.setTex2MinFiltertype,
+        None,
+        None,
+        True ]
     
     self.mutableParameters['detailmap2'] = [ Filepath,
-      self.getTex3,
-      self.setTex3,
-      None,
-      self.clearTex3 ]
+        self.getTex3,
+        self.setTex3,
+        None,
+        self.clearTex3,
+        True ]
     self.mutableParameters['tex2scale'] = [ float,
-      self.getTex3Scale,
-      self.setTex3Scale,
-      None,
-      None ]
+        self.getTex3Scale,
+        self.setTex3Scale,
+        None,
+        None,
+        True ]
     self.mutableParameters['tex2 mag filter'] = [ Texture_Mag_FilterType_Enum,
-      self.getTex3MagFiltertype,
-      self.setTex3MagFiltertype,
-      None,
-      None ]
+        self.getTex3MagFiltertype,
+        self.setTex3MagFiltertype,
+        None,
+        None,
+        True ]
     self.mutableParameters['tex2 min filter'] = [ Texture_Min_FilterType_Enum,
-      self.getTex3MinFiltertype,
-      self.setTex3MinFiltertype,
-      None,
-      None ]
+        self.getTex3MinFiltertype,
+        self.setTex3MinFiltertype,
+        None,
+        None,
+        True ]
     
     self.mutableParameters['detailmap3'] = [ Filepath,
-      self.getTex4,
-      self.setTex4,
-      None,
-      self.clearTex4 ]
+        self.getTex4,
+        self.setTex4,
+        None,
+        self.clearTex4,
+        True ]
     self.mutableParameters['tex3scale'] = [ float,
-      self.getTex4Scale,
-      self.setTex4Scale,
-      None,
-      None ]
+        self.getTex4Scale,
+        self.setTex4Scale,
+        None,
+        None,
+        True ]
     self.mutableParameters['tex3 mag filter'] = [ Texture_Mag_FilterType_Enum,
-      self.getTex4MagFiltertype,
-      self.setTex4MagFiltertype,
-      None,
-      None ]
+        self.getTex4MagFiltertype,
+        self.setTex4MagFiltertype,
+        None,
+        None,
+        True ]
     self.mutableParameters['tex3 min filter'] = [ Texture_Min_FilterType_Enum,
-      self.getTex4MinFiltertype,
-      self.setTex4MinFiltertype,
-      None,
-      None ]
+        self.getTex4MinFiltertype,
+        self.setTex4MinFiltertype,
+        None,
+        None,
+        True ]
     
     self.mutableParameters['detailmap4'] = [ Filepath,
-      self.getTex5,
-      self.setTex5,
-      None,
-      self.clearTex4 ]
+        self.getTex5,
+        self.setTex5,
+        None,
+        self.clearTex4,
+        True ]
     self.mutableParameters['tex4scale'] = [ float,
-      self.getTex5Scale,
-      self.setTex5Scale,
-      None,
-      None ]
+        self.getTex5Scale,
+        self.setTex5Scale,
+        None,
+        None,
+        True ]
     self.mutableParameters['tex4 mag filter'] = [ Texture_Mag_FilterType_Enum,
-      self.getTex5MagFiltertype,
-      self.setTex5MagFiltertype,
-      None,
-      None ]
+        self.getTex5MagFiltertype,
+        self.setTex5MagFiltertype,
+        None,
+        None,
+        True ]
     self.mutableParameters['tex4 min filter'] = [ Texture_Min_FilterType_Enum,
-      self.getTex5MinFiltertype,
-      self.setTex5MinFiltertype,
-      None,
-      None ]
+        self.getTex5MinFiltertype,
+        self.setTex5MinFiltertype,
+        None,
+        None,
+        True ]
     
     self.mutableParameters['update'] = [ Trigger,
-      self.getUpdateShader,
-      self.setUpdateShader,
-      None,
-      None ]
+        self.getUpdateShader,
+        self.setUpdateShader,
+        None,
+        None,
+        True ]
     
     self.tex1Path = Filepath('')
     self.tex2Path = Filepath('')
@@ -159,9 +177,9 @@ class ShaderWrapper(BaseWrapper):
     self.tex5MinFilter = Texture.FTNearest
     self.tex5MagFilter = Texture.FTNearest
     
-    self.relativePath = None
+    #self.relativePath = None
     self.shader = None
-    self.paintActive = False
+#    self.paintActive = False
   
   def getUpdateShader(self):
     ''' this is just a dummy because i need a get&setFunc '''
@@ -176,7 +194,7 @@ class ShaderWrapper(BaseWrapper):
     if self.shader is None:
       self.shader = ShaderNode(self.getNodepath())
       
-      if self.relativePath is None:
+      '''if self.relativePath is None:
         # read the filepath of this node
         def recGetParent(treeNode):
           parent = treeNode.getParent()
@@ -187,25 +205,28 @@ class ShaderWrapper(BaseWrapper):
             return treeNode
         topParent = recGetParent(self)
         self.relativePath = topParent.relativePath
-        #print "I: ShaderWrapper.updateShader: updateing relativePath", self.relativePath
+        #print "I: ShaderWrapper.updateShader: updateing relativePath", self.relativePath'''
+      
+      relativePath = posixpath.dirname(self.getParentFilepath())
+      print "I: ShaderWrapper.setUpdateShader: relativePath", relativePath
       
       if self.tex1Path:
-        tex1Path = posixpath.join(self.relativePath, self.tex1Path)
+        tex1Path = posixpath.join(relativePath, self.tex1Path)
         #print "  - tex1", tex1Path
         if self.tex2Path:
-          tex2Path = posixpath.join(self.relativePath, self.tex2Path)
+          tex2Path = posixpath.join(relativePath, self.tex2Path)
           #print "  - tex2", tex2Path, self.tex2Scale
           self.shader.AddAlphaMap(tex2Path, tex1Path, alphamapchannel = "r", texscale = self.tex2Scale)
         if self.tex3Path:
-          tex3Path = posixpath.join(self.relativePath, self.tex3Path)
+          tex3Path = posixpath.join(relativePath, self.tex3Path)
           #print "  - tex3", tex3Path, self.tex3Scale
           self.shader.AddAlphaMap(tex3Path, tex1Path, alphamapchannel = "g", texscale = self.tex3Scale)
         if self.tex4Path:
-          tex4Path = posixpath.join(self.relativePath, self.tex4Path)
+          tex4Path = posixpath.join(relativePath, self.tex4Path)
           #print "  - tex4", tex4Path, self.tex4Scale
           self.shader.AddAlphaMap(tex4Path, tex1Path, alphamapchannel = "b", texscale = self.tex4Scale)
         if self.tex5Path:
-          tex5Path = posixpath.join(self.relativePath, self.tex5Path)
+          tex5Path = posixpath.join(relativePath, self.tex5Path)
           #print "  - tex5", tex5Path, self.tex5Scale
           self.shader.AddAlphaMap(tex5Path, tex1Path, alphamapchannel = "a", texscale = self.tex5Scale)
         self.shader.Initialize()
@@ -241,7 +262,7 @@ class ShaderWrapper(BaseWrapper):
   def loadFromData(self, eggGroup, filepath):
     # read the relative path we load the file from
     #print "I: ShaderWrapper.loadFromData: filepath", filepath
-    self.relativePath = filepath
+    #self.relativePath = filepath
     BaseWrapper.loadFromData(self, eggGroup, filepath)
     self.setUpdateShader()
   
@@ -258,19 +279,21 @@ class ShaderWrapper(BaseWrapper):
         self.startPaint()
   
   def startPaint(self):
-    if not self.paintActive:
-      print "I: ShaderWrapper.startPaint"
-      texPath = posixpath.join(self.relativePath, self.tex1Path)
-      if texPath in self.shader.loadedMaps:
-        self.paintTex = self.shader.loadedMaps[texPath]
-        #texturePainter.startEdit(self.paintTex)
-        success = texturePainter.enableEditor(self.getNodepath(), self.paintTex)
-        if success:
-          texturePainter.startEdit()
-          self.paintActive = True
-      else:
-        print "E: ShaderWrapper.startPaint: unable to start painting, shader not initialized"
-        self.paintActive = False
+#    if not self.paintActive:
+    print "I: ShaderWrapper.startPaint"
+    relativePath = posixpath.dirname(self.getParentFilepath())
+    texPath = posixpath.join(relativePath, self.tex1Path)
+    if texPath in self.shader.loadedMaps:
+      self.paintTex = self.shader.loadedMaps[texPath]
+      #texturePainter.startEdit(self.paintTex)
+      texturePainter.enableEditor()
+      success = texturePainter.startEditor(self.getNodepath(), self.paintTex)
+      if success:
+        texturePainter.startEdit()
+#        self.paintActive = True
+    else:
+      print "E: ShaderWrapper.startPaint: unable to start painting, shader not initialized"
+#      self.paintActive = False
   
   def stopEdit(self):
     # the object is deselected from being edited
@@ -279,17 +302,19 @@ class ShaderWrapper(BaseWrapper):
     messenger.send(EVENT_SCENEPICKER_MODELSELECTION_ENABLE)
   
   def stopPaint(self):
-    if self.paintActive:
-      print "I: ShaderWrapper.stopPaint"
-      texturePainter.stopEdit()
-      texturePainter.disableEditor()
-      self.paintActive = False
+#    if self.paintActive:
+    print "I: ShaderWrapper.stopPaint"
+    texturePainter.stopEditor()
+    texturePainter.disableEditor()
+    #texturePainter.disableEditor()
+#    self.paintActive = False
   
   def save(self):
     # saving the texture
     saveTex = PNMImage()
     self.paintTex.store(saveTex)
-    savePath = posixpath.join(self.relativePath, self.tex1Path)
+    relativePath = posixpath.dirname(self.getParentFilepath())
+    savePath = posixpath.join(relativePath, self.tex1Path)
     print "I: ShaderWrapper.save:", savePath
     saveTex.write(Filename(savePath))
   
@@ -312,7 +337,8 @@ class ShaderWrapper(BaseWrapper):
   def setTex1(self, texPath):
     if texPath:
       if texPath[0] == '/':
-        texPath = relpath(self.relativePath, posixpath.abspath(texPath))
+        relativePath = posixpath.dirname(self.getParentFilepath())
+        texPath = relpath(relativePath, posixpath.abspath(texPath))
     self.tex1Path = Filepath(texPath)
   def getTex1(self):
     return self.tex1Path
@@ -322,7 +348,8 @@ class ShaderWrapper(BaseWrapper):
   def setTex2(self, texPath):
     if texPath:
       if texPath[0] == '/':
-        texPath = relpath(self.relativePath, posixpath.abspath(texPath))
+        relativePath = posixpath.dirname(self.getParentFilepath())
+        texPath = relpath(relativePath, posixpath.abspath(texPath))
     self.tex2Path = Filepath(texPath)
   def getTex2(self):
     return self.tex2Path
@@ -332,7 +359,8 @@ class ShaderWrapper(BaseWrapper):
   def setTex3(self, texPath):
     if texPath:
       if texPath[0] == '/':
-        texPath = relpath(self.relativePath, posixpath.abspath(texPath))
+        relativePath = posixpath.dirname(self.getParentFilepath())
+        texPath = relpath(relativePath, posixpath.abspath(texPath))
     self.tex3Path = Filepath(texPath)
   def getTex3(self):
     return self.tex3Path
@@ -342,7 +370,8 @@ class ShaderWrapper(BaseWrapper):
   def setTex4(self, texPath):
     if texPath:
       if texPath[0] == '/':
-        texPath = relpath(self.relativePath, posixpath.abspath(texPath))
+        relativePath = posixpath.dirname(self.getParentFilepath())
+        texPath = relpath(relativePath, posixpath.abspath(texPath))
     self.tex4Path = Filepath(texPath)
   def getTex4(self):
     return self.tex4Path
@@ -352,7 +381,8 @@ class ShaderWrapper(BaseWrapper):
   def setTex5(self, texPath):
     if texPath:
       if texPath[0] == '/':
-        texPath = relpath(self.relativePath, posixpath.abspath(texPath))
+        relativePath = posixpath.dirname(self.getParentFilepath())
+        texPath = relpath(relativePath, posixpath.abspath(texPath))
     self.tex5Path = Filepath(texPath)
   def getTex5(self):
     return self.tex5Path

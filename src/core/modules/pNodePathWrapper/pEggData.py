@@ -8,18 +8,17 @@ class ObjectEggData(ObjectEggBase):
     ObjectEggBase.__init__(self, parent, modelWrapper, 'EggData')
     self.eggData = eggData
     
-    self.possibleFunctions = ['save']
+    self.setFilepath(self.modelWrapper.modelFilepath)
+    
+    self.possibleFunctions = ['save', 'saveAs']
   
-  def save(self, filepath):
-    print "I: ObjectEggData.save"
-    #if self.editModule:
-    #  print "  - saving"
+  def save(self):
+    #filename = self.modelWrapper.modelFilepath
+    self.saveAs(self.getFilepath())
+  
+  def saveAs(self, filepath):
+    print "I: ObjectEggData.saveAs:", filepath
     self.eggData.writeEgg(Filename(filepath))
-    #  self.editModule.destroy()
-    #  self.editModule = None
-  
-  #def update(self):
-  #  return self.eggData
   
   def destroy(self):
     ObjectEggBase.destroy(self)

@@ -64,12 +64,14 @@ class TreeNode(object):
       self.getName,
       self.setName,
       None,
-      None ]
+      None,
+      False ]
     self.mutableParameters['parent'] = [ TreeNode,
       self.getParent,
       self.reparentTo,
       None,
-      None ]
+      None,
+      False ]
     
     # functions that can be done with this node
     self.possibleFunctions = [
@@ -94,6 +96,12 @@ class TreeNode(object):
     # self.treeNodepath = Nodepath()
   
   def destroy(self):
+    ''' # this should maybe run
+    def recurse(parent):
+      for child in parent.getChildren()[:]: # accessing it directly causes it to miss childrens
+        recurse(child)
+        child.destroy()
+    recurse(self)'''
     self.stopEdit()
     self.setEditmodeDisabled()
     TreeNode.detachNode(self)
@@ -215,7 +223,9 @@ class TreeNode(object):
   ''' the filepath stores where a object is saved to,
   (absolue path including filename and extension)
   this information can be used by child nodes to calculate relative path's
-  for theyr own files '''
+  for theyr own files
+  not all filepaths should be saved as filepath! only if all child nodes should
+  store theyr filenames relative to this filepath it should be defined'''
   def getParentFilepath(self):
     # this gets a ordered list of our parents (upwards)
     parents = self.getRecParents()
@@ -224,6 +234,7 @@ class TreeNode(object):
         return parent.getFilepath()
   
   def setFilepath(self, filepath):
+    assert( type(filepath) == str )
     self.treeFilepath = filepath
   def getFilepath(self):
     return self.treeFilepath
@@ -255,6 +266,9 @@ class TreeNode(object):
     return False
   
   # --- EDIT MODE OF THE OBJECT ---
+  ''' if a object has the editmodeEnabled, it's possible to modify it
+  if it's disabled it means we are in rendering mode only, as few ressources
+  as possible should be used '''
   def setEditmodeEnabled(self):
     # add the editmode flag (or)
     self.editmodeStatus = self.editmodeStatus | EDITMODE_ENABLED
@@ -276,6 +290,13 @@ class TreeNode(object):
   
   
   # --- EDIT STATUS OF THE OBJECT ---
+  ''' when editing is started it means that this object is currently
+  highlighted / selected to be edited in the editor
+  this can be:
+  - painting on a texture
+  - moving a node around
+  - modifying a particle system
+  - etc.'''
   def startEdit(self):
     # the object is selected to be edited
     # creates a directFrame to edit this object
@@ -299,11 +320,17 @@ class TreeNode(object):
   
   # --- PARAMETER LOADING AND SAVING ---
   def getParameter(self, name):
-    varType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[name]
-    # store the parameters
-    if hasFunc != None and not hasFunc():
+    ''' return the requested parameter of this node '''
+    varType, getFunc, setFunc, hasFunc, clearFunc, varSave = self.mutableParameters[name]
+    
+    if (hasFunc != None and not hasFunc()) or getFunc == None:
+      # if the hasfunc is defined, and it's false (the parameter has no value)
+      # or the getFunc is not defined (for example in triggers)
       return None
+    
+    # read the value
     val = getFunc()
+    
     if varType in [Vec4, Point4, VBase4]:
       return (val[0], val[1], val[2], val[3])
     elif varType in [Vec3, Point3, VBase3]:
@@ -319,14 +346,11 @@ class TreeNode(object):
       print "E: core.TreeNode.getParameter: invalid value %s for enum %s" % (val, varType.__name__)
     elif isinstance(varType, Bitmask):
       return val
-    elif varType.__name__ == 'Filepath' or varType.__name__ == 'P3Filepath': #elif isinstance(varType, Filepath):
+    elif varType.__name__ == 'Filepath' or varType.__name__ == 'P3Filepath':
       return val
     elif varType.__name__ == 'Trigger':
       return val
-    #elif isinstance(varType, TreeNode): # hmm doesnt recognize it this way
-    #  return val
     elif varType.__name__ == 'TreeNode':
-      #print
       return val
     elif varType in [list, tuple]:
       return val
@@ -336,7 +360,7 @@ class TreeNode(object):
       print "  - varType", varType
   
   def getParameters(self):
-    # get the data
+    ''' return a dict with all parameters that are defined (!None) '''
     parameters = dict()
     for name in self.mutableParameters.keys():
       value = self.getParameter(name)
@@ -349,12 +373,13 @@ class TreeNode(object):
     value: value of the parameter, if parameter is a Vec or Point, give a tuple or list
     '''
     if name in self.mutableParameters:
-      varType, getFunc, setFunc, hasFunc, clearFunc = self.mutableParameters[name]
+      varType, getFunc, setFunc, hasFunc, clearFunc, varSave = self.mutableParameters[name]
       try:
         if clearFunc != None and (value == None or (isinstance(value, str) and value.lower() == "none")):
+          # if a clearfunc is defined, and the value is None or 'none', call the function
           clearFunc()
         elif isinstance(varType, type) and isinstance(value, varType):
-          # It's already the correct type
+          # it's already the correct type
           setFunc(value)
         elif isinstance(varType, Enum):
           for n, v in varType.items():
@@ -369,32 +394,39 @@ class TreeNode(object):
         elif varType.__name__ == 'P3Filepath':
           setFunc(Filename(value))
         elif varType.__name__ == 'Trigger':
+          # the trigger just calls the function
           setFunc()
         elif varType in [list, tuple]:
-          print "I: TreeNode.setParameter:"
           setFunc(value)
         else:
+          # some fallback handling of input
+          
           if isinstance(value, str) or isinstance(value, unicode):
+            # try converting into a tuple
             try:
               value = tuple([float(i) for i in value.replace("(", "").replace(")", "").replace(" ", "").split(",")])
             except:
               print "E: core.BaseWrapper.setParameter: error converting string" % name, value
+          
+          # set the value
           if varType in [Vec4, Point4, VBase4, Point3, Vec3, VBase3, Point2, Vec2, VBase2]:
             setFunc(varType(*value))
           elif varType in [float, int, str, bool]:
             setFunc(varType(value))
           else:
             print "E: core.TreeNode.setParameter: unknown varType %s for %s" % (varType.__name__, name)
+        
       except TypeError:
         # this must be catched as it's a user input
         print "E: core.TreeNode.setParameter: error handling %s in data:" % name, value
         traceback.print_exc()
   
   def setParameters(self, parameters):
+    ''' set all parameters defined in the given dict '''
     for name, value in parameters.items():
       self.setParameter(name, value)
-
-
+  
+  
   # --- LOADING & SAVING TO FILES ---
   def getSaveData(self, relativeTo):
     # the given name of this object
@@ -408,10 +440,17 @@ class TreeNode(object):
     # get all data to store in the eggfile
     parameters = self.getParameters()
     if len(parameters) > 0:
-      # dont store those values into the parameters
-      for paramName in ['name', 'position', 'scale', 'rotation', 'parent']:
-        if paramName in parameters:
-          del parameters[paramName]
+      for paramName in parameters.keys():
+        # dont store those values into the parameters
+        if self.mutableParameters.has_key(paramName): # this should allways be the case
+          varType, getFunc, setFunc, hasFunc, clearFunc, varSave = self.mutableParameters[paramName]
+          if varSave:
+            pass
+          else:
+            # is not defined to be saved
+            if paramName in parameters:
+              # remove from parameters
+              del parameters[paramName]
       # add the data to the egg-file
       comment = EggComment(BASEWRAPPER_DATA_TAG, str(parameters))
       instance.addChild(comment)

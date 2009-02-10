@@ -13,35 +13,41 @@ class SpotLightNodeWrapper(LightNodeWrapper):
     self.light.setLens(self.lens)
     
     self.mutableParameters['attenuation'] = [ Vec3,
-      self.light.getAttenuation,
-      self.light.setAttenuation,
-      None,
-      None ]
+        self.light.getAttenuation,
+        self.light.setAttenuation,
+        None,
+        None,
+        True ]
     self.mutableParameters['specularColor'] = [ Vec4,
-      self.light.getSpecularColor,
-      self.light.setSpecularColor,
-      None,
-      None ]
+        self.light.getSpecularColor,
+        self.light.setSpecularColor,
+        None,
+        None,
+        True ]
     self.mutableParameters['fov'] = [ Vec2,
-      self.lens.getFov,
-      self.lens.setFov,
-      None,
-      None ]
+        self.lens.getFov,
+        self.lens.setFov,
+        None,
+        None,
+        True ]
     self.mutableParameters['near'] = [ float,
-      self.lens.getNear,
-      self.lens.setNear,
-      None,
-      None ]
+        self.lens.getNear,
+        self.lens.setNear,
+        None,
+        None,
+        True ]
     self.mutableParameters['far'] = [ float,
-      self.lens.getFar,
-      self.lens.setFar,
-      None,
-      None ]
+        self.lens.getFar,
+        self.lens.setFar,
+        None,
+        None,
+        True ]
     self.mutableParameters['exponent'] = [ float,
-      self.light.getExponent,
-      self.setExponent,
-      None,
-      None ]
+        self.light.getExponent,
+        self.setExponent,
+        None,
+        None,
+        True ]
   
   def destroy(self):
     # delete the lens?

@@ -121,6 +121,9 @@ class EditorClass(DirectObject): #, FSM):
         #print "I: core.EditorClass.enterWorldEditMode:", modelModificator.__class__.__name__
         modelModificator.toggleEditmode(True)
         
+        # enable the texturePainter
+        #texturePainter.enableEditor()
+        
         # a grid model
         gridNp = DirectGrid(parent=self.sceneHelperModels)
         
@@ -147,12 +150,14 @@ class EditorClass(DirectObject): #, FSM):
       # disable editmode on the object tree
       self.treeParent.setEditmodeDisabled()
       # save the selected model to the texturePainter
-      objectEditor.setEditObject(modelController.getSelectedObject())
+      #objectEditor.setEditObject(modelController.getSelectedObject())
       # drop what we have selected
       modelController.selectObject(None)
       # disable the selecting of nodes
       scenePicker.toggleEditmode(False)
       modelModificator.toggleEditmode(False)
+      
+      #texturePainter.disableEditor()
       
       self.editModeEnabled = False
     else:
@@ -264,5 +269,7 @@ class EditorClass(DirectObject): #, FSM):
     self.destroyScene()
     self.treeParent = SceneNodeWrapper.onCreateInstance(None, '')
     self.treeParent.saveAs(filepath)
+    if self.editModeEnabled:
+      self.treeParent.setEditmodeEnabled()
     messenger.send(EVENT_SCENEGRAPH_CHANGE_ROOT, [self.treeParent])
     messenger.send(EVENT_MODELCONTROLLER_SELECT_OBJECT, [None])

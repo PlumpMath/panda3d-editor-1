@@ -24,19 +24,22 @@ class CurveNodeWrapper(VirtualNodeWrapper):
         self.getAddNode,
         self.setAddNode,
         None,
-        None
+        None,
+        False
       ]
     self.mutableParameters['remove node'] = [ Trigger,
         self.getRemoveNode,
         self.setRemoveNode,
         None,
-        None
+        None,
+        False
       ]
     self.mutableParameters['curve detail'] = [ int,
         self.getCurveDetail,
         self.setCurveDetail,
         None,
-        None
+        None,
+        True
       ]
   
   def destroy(self):

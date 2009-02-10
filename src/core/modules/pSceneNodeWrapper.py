@@ -151,7 +151,7 @@ class SceneNodeWrapper(VirtualNodeWrapper):
       filepath = p3filename.getDirname()
       
       # store the full filepath of the model
-      self.setFilepath(p3filename)
+      self.setFilepath(str(p3filename))
       # add the path to the model-path
       from pandac.PandaModules import getModelPath
       getModelPath().appendPath(filepath)
@@ -160,6 +160,8 @@ class SceneNodeWrapper(VirtualNodeWrapper):
       
       for objectInstance, eggData in loadedObjects:
         objectInstance.loadFromData(eggData, filepath)
+      
+      #parent.getNodepath().flattenStrong()
       
       # refresh the scenegraphbrowser
       messenger.send(EVENT_SCENEGRAPH_REFRESH)
@@ -174,17 +176,17 @@ class SceneNodeWrapper(VirtualNodeWrapper):
     print "  - relativePath", self.relativePath
     print "  - fullPath", self.fullPath
     print "  - relativePath", self.relativePath
-  
+    
     #print "I: pSceneNodeWrapper.setScene:"
     #print "  -", relativePath
     #print "  -", posixpath.abspath(relativePath)
     #print "  -", posixpath.dirname(posixpath.abspath(relativePath))
   
   def save(self):
-    print "I: SceneNodeWrapper.save: using path", self.fullPath
     self.saveAs(self.fullPath)
   
   def saveAs(self, filepath):
+    print "I: SceneNodeWrapper.saveAs:", filepath
     def saveRecursiveChildrens(parent, eggParentData, relativeTo):
       for child in parent.getChildren():
         # save the childs data
@@ -230,11 +232,6 @@ class SceneNodeWrapper(VirtualNodeWrapper):
   def destroy(self, recursive=True):
     # destroy the scene
     #if recursive:
-    def recurse(parent):
-      for child in parent.getChildren()[:]: # accessing it directly causes it to miss childrens
-        recurse(child)
-        child.destroy()
-    recurse(self)
     
     VirtualNodeWrapper.destroy(self)
   

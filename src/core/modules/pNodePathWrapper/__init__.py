@@ -59,7 +59,7 @@ class NodePathWrapper(BaseWrapper):
     else:
       name = 'NodePath'
     objectInstance = super(NodePathWrapper, self).onCreateInstance(parent, name)
-    objectInstance.setModel(filepath)
+    objectInstance.setModelFilepath(filepath)
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
   
@@ -76,18 +76,30 @@ class NodePathWrapper(BaseWrapper):
     # model used to show highlighting of this node
     self.highlightModel = None
     
+    # the trigger can update the model, should not be saved into parameters
     self.mutableParameters['update'] = [ Trigger,
-        self.getUpdateModelFromEggData,
-        self.setUpdateModelFromEggData,
         None,
-        None
+        self.updateModelFromEggData,
+        None,
+        None,
+        False
       ]
-    
+    # this should actually not be saved into the parameters
+    self.mutableParameters['model'] = [ Filepath,
+        self.getModelFilepath,
+        self.setModelFilepath,
+        None,
+        None,
+        False
+      ]
     
     # subnodes of this node
     self.eggTreeParent = None
   
-  def setModel(self, modelFilepath):
+  def getModelFilepath(self):
+    return self.modelFilepath
+  
+  def setModelFilepath(self, modelFilepath):
     
     if modelFilepath is not None:
       filepath = str(Filename.fromOsSpecific(modelFilepath))
@@ -121,11 +133,12 @@ class NodePathWrapper(BaseWrapper):
       # make the model visible
       self.model.reparentTo(self.getNodepath())
       # delete the filepath
-      self.clearFilepath()
+      #self.clearFilepath()
     else:
       # store the full filepath of the model
-      self.setFilepath(filepath)
-      if self.isEditmodeEnabled():
+      #self.setFilepath(filepath) # dont do that, in here, but in the egg-data
+      
+      if self.isEditmodeEnabled(): 
         # reread the model from the egg-data, this reloads the model when
         # editmode is enabled
         self.updateModelFromEggData()
@@ -133,6 +146,7 @@ class NodePathWrapper(BaseWrapper):
         # parent the model to out nodepath
         self.model.reparentTo(self.getNodepath())
   
+  # --- create the eggData subnodes for the nodepath ---
   def enableSubNodes(self):
     # create the children treeNodes of the nodepath
     if self.eggTreeParent is None:
@@ -141,18 +155,19 @@ class NodePathWrapper(BaseWrapper):
       modelFilepath = self.modelFilepath
       node = self
       self.eggTreeParent = getEggDataEditable(parent, node, modelFilepath)
+    else:
+      print "W: NodePathWrapper.enableSubNodes: eggTreeParent already created"
   
   def disableSubNodes(self):
     if self.eggTreeParent is not None:
       #print "I: NodePathWrapper.disableSubNodes: destroying child nodes"
       self.eggTreeParent.destroy()
+    else:
+      print "W: NodePathWrapper.disableSubNodes: eggTreeParent not created"
+  # --- end create eggData ---
   
-  def save(self, filepath):
-    print "I: NodePathWrapper.save:", filepath
-    if self.eggTreeParent:
-      self.eggTreeParent.eggData.save(filepath)
-  
-  def setUpdateModelFromEggData(self, *args):
+  # --- apply changes made in the eggData to the visuals ---
+  def updateModelFromEggData(self, *args):
     # if there is already a model defined, remove it
     if self.model is not None:
       self.model.detachNode()
@@ -161,9 +176,7 @@ class NodePathWrapper(BaseWrapper):
     egg.read(StringStream(str(self.eggTreeParent.eggData)))
     self.model = NodePath(loadEggData(egg))
     self.model.reparentTo(self.getNodepath())
-  
-  def getUpdateModelFromEggData(self):
-    pass
+  # --- end apply changes ---
   
   def destroy(self):
     # destroy egg data
@@ -223,11 +236,11 @@ class NodePathWrapper(BaseWrapper):
   
   def loadFromData(self, eggGroup, filepath):
     extRefFilename = self.getExternalReference(eggGroup, filepath)
-    self.setModel(extRefFilename)
+    self.setModelFilepath(extRefFilename)
     BaseWrapper.loadFromData(self, eggGroup, filepath)
   
   def makeInstance(self, original):
     objectInstance = super(NodePathWrapper, self).makeInstance(original)
-    objectInstance.setModel(original.modelFilepath)
+    objectInstance.setModelFilepath(original.modelFilepath)
     return objectInstance
   makeInstance = classmethod(makeInstance)

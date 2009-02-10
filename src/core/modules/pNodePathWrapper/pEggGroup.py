@@ -53,25 +53,29 @@ class ObjectEggGroup(ObjectEggBase):
     self.eggGroup = eggGroup
     # store the types of mutable parameters
     self.mutableParameters['collision_solid_type'] = [ EggGroup_CollisionSolidType_Enum,
-      self.eggGroup.getCsType,
-      self.eggGroup.setCsType,
-      None,
-      None ]
+        self.eggGroup.getCsType,
+        self.eggGroup.setCsType,
+        None,
+        None,
+        False ]
     self.mutableParameters['collide_flags'] = [ EggGroup_CollideFlags_Bitmask,
-      self.eggGroup.getCollideFlags,
-      self.eggGroup.setCollideFlags,
-      None,
-      None ]
+        self.eggGroup.getCollideFlags,
+        self.eggGroup.setCollideFlags,
+        None,
+        None,
+        False ]
     self.mutableParameters['dcs_type'] = [ EggGroup_DCSType_Enum,
-      self.eggGroup.getDcsType,
-      self.eggGroup.setDcsType,
-      self.eggGroup.hasDcsType,
-      None ]
+        self.eggGroup.getDcsType,
+        self.eggGroup.setDcsType,
+        self.eggGroup.hasDcsType,
+        None,
+        False ]
     self.mutableParameters['billaboard_type'] = [ EggGroup_BillboardType_Enum,
-      self.eggGroup.getBillboardType,
-      self.eggGroup.setBillboardType,
-      None,
-      None ]
+        self.eggGroup.getBillboardType,
+        self.eggGroup.setBillboardType,
+        None,
+        None,
+        False ]
   
   def destroy(self):
     ObjectEggBase.destroy(self)

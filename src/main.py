@@ -18,6 +18,7 @@ if __name__ == "__main__":
   from core.pMain import EditorClass
   editor = EditorClass(parent=None, gui=USE_GUI)
   editor.loadEggModelsFile("examples/mytestscene.egs")
+  #editor.loadEggModelsFile("examples/newscene.egs")
   
   editor.toggle(True)
   

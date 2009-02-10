@@ -8,7 +8,27 @@ PNMBrush, VBase3D
 from core.pWindow import WindowManager
 from core.pMouseHandler import mouseHandler
 from core.pConfigDefs import *
+from core.pModelModificator import modelModificator
 
+TEXTUREPAINTER_START_PAINT_EVENTS = [
+        'mouse1',
+        'control-mouse1',
+        'shift-mouse1',
+        'alt-mouse1',
+        ]
+TEXTUREPAINTER_STOP_PAINT_EVENTS = [
+        'mouse1-up',
+        'shift-mouse1-up',
+        'control-mouse1-up',
+        'alt-mouse1-up',
+        'shift-alt-mouse1-up',
+        'control-alt-mouse1-up',
+        'shift-control-mouse1-up',
+        'shift-control-alt-mouse1-up',
+]
+
+
+TEXTUREPAINTER_BRUSH_FLATTEN = 'flatten'
 TEXTUREPAINTER_BRUSH_SMOOTH = 'smooth'
 TEXTUREPAINTER_BRUSH_RANDOMIZE = 'randomize'
 
@@ -17,6 +37,7 @@ PNMBrush_BrushEffect_Enum = Enum(
   BEBlend = PNMBrush.BEBlend,
   BEDarken = PNMBrush.BEDarken,
   BELighten = PNMBrush.BELighten,
+  Flatten = TEXTUREPAINTER_BRUSH_FLATTEN,
   Smooth = TEXTUREPAINTER_BRUSH_SMOOTH,
   Randomize = TEXTUREPAINTER_BRUSH_RANDOMIZE,
 )
@@ -153,15 +174,15 @@ class TexturePainter(DirectObject):
     if self.texturePainterStatus == TEXTURE_PAINTER_STATUS_INITIALIZED:
       self.stopEditor()
     self.texturePainterStatus = TEXTURE_PAINTER_STATUS_DISABLED
-    self.__disableEditor(self)
+    self.__disableEditor()
   
   # --- 
-  def startEditor(self, editModel, editTexture):
+  def startEditor(self, editModel, editTexture, backgroundShader=MODEL_COLOR_SHADER):
     ''' prepare to paint
     change from enabled to initialized'''
     if self.texturePainterStatus == TEXTURE_PAINTER_STATUS_ENABLED:
       self.texturePainterStatus = TEXTURE_PAINTER_STATUS_INITIALIZED
-      self.__startEditor(editModel, editTexture)
+      self.__startEditor(editModel, editTexture, backgroundShader)
     else:
       print "E: TexturePainter.startEditor: not initialized", self.texturePainterStatus
   
@@ -171,7 +192,7 @@ class TexturePainter(DirectObject):
     if self.texturePainterStatus == TEXTURE_PAINTER_STATUS_INITIALIZED:
       self.stopPaint()
     self.texturePainterStatus = TEXTURE_PAINTER_STATUS_ENABLED
-    self.__stopEditor()
+    return self.__stopEditor()
   
   """ # this is not externally callable
   # ---
@@ -261,16 +282,16 @@ class TexturePainter(DirectObject):
         win = WindowManager.activeWindow.win
       else:
         win = base.win
-      #if self.modelColorBuffer.getXSize() != win.getXSize() or self.modelColorBuffer.getYSize() != win.getYSize():
+      if self.modelColorBuffer.getXSize() != win.getXSize() or self.modelColorBuffer.getYSize() != win.getYSize():
         '''print "  - window resized",\
             self.modelColorBuffer.getXSize(),\
             win.getXSize(),\
             self.modelColorBuffer.getYSize(),\
             win.getYSize()'''
-      # if the buffer size doesnt match the window size (window has been resized)
-      self.__destroyBuffer()
-      self.__createBuffer()
-      self.__updateModel()
+        # if the buffer size doesnt match the window size (window has been resized)
+        self.__destroyBuffer()
+        self.__createBuffer()
+        self.__updateModel()
     else:
       print "W: TexturePainter.__windowEvent: no buffer"
       self.__createBuffer()
@@ -330,7 +351,6 @@ class TexturePainter(DirectObject):
       self.modelColorCam.removeNode()
       del self.modelColorCam
       
-      
       self.colorPickerScene.removeNode()
       del self.colorPickerScene
       # remove cam
@@ -342,13 +362,16 @@ class TexturePainter(DirectObject):
       
       del self.colorPickerTex
       del self.colorPickerImage
-      
   
-  def __startEditor(self, editModel, editTexture):
-    #print "I: TexturePainter.__startEditor:", editModel, editTexture
+  def __startEditor(self, editModel, editTexture, backgroundShader=MODEL_COLOR_SHADER):
+    print "I: TexturePainter.__startEditor"
+    
     # this is needed as on startup the editor may not have had a window etc.
     self.__windowEvent()
     
+    if not editModel or not editTexture:
+      print "W: TexturePainter.__startEditor: model or texture invalid", editModel, editTexture
+      return False
     
     self.editModel = editModel
     self.editTexture = editTexture
@@ -366,74 +389,85 @@ class TexturePainter(DirectObject):
     self.painter = PNMPainter(self.editImage)
     self.setBrushSettings( *self.getBrushSettings() )
     
-    self.__updateModel()
+    self.__updateModel(backgroundShader)
     
-    self.__startEdit()
+    # start edit
+    messenger.send(EVENT_TEXTUREPAINTER_STARTEDIT)
+    
+    for startEvent in TEXTUREPAINTER_START_PAINT_EVENTS:
+      self.accept(startEvent, self.__startPaint)
+    for stopEvent in TEXTUREPAINTER_STOP_PAINT_EVENTS:
+      self.accept(stopEvent, self.__stopPaint)
+    
+    self.modelColorCam.node().copyLens(WindowManager.activeWindow.camera.node().getLens())
+    
+    taskMgr.add(self.__paintTask, 'paintTask')
+    
+    modelModificator.toggleEditmode(False)
+    
+    self.isPainting = False
   
   def __stopEditor(self):
-    self.__stopEdit()
+    print "I: TexturePainter.__stopEditor"
+    # stop edit
+    messenger.send(EVENT_TEXTUREPAINTER_STOPEDIT)
     
-    if self.paintModel:
-      self.paintModel.detachNode()
-      self.paintModel = None
+    for startEvent in TEXTUREPAINTER_START_PAINT_EVENTS:
+      self.ignore(startEvent)
+    for stopEvent in TEXTUREPAINTER_STOP_PAINT_EVENTS:
+      self.ignore(stopEvent)
+    
+    taskMgr.remove('paintTask')
+    # stop edit end
+    
+    editedImage = self.editImage
+    
     self.editImage = None
     self.editTexture = None
     self.painter = None
     self.brush = None
     
-    self.editModel.show()
+    modelModificator.toggleEditmode(True)
+    
+    # hide the model from cam 2
+    self.editModel.hide(BitMask32.bit(1))
+    
+    return editedImage
   
-  def __updateModel(self): #, overlayTexture=None):
+  def __updateModel(self, backgroundShader): #, overlayTexture=None):
     if self.editModel:
       # create a image with the same size of the texture
       textureSize = (self.editTexture.getXSize(), self.editTexture.getYSize())
       
       # create a dummy node, where we setup the parameters for the background rendering
       loadPaintNode = NodePath(PandaNode('paintnode'))
-      loadPaintNode.setShader(Shader.make(MODEL_COLOR_SHADER), 10001)
+      loadPaintNode.setShader(Shader.make(backgroundShader), 10001)
       loadPaintNode.setShaderInput('texsize', textureSize[0], textureSize[1], 0, 0)
       
       # copy the state onto the camera
       self.modelColorCam.node().setInitialState(loadPaintNode.getState())
       
-      # try to hide all models
-      #self.modelColorCam.node().setCameraMask(BitMask32.bit(1)) #,BitMask32.allOn(),BitMask32.allOn())
-      self.modelColorCam.node().adjustDrawMask(BitMask32.allOff(),BitMask32.allOn(),BitMask32.allOff())
+      # the camera gets a special bitmask, to show/hide models from it
+      self.modelColorCam.node().setCameraMask(BitMask32.bit(1))
       
-      self.editModel.show(BitMask32.bit(1))
-  
-  # --- modification of the textures ---
-  def __startEdit(self):
-    print "I: TexturePainter.__startEdit"
-    messenger.send(EVENT_TEXTUREPAINTER_STARTEDIT)
-    # start paint events
-    self.accept("mouse1", self.__startPaint)
-    self.accept("control-mouse1", self.__startPaint)
-    self.accept("shift-mouse1", self.__startPaint)
-    self.accept("alt-mouse1", self.__startPaint)
-    
-    # stop paint events
-    self.accept("mouse1-up", self.__stopPaint)
-    self.accept("shift-mouse1-up", self.__stopPaint)
-    self.accept("control-mouse1-up", self.__stopPaint)
-    self.accept("alt-mouse1-up", self.__stopPaint)
-    self.accept("shift-alt-mouse1-up", self.__stopPaint)
-    self.accept("control-alt-mouse1-up", self.__stopPaint)
-    self.accept("shift-control-mouse1-up", self.__stopPaint)
-    self.accept("shift-control-alt-mouse1-up", self.__stopPaint)
-    
-    self.modelColorCam.node().copyLens(WindowManager.activeWindow.camera.node().getLens())
-    taskMgr.add(self.__paintTask, 'paintTask')
-    
-    self.isPainting = False
-  
-  def __stopEdit(self):
-    print "I: TexturePainter.__stopEdit"
-    messenger.send(EVENT_TEXTUREPAINTER_STOPEDIT)
-    self.ignore("mouse1")
-    self.ignore("mouse1-up")
-    
-    taskMgr.remove('paintTask')
+      if False:
+        # doesnt work, but would be nicer (not messing with the default render state)
+        
+        hiddenNode = NodePath(PandaNode('hiddennode'))
+        hiddenNode.hide(BitMask32.bit(1))
+        showTroughNode = NodePath(PandaNode('showtroughnode'))
+        showTroughNode.showThrough(BitMask32.bit(1))
+        
+        self.modelColorCam.node().setTagStateKey('show-on-backrender-cam')
+        self.modelColorCam.node().setTagState('False', hiddenNode.getState())
+        self.modelColorCam.node().setTagState('True', showTroughNode.getState())
+        
+        render.setTag('show-on-backrender-cam', 'False')
+        self.editModel.setTag('show-on-backrender-cam', 'True')
+      else:
+        # make only the model visible to the background camera
+        render.hide(BitMask32.bit(1))
+        self.editModel.showThrough(BitMask32.bit(1))
   
   # --- start the paint tasks ---
   def __startPaint(self):
@@ -446,7 +480,8 @@ class TexturePainter(DirectObject):
   def __textureUpdateTask(self, task=None):
     ''' modify the texture using the edited image
     '''
-    self.editTexture.load(self.editImage)
+    if type(self.editTexture) == Texture:
+      self.editTexture.load(self.editImage)
     
     if task: # task may be None
       return task.again
@@ -462,7 +497,7 @@ class TexturePainter(DirectObject):
     
     
     # update the camera according to the active camera
-    self.modelColorCam.setMat(render, WindowManager.activeWindow.camera.getMat(render))
+    #self.modelColorCam.setMat(render, WindowManager.activeWindow.camera.getMat(render))
     
     mpos = base.mouseWatcherNode.getMouse()
     x_ratio = min( max( ((mpos.getX()+1)/2), 0), 1)
@@ -474,7 +509,7 @@ class TexturePainter(DirectObject):
     
     if self.colorPickerTex.hasRamImage():
       self.colorPickerTex.store(self.colorPickerImage)
-   
+      
       # get the color below the mousepick from the rendered frame
       r = self.colorPickerImage.getRedVal(0,0)
       g = self.colorPickerImage.getGreenVal(0,0)
@@ -484,9 +519,7 @@ class TexturePainter(DirectObject):
       y = g + ((b//16)*256)
       
       if self.isPainting:
-        
         self.__paintPixel(x,y)
-        
         self.__textureUpdateTask()
     else:
       # this might happen if no frame has been rendered yet since creation of the texture
@@ -497,59 +530,96 @@ class TexturePainter(DirectObject):
   def __paintPixel(self, x, y):
     ''' paint at x/y with the defined settings '''
     
-    #print "I: TexturePainter.__paintPixel:", x, y
+    imageMaxX = self.editImage.getXSize()
+    imageMaxY = self.editImage.getYSize()
+    def inImage(x,y):
+      ''' is the given x/y position within the image '''
+      return ((imageMaxX > x >= 0) and (imageMaxY > y >= 0))
     
-    if x > self.editImage.getXSize() or y > self.editImage.getYSize():
-      pass
-    else:
+    if inImage(x,y):
       if self.paintMode == TEXTUREPAINTER_FUNCTION_PAINT_POINT:
         if self.paintEffect in [PNMBrush.BESet, PNMBrush.BEBlend, PNMBrush.BEDarken, PNMBrush.BELighten]:
           # render a spot into the texture
           self.painter.drawPoint(x, y)
         
-        elif self.paintEffect in [TEXTUREPAINTER_BRUSH_SMOOTH, TEXTUREPAINTER_BRUSH_RANDOMIZE]:
+        elif self.paintEffect in [TEXTUREPAINTER_BRUSH_FLATTEN, TEXTUREPAINTER_BRUSH_SMOOTH, TEXTUREPAINTER_BRUSH_RANDOMIZE]:
           radius = int(round(self.paintSize/2.0))
-          dividor = 0
           
           if self.paintEffect == TEXTUREPAINTER_BRUSH_SMOOTH:
+            # calculate average values
+            data = dict()
+            for dx in xrange(-radius, radius+1):
+              for dy in xrange(-radius, radius+1):
+                if inImage(x+dx,y+dy):
+                  average = VBase4D(0)
+                  dividor = 0
+                  for px in xrange(-1,2):
+                    for py in xrange(-1,2):
+                      if inImage(x+dx+px,y+dy+py):
+                        average += self.editImage.getXelA(x+dx+px,y+dy+py)
+                        dividor += 1
+                  average /= float(dividor)
+                  data[(x+dx,y+dy)] = average
+            
+            # save to image
+            for (x,y), value in data.items():
+              self.editImage.setXelA(x,y,value)
+            
+          if self.paintEffect == TEXTUREPAINTER_BRUSH_FLATTEN:
+            dividor = 0
             average = VBase4D(0)
             for dx in xrange(-radius, radius+1):
               for dy in xrange(-radius, radius+1):
-                multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy))) / (radius*radius)
-                dividor += multiplier
-                average += self.editImage.getXelA(x+dx,y+dy) * multiplier
+                if inImage(x+dx,y+dy):
+                  if self.paintSmooth:
+                    multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy))) / (radius*radius)
+                  else:
+                    multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy)))
+                  dividor += multiplier
+                  average += self.editImage.getXelA(x+dx,y+dy) * multiplier
             average /= dividor
             for dx in xrange(-radius, radius+1):
               for dy in xrange(-radius, radius+1):
-                multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy))) / (radius*radius)
-                currentValue = self.editImage.getXelA(x+dx,y+dy)
-                r = currentValue.getX() * (1-multiplier*self.paintColor.getX()) + average.getX() * multiplier*self.paintColor.getX()
-                g = currentValue.getY() * (1-multiplier*self.paintColor.getY()) + average.getY() * multiplier*self.paintColor.getY()
-                b = currentValue.getZ() * (1-multiplier*self.paintColor.getZ()) + average.getZ() * multiplier*self.paintColor.getZ()
-                a = currentValue.getW() * (1-multiplier*self.paintColor.getW()) + average.getW() * multiplier*self.paintColor.getW()
-                if self.editImage.hasAlpha():
-                  self.editImage.setXelA(x+dx,y+dy,VBase4D(r,g,b,a))
-                else:
-                  self.editImage.setXel(x+dx,y+dy,VBase3D(r,g,b))
+                if inImage(x+dx,y+dy):
+                  if self.paintSmooth:
+                    multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy))) / (radius*radius)
+                  else:
+                    # not sure if this is correct
+                    multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy)))
+                  currentValue = self.editImage.getXelA(x+dx,y+dy)
+                  r = currentValue.getX() * (1-multiplier*self.paintColor.getX()) + average.getX() * multiplier*self.paintColor.getX()
+                  g = currentValue.getY() * (1-multiplier*self.paintColor.getY()) + average.getY() * multiplier*self.paintColor.getY()
+                  b = currentValue.getZ() * (1-multiplier*self.paintColor.getZ()) + average.getZ() * multiplier*self.paintColor.getZ()
+                  a = currentValue.getW() * (1-multiplier*self.paintColor.getW()) + average.getW() * multiplier*self.paintColor.getW()
+                  if self.editImage.hasAlpha():
+                    self.editImage.setXelA(x+dx,y+dy,VBase4D(r,g,b,a))
+                  else:
+                    self.editImage.setXel(x+dx,y+dy,VBase3D(r,g,b))
           
           elif self.paintEffect == TEXTUREPAINTER_BRUSH_RANDOMIZE:
             for dx in xrange(-radius, radius+1):
               for dy in xrange(-radius, radius+1):
-                r = VBase4D(random.random()*self.paintColor.getX()-self.paintColor.getX()/2.,
-                           random.random()*self.paintColor.getY()-self.paintColor.getY()/2.,
-                           random.random()*self.paintColor.getZ()-self.paintColor.getZ()/2.,
-                           random.random()*self.paintColor.getW()-self.paintColor.getW()/2.)
-                multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy))) / (radius*radius)
-                currentValue = self.editImage.getXelA(x+dx,y+dy)
-                self.editImage.setXelA(x+dx,y+dy,currentValue+r*multiplier)
+                if inImage(x+dx,y+dy):
+                  r = VBase4D(random.random()*self.paintColor.getX()-self.paintColor.getX()/2.,
+                             random.random()*self.paintColor.getY()-self.paintColor.getY()/2.,
+                             random.random()*self.paintColor.getZ()-self.paintColor.getZ()/2.,
+                             random.random()*self.paintColor.getW()-self.paintColor.getW()/2.)
+                  if self.paintSmooth:
+                    multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy))) / (radius*radius)
+                  else:
+                    # not sure if this is correct
+                    multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy)))
+                  currentValue = self.editImage.getXelA(x+dx,y+dy)
+                  self.editImage.setXelA(x+dx,y+dy,currentValue+r*multiplier)
       
       elif self.paintMode == TEXTUREPAINTER_FUNCTION_READ:
-        col = self.editImage.getXelA(x,y)
-        if self.editImage.hasAlpha():
-          self.paintColor = VBase4D(col[0], col[1], col[2], col[3])
-        else:
-          self.paintColor = VBase4D(col[0], col[1], col[2], 1.0)
-        messenger.send(EVENT_TEXTUREPAINTER_BRUSHCHANGED)
+        if inImage(x,y):
+          col = self.editImage.getXelA(x,y)
+          if self.editImage.hasAlpha():
+            self.paintColor = VBase4D(col[0], col[1], col[2], col[3])
+          else:
+            self.paintColor = VBase4D(col[0], col[1], col[2], 1.0)
+          messenger.send(EVENT_TEXTUREPAINTER_BRUSHCHANGED)
       
       elif self.paintMode == TEXTUREPAINTER_FUNCTION_PAINT_LINE:
         if self.lastPoint != None:

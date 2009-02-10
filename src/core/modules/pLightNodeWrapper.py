@@ -18,15 +18,17 @@ class LightNodeWrapper(VirtualNodeWrapper):
     render.setLight(self.lightNodePath)
     
     self.mutableParameters['color'] = [ Vec4,
-      self.light.getColor,
-      self.light.setColor,
-      None,
-      None ]
+        self.light.getColor,
+        self.light.setColor,
+        None,
+        None,
+        True ]
     self.mutableParameters['priority'] = [ int,
-      self.light.getPriority,
-      self.light.setPriority,
-      None,
-      None ]
+        self.light.getPriority,
+        self.light.setPriority,
+        None,
+        None,
+        True ]
   
   def destroy(self):
     # destroy this object

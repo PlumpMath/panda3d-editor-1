@@ -13,7 +13,8 @@ class DirectionalLightNodeWrapper(LightNodeWrapper):
     LightNodeWrapper.__init__(self, parent, name, DIRECTIONALLIGHT_WRAPPER_DUMMYOBJECT, DirectionalLight)
     
     self.mutableParameters['specularColor'] = [ Vec4,
-      self.light.getSpecularColor,
-      self.light.setSpecularColor,
-      None,
-      None ]
+        self.light.getSpecularColor,
+        self.light.setSpecularColor,
+        None,
+        None,
+        True ]

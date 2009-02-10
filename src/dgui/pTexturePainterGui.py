@@ -19,7 +19,7 @@ class TexturePainterGui(DirectObject):
     self.accept(EVENT_TEXTUREPAINTER_STARTEDIT, self.showTexturepainterTools)
   
   def showTexturepainterTools(self):
-    print "I: dgui.EditorApp.showTexturepainterTools"
+    #print "I: dgui.EditorApp.showTexturepainterTools"
     def readBrushSettings(update=True,*args):
       # read
       color, size, smooth, effect = texturePainter.getBrushSettings()
@@ -180,12 +180,12 @@ class TexturePainterGui(DirectObject):
     # --- PAINT MODE ---
     def readPaintMode(update=False, *args):
       paintMode = texturePainter.getPaintMode()
-      print "I: readPaintMode", paintMode
+      #print "I: readPaintMode", paintMode
       for k, v in TexturePainter_PaintMode_Enum.items():
-        print "  -", k, v
+        #print "  -", k, v
         if v == paintMode:
           setIndex = self.texturePainterTools['paintmode'].index(k)
-          print "  -equal", v, setIndex
+          #print "  -equal", v, setIndex
           self.texturePainterTools['paintmode'].set(setIndex)
       
       if update is True:
@@ -200,7 +200,7 @@ class TexturePainterGui(DirectObject):
         readPaintMode()
     
     def setPaintMode(paintMode):
-      print "I: EditorApp.showTexturepainterTools.setPaintMode:", paintMode
+      #print "I: EditorApp.showTexturepainterTools.setPaintMode:", paintMode
       texturePainter.setPaintMode(paintMode)
       readPaintMode()
     

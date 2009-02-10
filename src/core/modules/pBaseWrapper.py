@@ -62,7 +62,6 @@ class BaseWrapper(TreeNode):
   className = 'Base'
   def onCreateInstance(self, parent, name='BaseWrapper'):
     # create instance of this class
-    #print help(self.__init__)
     objectInstance = self(parent, name)
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
@@ -86,74 +85,86 @@ class BaseWrapper(TreeNode):
     
     nodePath = self.getNodepath()
     self.mutableParameters['color'] = [ Vec4,
-      nodePath.getColor,
-      nodePath.setColor,
-      nodePath.hasColor,
-      nodePath.clearColor ]
+        nodePath.getColor,
+        nodePath.setColor,
+        nodePath.hasColor,
+        nodePath.clearColor,
+        True ]
     self.mutableParameters['colorScale'] = [ Vec4,
-      nodePath.getColorScale,
-      nodePath.setColorScale,
-      nodePath.hasColorScale,
-      nodePath.clearColorScale ]
+        nodePath.getColorScale,
+        nodePath.setColorScale,
+        nodePath.hasColorScale,
+        nodePath.clearColorScale,
+        True ]
     self.mutableParameters['transparency'] = [ TransparencyEnum,
-      nodePath.getTransparency,
-      nodePath.setTransparency,
-      nodePath.hasTransparency,
-      nodePath.clearTransparency ]
+        nodePath.getTransparency,
+        nodePath.setTransparency,
+        nodePath.hasTransparency,
+        nodePath.clearTransparency,
+        True ]
     self.mutableParameters['antialias'] = [ AntialiasEnum,
-      nodePath.getAntialias,
-      nodePath.setAntialias,
-      nodePath.hasAntialias,
-      nodePath.clearAntialias ]
+        nodePath.getAntialias,
+        nodePath.setAntialias,
+        nodePath.hasAntialias,
+        nodePath.clearAntialias,
+        True ]
     # should not be saved into the comments, but available to the gui-editor
     self.mutableParameters['position'] = [ Vec3,
-      nodePath.getPos,
-      nodePath.setPos,
-      None,
-      None ]
+        nodePath.getPos,
+        nodePath.setPos,
+        None,
+        None,
+        False ]
     self.mutableParameters['rotation'] = [ Vec3,
-      nodePath.getHpr,
-      nodePath.setHpr,
-      None,
-      None ]
+        nodePath.getHpr,
+        nodePath.setHpr,
+        None,
+        None,
+        False ]
     self.mutableParameters['scale'] = [ Vec3,
-      nodePath.getScale,
-      nodePath.setScale,
-      None,
-      None ]
+        nodePath.getScale,
+        nodePath.setScale,
+        None,
+        None,
+        False ]
     
     self.shaderOffPriority = None
     self.mutableParameters['shaderOff'] = [ int,
-      self.getShaderOff,
-      self.setShaderOff,
-      None,
-      self.clearShader ]
+        self.getShaderOff,
+        self.setShaderOff,
+        None,
+        self.clearShader,
+        True ]
     self.lightOffPriority = None
     self.mutableParameters['lightOff'] = [ int,
-      self.getLightOff,
-      self.setLightOff,
-      None,
-      self.clearLightOff ]
+        self.getLightOff,
+        self.setLightOff,
+        None,
+        self.clearLightOff,
+        True ]
     
     self.colorOffPriority = None
     self.mutableParameters['colorOff'] = [ int,
-      self.getColorOff,
-      self.setColorOff,
-      None,
-      self.clearColorOff ]
+        self.getColorOff,
+        self.setColorOff,
+        None,
+        self.clearColorOff,
+        True ]
     
     self.textureOffEnabled = False
     self.mutableParameters['textureOffEnabled'] = [ bool,
-      self.getTextureOffEnabled,
-      self.setTextureOffEnabled,
-      None,
-      None ]
+        self.getTextureOffEnabled,
+        self.setTextureOffEnabled,
+        None,
+        None,
+        True ]
     self.textureOffPriority = None
     self.mutableParameters['textureOffPriority'] = [ int,
-      self.getTextureOffPriority,
-      self.setTextureOffPriority,
-      None,
-      self.clearTextureOffPriorty ]
+        self.getTextureOffPriority,
+        self.setTextureOffPriority,
+        None,
+        self.clearTextureOffPriorty,
+        True ]
   
   def reparentTo(self, parent):
     ''' overload the reparenting of treeNode
@@ -168,6 +179,11 @@ class BaseWrapper(TreeNode):
       self.getNodepath().reparentTo(render) # <- XXX TODO, this should not be render'''
     
     parentNodepath = self.getParentNodepath()
+    print "I: BaseWrapper.__init__: parenting to", parentNodepath
+    print "parents", self.getRecParents()
+    print "parent", self.getParent()
+    if self.getParent():
+      "hasnp", self.getParent().hasNodepath()
     if parentNodepath:
       self.getNodepath().wrtReparentTo(parentNodepath)
     else:
