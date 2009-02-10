@@ -144,6 +144,12 @@ class CameraController(DirectObject, FSM):
   def movePivot(self, key, active):
     self.pressedKeys[key] = active
   
+  def setPivotPos(self, pos):
+    self.cameraPosPivot.setPos(render, pos)
+    # send a event with the new position of the pivot
+    pivotPos = Vec3(self.cameraPosPivot.getPos(render))
+    messenger.send(EVENT_CAMERAPIVOT_POSITION_CHANGE, [pivotPos])
+  
   def movePivotTask(self, task):
     ''' move the camera pivot by keypresses
     '''

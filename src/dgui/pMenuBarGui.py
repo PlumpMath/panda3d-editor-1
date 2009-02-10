@@ -12,6 +12,7 @@ from core.modules import *
 
 from dgui.filebrowser import FG
 from dgui.directWindow.src.directWindow import DirectWindow
+from dgui.pCameraController import cameraController
 from dgui.directSidebar import *
 from dgui.pConfigDefs import *
 
@@ -32,6 +33,7 @@ class MenuBarGui(DirectObject):
     
     settingsButtonDefinitions = [
       ['pix-light', self.toggleShaderAuto, []],
+      ['center', self.centerOnObject, []]
     ]
     self.settingsButtons = self.createInterface(settingsButtonDefinitions, 'settings', align=ALIGN_LEFT|ALIGN_TOP, pos=Vec3(0.45,0,0))
     
@@ -87,6 +89,8 @@ class MenuBarGui(DirectObject):
     editButtonDefinitions = list()
     if 'destroy' in possibleFunctions:
       editButtonDefinitions.append( ['destroy', self.guiEditorInstance.editorInstance.destroyModel, []] )
+    if 'revert' in possibleFunctions:
+      editButtonDefinitions.append( ['revert', selectedObject.revert, []] )
     if 'duplicate' in possibleFunctions:
       editButtonDefinitions.append( ['duplicate', self.duplicateModelWrapper, []] )
     if 'save' in possibleFunctions:
@@ -119,11 +123,19 @@ class MenuBarGui(DirectObject):
     else:
       render.setShaderOff()
   
+  def centerOnObject(self, *args):
+    selectedObject = modelController.getSelectedObject()
+    if selectedObject.hasNodepath():
+      pos = selectedObject.getNodepath().getPos(render)
+    else:
+      pos = selectedObject.getParentNodepath().getPos(render)
+    cameraController.setPivotPos(pos)
+  
   def duplicateModelWrapper(self):
     originalModel = modelController.getSelectedObject()
     objectInstance = originalModel.makeInstance(originalModel)
     if objectInstance is not None:
-      objectInstance.setEditmodeEnabled([])
+      objectInstance.setEditmodeEnabled()
     #objectInstance.loadFromData( originalModel.getSaveData('.') )
     messenger.send( EVENT_SCENEGRAPH_REFRESH )
     modelController.selectObject( objectInstance )
@@ -193,7 +205,9 @@ class MenuBarGui(DirectObject):
                       relief=2,
                       command=functionCall,
                       extraArgs=extraArgs,
-                      frameSize=(-0.3,0.3,-.02,.08))
+                      frameSize=(-0.3,0.3,-.02,.08),
+#                      enableEdit=True,
+                      )
       buttons.append( button )
     itemHeight = 0.11
     
