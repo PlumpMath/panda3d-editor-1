@@ -102,6 +102,7 @@ class FileBrowser(DirectObject.DirectObject):
 ##################################################################################
 
    def showFileBrowser(self):
+      self.createFileList(self.dot)
       self.browser.show()
 
 
