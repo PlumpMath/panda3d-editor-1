@@ -60,7 +60,7 @@ class PlaneProfile:
     #yPos = point.getY()
     return point
 
-ANIMATED_TEXTURE = True
+ANIMATED_TEXTURE = False
 
 
 
@@ -346,26 +346,40 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
           uvY = yi/float(self.profileDetail-1) * self.vTexScale
           uv = Point2D(uvX, uvY)
           
-          eggVtxUv = EggVertexUV('a', uv)
-          # not needed to define the tangent and binormal, will calculated automatically
-          #eggVtxUv.setTangent(tangent)
-          #eggVtxUv.setBinormal(binormal)
-          #eggVtxUv.setUv(uv)
-          
           vtxPoint = Point3D(surfacePoint.getX(), surfacePoint.getY(), surfacePoint.getZ())
           vtxNormal = -Vec3D(surfaceNormal.getX(), surfaceNormal.getY(), surfaceNormal.getZ())
+          
           # now we have the point and the uv
           eggVtx = EggVertex()
           eggVtx.setPos(vtxPoint)
-          eggVtx.setNormal(vtxNormal)
           
+          # this should be inactive
+          #eggVtxUv.setUv(uv)
+          #eggVtx.setNormal(vtxNormal)
+          #eggVtx.setUv('default', uv)
+          #eggVtx.clearUv()
+          
+          # this should be active
+          eggVtxUv = EggVertexUV('default', uv)
+          # not needed to define the tangent and binormal, will calculated automatically
+          #if True:
+          p1 = Point3()
+          nurbsSurfaceResult.evalPoint(curU-stepU/2.,curV,p1)
+          p2 = Point3()
+          nurbsSurfaceResult.evalPoint(curU+stepU/2.,curV,p2)
+          tangent = p1-p2
+          binormal = tangent.cross(surfaceNormal)
+          
+          vtxTangent = Vec3D(tangent.getX(), tangent.getY(), tangent.getZ())
+          vtxBinormal = Vec3D(binormal.getX(), binormal.getY(), binormal.getZ())
+          eggVtxUv.setTangent(vtxTangent)
+          eggVtxUv.setBinormal(vtxBinormal)
           eggVtx.setUvObj(eggVtxUv)
           
           self.vertices[(xi,yi)] = eggVtx
-          
           vtxPool.addVertex(eggVtx)
       
-      mat1 = EggMaterial('waterMat')
+      '''mat1 = EggMaterial('waterMat')
       mat1.setDiff(Vec4(1,1,1,1))
       mat1.setAmb(Vec4(0,0,0,0))
       mat1.setEmit(Vec4(0,0,0,0))
@@ -387,7 +401,7 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
       tex2.setMagfilter( EggTexture.FTLinearMipmapLinear )
       tex2.setMinfilter( EggTexture.FTNearestMipmapLinear )
       tex2.setEnvType( EggTexture.ETNormal )
-      tex2.setUvName('a')
+      tex2.setUvName('a')'''
       
       for x, y in self.vertices.keys():
         xyPos = (x+1,y+1,)
@@ -401,9 +415,9 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
           eggPoly.addVertex(p3)
           eggPoly.addVertex(p2)
           eggPoly.addVertex(p1)
-          eggPoly.addTexture(tex1)
+          '''eggPoly.addTexture(tex1)
           eggPoly.addTexture(tex2)
-          eggPoly.setMaterial(mat1)
+          eggPoly.setMaterial(mat1)'''
           
           eggGroup.addChild(eggPoly)
           
@@ -411,14 +425,17 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
           eggPoly.addVertex(p2)
           eggPoly.addVertex(p3)
           eggPoly.addVertex(p4)
-          eggPoly.addTexture(tex1)
+          '''eggPoly.addTexture(tex1)
           eggPoly.addTexture(tex2)
-          eggPoly.setMaterial(mat1)
+          eggPoly.setMaterial(mat1)'''
           
           eggGroup.addChild(eggPoly)
       # --- calc done ---
       
-      eggGroup.recomputeTangentBinormalAuto()
+      #eggGroup.recomputeTangentBinormal('default')
+      #eggGroup.recomputeTangentBinormalAuto()
+      
+      data.writeEgg('test.egg')
       
       # To load the egg file and render it immediately, use this:
       self.mdl = NodePath(loadEggData(data))
@@ -434,13 +451,17 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
         
         #self.diffuseTextureStage = self.mdl.findTextureStage('diffuse')
         self.normalTextureStage = self.mdl.findTextureStage('normal')
-      
+        
         self.normalTextures = list()
         for i in xrange(1,101):
           waterNormalTex = loader.loadTexture('examples/water-render/%04i.png' % i)
           self.normalTextures.append(waterNormalTex)
         #self.waterDiffuseTexture = loader.loadTexture('examples/water.png')
         taskMgr.add(self.textureTask, taskName) #'surfaceTextureTask'+str(self.__module__.__hash__()))
+  
+  
+  
+  
   
   """def updataUsingCurves(self):
     ''' override the curveRendering

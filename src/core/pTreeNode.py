@@ -46,19 +46,75 @@ class TreeNode(object):
   - saving and loading of the data
   - making instances of objects
   '''
-  def __init__(self, treeName='parent'): #, treeData=None):
+  
+  def onCreateInstance(self, parent, name='BaseWrapper'):
+    ''' when a node type is created, this function is called instead creating it
+    directly, it returns a new instance of the class
+    
+    reason why this function exists:
+    - a more or less consistent interface for creating nodes
+    - in difference to the loadFromEggGroup, the name may be modified in this function
+    
+    you can add additional parameters to the createInstance function,
+    which are applied after creating the object '''
+    objectInstance = self(parent, name)
+    return objectInstance
+  onCreateInstance = classmethod(onCreateInstance)
+  
+  def loadFromEggGroup(self, eggGroup, parent, filepath):
+    ''' when data is loaded from a file, the object is created using this function
+    instead of creating it directly, it can be overloaded to apply additional
+    parameters or call functions after all parameters have been loaded
+    
+    reason why this function exists:
+    - this function is called once a appropriate tag has been found a egs (egg-scene)
+      In this first loading step the name must be finalized, it shall not change
+      without user interaction anymore.
+      this must be done so other class-instances may search for the loaded class-instance.
+      - after all objects have been created the loadFromData function is called.
+        (they may now search the node-tree by the name)
+    '''
+    name = eggGroup.getName()
+    objectInstance = self(parent, name)
+    return objectInstance
+  loadFromEggGroup = classmethod(loadFromEggGroup)
+  
+  def __init__(self, treeName='parent'):
+    ''' in the init function all parameters and objects should be initialized
+    to a default value, which later on gets modified manually or by loading the
+    data from the egg-parameters (loadFromData function) '''
+    
+    '''
+    some default values which are shared between all nodes,
+    parent & children define the tree hirarchy
+    some name of the node
+    the editmodeStatus is a bit field
+    bits: EDITMODE_ENABLED, EDITMODE_STARTED
+    - editmode_disabled, means that we are in view mode, non editing relevant features
+      should be disabled
+    - editmode_enabled, means that the object can be modifed, the editor is started
+      - editmode_started/stopped is only relevant when editmode_enabled is active
+        - editmode_started, means that this object is the current active object in the
+          editor
+        - editmode_stopped, is the default when a object is not active
+    
+    info on reparenting:
+    - if you have a nodepath in your class, which is _not_ handled in here (using setNodepath)
+      you have to overload the reparentTo function so that you reparent the nodepath yourself
+    '''
     self.treeParent = None
     self.treeChildren = list()
     self.treeName = treeName
-    #self.treeData = treeData
     self.editmodeStatus = int()
     
-    # all values that can be changed require a entry in the mutableParameters
-    # when a value exists, it means that it's allowed to read/write the value
-    # hasFunc defines if it's a vital property of the object and must be saved
-    # into the comments
-    # valueType, getFunc vtion, setFunction, hasFunction, clearFunction
-    # hasFunction == None -> the value should be saved
+    '''
+    all values that can be changed require a entry in the mutableParameters
+    when a value exists, it means that it's allowed to read/write the value
+    hasFunc defines if it's a vital property of the object and must be saved
+    into the comments
+    valueType, getFunc vtion, setFunction, hasFunction, clearFunction
+    hasFunction == None -> the value should be saved
+    '''
     self.mutableParameters = dict()
     self.mutableParameters['name'] = [ str,
       self.getName,
@@ -73,35 +129,62 @@ class TreeNode(object):
       None,
       False ]
     
-    # functions that can be done with this node
+    '''
+    functions that can be called on this node, the functionName usually match the list entry
+    currently used names:
+    - destroy
+      (destroy this node and all child nodes)
+      - alternative idea, the node gets editModedisabled and reparented to a background node (undo functionality?)
+    - duplicate
+      (copy this node, without children to the same parent)
+    - save
+      (save the modified data, overwriting the existing data)
+    - saveAs
+      (same as saveAs, with a filename parameter)
+    - revert
+      (undo changes in this file and revert to the savefile)
+    '''
     self.possibleFunctions = [
         'destroy',
         'duplicate',
       ]
     
-    # this would define what type of node may be attached to this node,
-    # defining a empty list disallows any children from being attached
-    # not defining it will make it search in any parent node for this parameter
-    # add names of the classes to this list that may be attached
-    # self.possibleChildrens = list()
+    '''
+    this would define what type of node may be attached to this node,
+    defining a empty list disallows any children from being attached
+    not defining it will make it search in any parent node for this parameter
+    add names of the classes to this list that may be attached
     
-    # path where this node is saved to, not defining it will make the function
-    # call getParentFilepath search any parent node for a defined filepath
-    # this data is used by child nodes to know which path they should save
-    # relative to
-    # self.treeFilepath = ''
+    self.possibleChildrens = list()
+    '''
     
-    # a optional nodepath, allows any child nodepaths to find a place to attach
-    # themself to
-    # self.treeNodepath = Nodepath()
+    '''
+    path where this node is saved to, not defining it will make the function
+    call getParentFilepath search any parent node for a defined filepath
+    this data is used by child nodes to know which path they should save
+    relative to
+    
+    self.treeFilepath = ''
+    '''
+    
+    '''
+    a optional nodepath, allows any child nodepaths to find a place to attach
+    themself to:
+    getParentNodepath: use it to find the next nodepath a parent gives to attach to
+    setNodepath, getNodepath and hasNodepath work on this node
+    
+    self.treeNodepath = Nodepath()
+    '''
   
   def destroy(self):
-    ''' # this should maybe run
+    print "I: TreeNode.destroy: recursively"
+    # this should maybe run
     def recurse(parent):
       for child in parent.getChildren()[:]: # accessing it directly causes it to miss childrens
         recurse(child)
         child.destroy()
-    recurse(self)'''
+    recurse(self)
+    
     self.stopEdit()
     self.setEditmodeDisabled()
     TreeNode.detachNode(self)
@@ -124,6 +207,11 @@ class TreeNode(object):
       self.treeParent = treeParent
       if self.treeParent:
         self.treeParent.treeChildren.append(self)
+      
+      if self.hasNodepath():
+        # automatically handle the reparenting of the nodepath, if one is assigned
+        self.reparentNodepathTo()
+      
       return True
     else:
       print "W: TreeNode.reparentTo: cannot reparent to TreeNode in children"
@@ -264,6 +352,16 @@ class TreeNode(object):
     if hasattr(self, 'treeNodepath'):
       return True
     return False
+  
+  def reparentNodepathTo(self):
+    ''' a helper function to handle reparenting of the nodepath automatically '''
+    # reparent
+    parentNodepath = self.getParentNodepath()
+    if parentNodepath:
+      self.getNodepath().wrtReparentTo(parentNodepath)
+    else:
+      self.getNodepath().wrtReparentTo(render) # <- XXX TODO, this should not be render
+  
   
   # --- EDIT MODE OF THE OBJECT ---
   ''' if a object has the editmodeEnabled, it's possible to modify it
@@ -429,6 +527,11 @@ class TreeNode(object):
   
   # --- LOADING & SAVING TO FILES ---
   def getSaveData(self, relativeTo):
+    ''' returns a eggGroup that contains all required data for this node
+    if this function returns None, it will not be saved
+    
+    XXX TODO: relativeTo is most probably obsolete now, with the getParentFilename
+    '''
     # the given name of this object
     name = self.getName()
     # the matrix we define must be applied to the nodes in "local space"
@@ -457,10 +560,12 @@ class TreeNode(object):
     return instance
   
   def loadFromData(self, eggGroup, filepath):
+    ''' apply the data that was previously saved using getSaveData '''
     data = dict()
     for child in eggGroup.getChildren():
       if type(child) == EggComment:
         if child.getName() == BASEWRAPPER_DATA_TAG:
+          # XXX TODO: eval is bad in here, but very simple...
           data = eval(child.getComment())
     self.setParameters(data)
   

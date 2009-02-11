@@ -60,17 +60,6 @@ class BaseWrapper(TreeNode):
   - maybe move color,antialias etc. to special implementations of this node
   '''
   className = 'Base'
-  def onCreateInstance(self, parent, name='BaseWrapper'):
-    # create instance of this class
-    objectInstance = self(parent, name)
-    return objectInstance
-  onCreateInstance = classmethod(onCreateInstance)
-  
-  def loadFromEggGroup(self, eggGroup, parent, filepath):
-    name = eggGroup.getName()
-    objectInstance = self(parent, name)
-    return objectInstance
-  loadFromEggGroup = classmethod(loadFromEggGroup)
   
   def __init__(self, parent, name):
     # define a name for this object
@@ -288,6 +277,8 @@ class BaseWrapper(TreeNode):
     self.getNodepath().removeNode()
   
   def getSaveData(self, relativeTo):
+    ''' return the parameters of this node, filenames must be relative to relativeTo
+    '''
     instance = TreeNode.getSaveData(self, relativeTo)
     # convert the matrix, very ugly right now
     om = self.getNodepath().getMat()

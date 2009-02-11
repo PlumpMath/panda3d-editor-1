@@ -25,7 +25,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
     else:
       name = 'GeoMipTerrain'
     objectInstance = super(GeoMipTerrainNodeWrapper, self).onCreateInstance(parent, name)
-    objectInstance.setTerrain(filepath)
+    objectInstance.setHeightfield(filepath)
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
   
@@ -33,12 +33,13 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
     BaseWrapper.__init__(self, parent, name)
     # the actual geomipterrainheightfield
     self.terrain = GeoMipTerrain("GeoMipTerrainNodeWrapper")
+    self.terrain.getRoot().reparentTo(self.getNodepath())
     
     # model used to show highlighting of this node
     self.highlightModel = None
     
     # node which we use to paint the heightfield
-    self.geoMipTerrainHeightfield = None
+    self.geoMipTerrainHeightfield = GeoMipTerrainHeightfield(parent=self, geoMipTerrain=self)
     
     self.mutableParameters['minlevel'] = [ int,
         self.terrain.getMinLevel,
@@ -53,14 +54,32 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
         None,
         True ]
     
-    # this doesnt work with 1.6 anymore (getFactor missing)
-    self.terrainFactor = 1.0
-    self.mutableParameters['factor'] = [ float,
-        self.getFactor,
-        self.setFactor,
-        None,
-        None,
-        True ]
+    # panda version 1.5 and below
+    if PandaSystem.getMinorVersion() < 6:
+      # this doesnt work with 1.6 anymore (getFactor missing)
+      self.terrainFactor = 1.0
+      self.mutableParameters['factor'] = [ float,
+          self.getFactor,
+          self.setFactor,
+          None,
+          None,
+          True ]
+    else:
+      # this doesnt work with 1.6 anymore (getFactor missing)
+      self.terrainNear = 10
+      self.mutableParameters['terrainNear'] = [ float,
+          self.getTerrainNear,
+          self.setTerrainNear,
+          None,
+          None,
+          True ]
+      self.terrainFar = 25
+      self.mutableParameters['terrainFar'] = [ float,
+          self.getTerrainFar,
+          self.setTerrainFar,
+          None,
+          None,
+          True ]
     
     self.mutableParameters['blocksize'] = [ int,
         self.terrain.getBlockSize,
@@ -77,7 +96,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
         True ]
     
     # defines the maximum update rate of the terrain
-    self.maxTerrainUpdateRate = 30
+    self.maxTerrainUpdateRate = 10
     # stores the last update time
     self.lastTerrainUpdateTime = globalClock.getRealTime()
     self.mutableParameters['update rate'] = [ float,
@@ -87,21 +106,35 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
         None,
         True ]
   
-  def getFactor(self):
-    return self.terrainFactor
-  def setFactor(self, factor):
-    self.terrainFactor = factor
-    self.terrain.setFactor(self.terrainFactor)
+  if PandaSystem.getMinorVersion() < 6:
+    def getFactor(self):
+      return self.terrainFactor
+    def setFactor(self, factor):
+      self.terrainFactor = factor
+      self.terrain.setFactor(self.terrainFactor)
+  else:
+    def getTerrainNear(self):
+      return self.terrainNear
+    def setTerrainNear(self, terrainNear):
+      self.terrainNear = terrainNear
+      self.terrain.setNear(terrainNear)
+    def getTerrainFar(self):
+      return self.terrainFar
+    def setTerrainFar(self, terrainFar):
+      self.terrainFar = terrainFar
+      self.terrain.setFar(terrainFar)
   
   def setEditmodeEnabled(self):
     BaseWrapper.setEditmodeEnabled(self)
     self.getNodepath().setCollideMask(DEFAULT_EDITOR_COLLIDEMASK)
     self.accept(EVENT_CAMERAPIVOT_POSITION_CHANGE, self.cameraFocusUpdate)
+    self.geoMipTerrainHeightfield.setEditmodeEnabled()
   
   def setEditmodeDisabled(self):
     self.ignore(EVENT_CAMERAPIVOT_POSITION_CHANGE)
     BaseWrapper.setEditmodeDisabled(self)
     self.getNodepath().setCollideMask(BitMask32.allOff())
+    self.geoMipTerrainHeightfield.setEditmodeDisabled()
   
   def startEdit(self):
     ''' the object is selected to be edited
@@ -145,6 +178,8 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
     ''' update the focus point of the terrain, focusPoint must be relative to render
     update rate is limited by the maxTerrainUpdateRate
     '''
+    # XXX TODO i dont know and i dont care anymore
+    # it's ridiculously slow
     if True:
       # the code that i'd like to use
       currentTime = globalClock.getRealTime()
@@ -207,12 +242,14 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
         relativePath = posixpath.dirname(self.getParentFilepath())
         filepath = relpath(relativePath, posixpath.abspath(filepath))
     
-    if self.geoMipTerrainHeightfield:
-      self.geoMipTerrainHeightfield.destroy()
-    self.geoMipTerrainHeightfield = GeoMipTerrainHeightfield(parent=self, geoMipTerrain=self)
+    #if self.geoMipTerrainHeightfield:
+    #  self.geoMipTerrainHeightfield.destroy()
+    #self.geoMipTerrainHeightfield = GeoMipTerrainHeightfield(parent=self, geoMipTerrain=self)
     self.geoMipTerrainHeightfield.heightfield = filepath
-    self.geoMipTerrainHeightfield.setEditmodeEnabled()
     self.update()
+    
+    #if self.isEditmodeEnabled():
+    #  self.geoMipTerrainHeightfield.setEditmodeEnabled()
   
   def getHeightfield(self):
     if self.geoMipTerrainHeightfield:
@@ -231,7 +268,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
     #  self.terrain.getRoot().detachNode()
     
     # reparent to our node
-    self.terrain.getRoot().reparentTo(self.getNodepath())
+    #self.terrain.getRoot().reparentTo(self.getNodepath())
     
     # scale so it's 100x100 units large and of 10 units height
     hf = self.terrain.heightfield()
@@ -243,7 +280,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
   
   def makeInstance(self, original):
     objectInstance = super(GeoMipTerrainNodeWrapper, self).makeInstance(original)
-    objectInstance.setTerrain(original.geoMipTerrainHeightfield.heightfield)
+    #objectInstance.setTerrain(original.geoMipTerrainHeightfield.heightfield)
     return objectInstance
   makeInstance = classmethod(makeInstance)
 

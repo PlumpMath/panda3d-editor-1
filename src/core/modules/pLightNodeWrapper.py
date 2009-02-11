@@ -34,4 +34,5 @@ class LightNodeWrapper(VirtualNodeWrapper):
     # destroy this object
     render.clearLight(self.lightNodePath)
     self.lightNodePath.detachNode()
+    del self.light
     VirtualNodeWrapper.destroy(self)

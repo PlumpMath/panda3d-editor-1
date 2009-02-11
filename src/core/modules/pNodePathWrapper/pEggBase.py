@@ -52,3 +52,7 @@ class ObjectEggBase(TreeNode):
   
   def destroy(self):
     TreeNode.destroy(self)
+  
+  def getSaveData(self, relativeTo):
+    # we do not want to save this nodes into a egs (egg-scene)
+    return None

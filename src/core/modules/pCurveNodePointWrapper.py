@@ -4,6 +4,7 @@ from core.modules.pVirtualNodeWrapper import VirtualNodeWrapper
 from core.pConfigDefs import *
 
 class CurveNodePointWrapper(VirtualNodeWrapper, DirectObject):
+  className = 'CurvePoint'
   def __init__(self, parent, name='CurveElement'):
     print "I: CurveNodePointWrapper.__init__"
     curveNodeModel = 'data/models/misc/sphere.egg'

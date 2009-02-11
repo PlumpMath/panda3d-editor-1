@@ -82,16 +82,14 @@ class NodePathWrapper(BaseWrapper):
         self.updateModelFromEggData,
         None,
         None,
-        False
-      ]
+        False ]
     # this should actually not be saved into the parameters
     self.mutableParameters['model'] = [ Filepath,
         self.getModelFilepath,
         self.setModelFilepath,
         None,
         None,
-        False
-      ]
+        False ]
     
     # subnodes of this node
     self.eggTreeParent = None

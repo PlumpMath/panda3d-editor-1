@@ -161,7 +161,7 @@ class GeoMipTerrainHeightfield(TreeNode):
         True]
     
     self.possibleChildren = []
-    self.possibleFunctions = ['save', 'saveAs']
+    self.possibleFunctions = ['save', 'saveAs', 'revert']
     
     self.lastUpdateTime = 0
   
@@ -264,10 +264,8 @@ class GeoMipTerrainHeightfield(TreeNode):
         pass
       
       # stop painting
-      editedImage = texturePainter.stopEditor()
+      texturePainter.stopEditor()
       texturePainter.disableEditor()
-      
-      print "editedImage", editedImage
       
       # restore bruteforce state
       #self.geoMipTerrain.terrain.colorMap().copyFrom(editedImage)
@@ -281,6 +279,12 @@ class GeoMipTerrainHeightfield(TreeNode):
       self.geoMipTerrain.terrain.getRoot().show()
       
       TreeNode.stopEdit(self)
+  
+  def revert(self):
+    self.stopEdit()
+    self.geoMipTerrain.setHeightfield(self.heightfield)
+    self.geoMipTerrain.terrain.generate()
+    self.startEdit()
   
   def save(self):
     # saving the texture

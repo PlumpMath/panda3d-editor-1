@@ -39,7 +39,6 @@ class SceneNodeWrapper(VirtualNodeWrapper):
   def onCreateInstance(self, parent, filepath):
     # create instance of this class
     objectInstance = super(SceneNodeWrapper, self).onCreateInstance(parent, 'SceneNode')
-    #print "I: SceneNodeWrapper.onCreateInstance:", filepath
     objectInstance.setScene(filepath)
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
@@ -60,7 +59,8 @@ class SceneNodeWrapper(VirtualNodeWrapper):
         'SceneNodeWrapper',
         'ShaderWrapper',
         'CurveNodeWrapper',
-        'CurveSurfaceNodeWrapper'
+        'CurveSurfaceNodeWrapper',
+        'AnimatedTextureWrapper',
       ]
     self.possibleFunctions = [
         'saveAs',
@@ -189,29 +189,30 @@ class SceneNodeWrapper(VirtualNodeWrapper):
     print "I: SceneNodeWrapper.saveAs:", filepath
     def saveRecursiveChildrens(parent, eggParentData, relativeTo):
       for child in parent.getChildren():
-        # save the childs data
+        '''# save the childs data
         hasNodePath = BaseWrapper in child.__class__.__mro__ or type(child) == ShaderWrapper
+        if hasNodePath:'''
+        
         #print "saveRecursiveChildrens", type(child)
         isSceneNode = type(child) == SceneNodeWrapper
-        if hasNodePath:
-          # editModeEnabled is only true for SceneNodeWrappers, which have not
-          # been referenced (it's the root node). thus the childrens data
-          # should not be included if False
-          modelData = child.getSaveData(relativeTo)
-          # XXX TODO, this must be done again, we may save stuff that is not
-          # supposed to be saved
-          if modelData is not None:
-            eggParentData.addChild(modelData)
-            # if there is data of the model walk the childrens
-            if modelData:
-              # but not if it's a sceneNode
-              # (this would save the scene twice, once as linked scene and
-              # once the models within the scene referenced)
-              if not isSceneNode:
-                # search childrens
-                saveRecursiveChildrens(child, modelData, relativeTo)
-          else:
-            print "I: SceneNodeWrapper.saveAs.saveRecursiveChildrens: got NodeData"
+        # editModeEnabled is only true for SceneNodeWrappers, which have not
+        # been referenced (it's the root node). thus the childrens data
+        # should not be included if False
+        modelData = child.getSaveData(relativeTo)
+        # XXX TODO, this must be done again, we may save stuff that is not
+        # supposed to be saved
+        if modelData is not None:
+          eggParentData.addChild(modelData)
+          # if there is data of the model walk the childrens
+          if modelData:
+            # but not if it's a sceneNode
+            # (this would save the scene twice, once as linked scene and
+            # once the models within the scene referenced)
+            if not isSceneNode:
+              # search childrens
+              saveRecursiveChildrens(child, modelData, relativeTo)
+        else:
+          print "I: SceneNodeWrapper.saveAs.saveRecursiveChildrens: got NodeData"
     
     # create a eggData to save the data
     eggData = EggData()

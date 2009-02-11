@@ -45,11 +45,14 @@ class MouseHandlerClass:
     curTime = globalClock.getFrameTime()
     if (curTime - MOUSE_REFRESH_RATE > self.lastTaskTime):
       self.lastTaskTime = curTime
+      
       # cache the mouse position
       self.mousePosX, self.mousePosY = self._getCurrentMousePos()
+      #print "I: MouseHandlerClass.mouseHandlerTask:", self.mousePosX, self.mousePosY
       
       # if the mouse is fixed to the center of the window, reset the mousepos
       if self.mouseFixed and (self.mousePosX != 0.0 or self.mousePosY != 0.0):
+        print "I:  MouseHandlerClass.mouseHandlerTask: mouse centered"
         self.setMouseCentered()
     
     return task.cont
@@ -76,18 +79,19 @@ class MouseHandlerClass:
   def setMouseHidden(self, state = None):
     """Hides/Shows the mouse"""
     wp = WindowProperties()
-    # If state is not defined, toggle the current state
+    '''# If state is not defined, toggle the current state
     if state == None:
       state = wp.getCursorHidden()
     # Hide/show mouse cursor
-    wp.setCursorHidden(state)
+    wp.setCursorHidden(state)'''
     
-    # Does not exist panda 1.3.2 / but is required for osx-mouse movement
+    '''# Does not exist panda 1.3.2 / but is required for osx-mouse movement
     if sys.platform == 'darwin':
       wp.setMouseMode(WindowProperties.MRelative)
     else:
-      wp.setMouseMode(WindowProperties.MAbsolute)
+      wp.setMouseMode(WindowProperties.MAbsolute)'''
     
+    # apply to all windows
     for w in WindowManager.windows:
       w.win.requestProperties(wp)
   

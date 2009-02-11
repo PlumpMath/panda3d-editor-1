@@ -73,6 +73,8 @@ class MenuBarGui(DirectObject):
       nodeButtonDefinitions.append( ['curve', self.createModelWrapper, ['CurveNodeWrapper']] )
     if 'CurveSurfaceNodeWrapper' in possibleChildren:
       nodeButtonDefinitions.append( ['surfaceCurve', self.createModelWrapper, ['CurveSurfaceNodeWrapper']] )
+    if 'AnimatedTextureWrapper' in possibleChildren:
+      nodeButtonDefinitions.append( ['animated texture', self.createModelWrapper, ['AnimatedTextureWrapper']] )
     self.nodeButtons = self.createInterface(nodeButtonDefinitions, 'nodes', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.85,0,0))
     
     lightButtonDefinitions = list()

@@ -171,10 +171,15 @@ class TexturePainter(DirectObject):
   def disableEditor(self):
     ''' destroy the editor, automatically stop the editor and painting
     change from enabled to disabled'''
-    if self.texturePainterStatus == TEXTURE_PAINTER_STATUS_INITIALIZED:
-      self.stopEditor()
-    self.texturePainterStatus = TEXTURE_PAINTER_STATUS_DISABLED
-    self.__disableEditor()
+    # try stopping if more advanced mode
+    #if self.texturePainterStatus == TEXTURE_PAINTER_STATUS_INITIALIZED:
+    #  self.stopEditor()
+    
+    if self.texturePainterStatus == TEXTURE_PAINTER_STATUS_ENABLED:
+      self.texturePainterStatus = TEXTURE_PAINTER_STATUS_DISABLED
+      self.__disableEditor()
+    else:
+      print "E: TexturePainter.disableEditor: not enabled", self.texturePainterStatus
   
   # --- 
   def startEditor(self, editModel, editTexture, backgroundShader=MODEL_COLOR_SHADER):
@@ -184,15 +189,18 @@ class TexturePainter(DirectObject):
       self.texturePainterStatus = TEXTURE_PAINTER_STATUS_INITIALIZED
       self.__startEditor(editModel, editTexture, backgroundShader)
     else:
-      print "E: TexturePainter.startEditor: not initialized", self.texturePainterStatus
+      print "E: TexturePainter.startEditor: not enabled", self.texturePainterStatus
   
   def stopEditor(self):
     ''' stop painting, automatically stop painting
     change from initialized to enabled'''
+    #if self.texturePainterStatus == TEXTURE_PAINTER_STATUS_INITIALIZED:
+    #  self.stopPaint()
     if self.texturePainterStatus == TEXTURE_PAINTER_STATUS_INITIALIZED:
-      self.stopPaint()
-    self.texturePainterStatus = TEXTURE_PAINTER_STATUS_ENABLED
-    return self.__stopEditor()
+      self.texturePainterStatus = TEXTURE_PAINTER_STATUS_ENABLED
+      return self.__stopEditor()
+    else:
+      print "E: TexturePainter.startEditor: not initialized", self.texturePainterStatus
   
   """ # this is not externally callable
   # ---
@@ -420,8 +428,6 @@ class TexturePainter(DirectObject):
     taskMgr.remove('paintTask')
     # stop edit end
     
-    editedImage = self.editImage
-    
     self.editImage = None
     self.editTexture = None
     self.painter = None
@@ -429,10 +435,10 @@ class TexturePainter(DirectObject):
     
     modelModificator.toggleEditmode(True)
     
-    # hide the model from cam 2
-    self.editModel.hide(BitMask32.bit(1))
-    
-    return editedImage
+    if self.editModel:
+      # hide the model from cam 2
+      self.editModel.hide(BitMask32.bit(1))
+      self.editModel = None
   
   def __updateModel(self, backgroundShader): #, overlayTexture=None):
     if self.editModel:
@@ -548,13 +554,14 @@ class TexturePainter(DirectObject):
           if self.paintEffect == TEXTUREPAINTER_BRUSH_SMOOTH:
             # calculate average values
             data = dict()
+            smoothRadius = 1
             for dx in xrange(-radius, radius+1):
               for dy in xrange(-radius, radius+1):
                 if inImage(x+dx,y+dy):
                   average = VBase4D(0)
                   dividor = 0
-                  for px in xrange(-1,2):
-                    for py in xrange(-1,2):
+                  for px in xrange(-smoothRadius,smoothRadius+1):
+                    for py in xrange(-smoothRadius,smoothRadius+1):
                       if inImage(x+dx+px,y+dy+py):
                         average += self.editImage.getXelA(x+dx+px,y+dy+py)
                         dividor += 1
