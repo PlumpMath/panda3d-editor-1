@@ -283,26 +283,30 @@ class TexturePainter(DirectObject):
     ''' when the editor is enabled, update the buffers etc. when the window
     is resized '''
     print "I: TexturePainter.windowEvent"
-    #if self.texturePainterStatus != TEXTURE_PAINTER_STATUS_DISABLED:
-    if self.modelColorBuffer:
-      if WindowManager.activeWindow:
-        # on window resize there seems to be never a active window
-        win = WindowManager.activeWindow.win
+    
+    # with a fixed backgroudn buffer size this is not needed anymore
+    
+    if False:
+      #if self.texturePainterStatus != TEXTURE_PAINTER_STATUS_DISABLED:
+      if self.modelColorBuffer:
+        if WindowManager.activeWindow:
+          # on window resize there seems to be never a active window
+          win = WindowManager.activeWindow.win
+        else:
+          win = base.win
+        if self.modelColorBuffer.getXSize() != win.getXSize() or self.modelColorBuffer.getYSize() != win.getYSize():
+          '''print "  - window resized",\
+              self.modelColorBuffer.getXSize(),\
+              win.getXSize(),\
+              self.modelColorBuffer.getYSize(),\
+              win.getYSize()'''
+          # if the buffer size doesnt match the window size (window has been resized)
+          self.__destroyBuffer()
+          self.__createBuffer()
+          self.__updateModel()
       else:
-        win = base.win
-      if self.modelColorBuffer.getXSize() != win.getXSize() or self.modelColorBuffer.getYSize() != win.getYSize():
-        '''print "  - window resized",\
-            self.modelColorBuffer.getXSize(),\
-            win.getXSize(),\
-            self.modelColorBuffer.getYSize(),\
-            win.getYSize()'''
-        # if the buffer size doesnt match the window size (window has been resized)
-        self.__destroyBuffer()
+        print "W: TexturePainter.__windowEvent: no buffer"
         self.__createBuffer()
-        self.__updateModel()
-    else:
-      print "W: TexturePainter.__windowEvent: no buffer"
-      self.__createBuffer()
   
   def __createBuffer(self):
     ''' create the buffer we render in the background into '''
@@ -320,7 +324,8 @@ class TexturePainter(DirectObject):
     
     # create a buffer in which we render the model using a shader
     self.paintMap = Texture()
-    self.modelColorBuffer = createOffscreenBuffer(-3, self.windowSizeX, self.windowSizeY)
+    # 1.5.4 cant handle non power of 2 buffers
+    self.modelColorBuffer = createOffscreenBuffer(-3, TEXTUREPAINTER_BACKGROUND_BUFFER_RENDERSIZE[0], TEXTUREPAINTER_BACKGROUND_BUFFER_RENDERSIZE[1]) #self.windowSizeX, self.windowSizeY)
     self.modelColorBuffer.addRenderTexture(self.paintMap, GraphicsOutput.RTMBindOrCopy, GraphicsOutput.RTPColor)
     self.modelColorCam = base.makeCamera(self.modelColorBuffer, lens=base.cam.node().getLens(), sort=1)
     
@@ -384,6 +389,7 @@ class TexturePainter(DirectObject):
     self.editModel = editModel
     self.editTexture = editTexture
     self.editImage = None
+    self.backgroundShader = backgroundShader
     
     if type(self.editTexture) == Texture:
       # if the image to modify is a texture, create a pnmImage which we modify
@@ -397,7 +403,7 @@ class TexturePainter(DirectObject):
     self.painter = PNMPainter(self.editImage)
     self.setBrushSettings( *self.getBrushSettings() )
     
-    self.__updateModel(backgroundShader)
+    self.__updateModel()
     
     # start edit
     messenger.send(EVENT_TEXTUREPAINTER_STARTEDIT)
@@ -435,19 +441,19 @@ class TexturePainter(DirectObject):
     
     modelModificator.toggleEditmode(True)
     
-    if self.editModel:
+    if self.editModel and self.editTexture and self.editImage:
       # hide the model from cam 2
       self.editModel.hide(BitMask32.bit(1))
       self.editModel = None
   
-  def __updateModel(self, backgroundShader): #, overlayTexture=None):
+  def __updateModel(self):
     if self.editModel:
       # create a image with the same size of the texture
       textureSize = (self.editTexture.getXSize(), self.editTexture.getYSize())
       
       # create a dummy node, where we setup the parameters for the background rendering
       loadPaintNode = NodePath(PandaNode('paintnode'))
-      loadPaintNode.setShader(Shader.make(backgroundShader), 10001)
+      loadPaintNode.setShader(Shader.make(self.backgroundShader), 10001)
       loadPaintNode.setShaderInput('texsize', textureSize[0], textureSize[1], 0, 0)
       
       # copy the state onto the camera
@@ -542,6 +548,25 @@ class TexturePainter(DirectObject):
       ''' is the given x/y position within the image '''
       return ((imageMaxX > x >= 0) and (imageMaxY > y >= 0))
     
+    # how smooth should be painted
+    if self.paintSmooth:
+      # a smooth brush
+      hardness = 1.0
+    else:
+      # a hard brush
+      hardness = 0.1
+    hardness = min(1.0, max(0.05, hardness))
+    
+    # the paint radius
+    radius = int(round(self.paintSize/2.0))
+    radiusSquare = float(radius*radius)
+    
+    # a function to get the brush color/strength, depending on the radius
+    def getBrushColor(diffPosX, diffPosY):
+      distance = diffPosX**2 + diffPosY**2
+      brushStrength = (1 - (min(distance, radiusSquare) / radiusSquare)) / hardness
+      return min(1.0, max(0.0, brushStrength))
+    
     if inImage(x,y):
       if self.paintMode == TEXTUREPAINTER_FUNCTION_PAINT_POINT:
         if self.paintEffect in [PNMBrush.BESet, PNMBrush.BEBlend, PNMBrush.BEDarken, PNMBrush.BELighten]:
@@ -549,12 +574,11 @@ class TexturePainter(DirectObject):
           self.painter.drawPoint(x, y)
         
         elif self.paintEffect in [TEXTUREPAINTER_BRUSH_FLATTEN, TEXTUREPAINTER_BRUSH_SMOOTH, TEXTUREPAINTER_BRUSH_RANDOMIZE]:
-          radius = int(round(self.paintSize/2.0))
           
           if self.paintEffect == TEXTUREPAINTER_BRUSH_SMOOTH:
             # calculate average values
             data = dict()
-            smoothRadius = 1
+            smoothRadius = 2
             for dx in xrange(-radius, radius+1):
               for dy in xrange(-radius, radius+1):
                 if inImage(x+dx,y+dy):
@@ -569,8 +593,36 @@ class TexturePainter(DirectObject):
                   data[(x+dx,y+dy)] = average
             
             # save to image
-            for (x,y), value in data.items():
-              self.editImage.setXelA(x,y,value)
+            for (px,py), newValue in data.items():
+              currentValue = self.editImage.getXelA(px,py)
+              diffValue = currentValue - newValue
+              
+              dx = px - x
+              dy = py - y
+              
+              
+              multiplier = getBrushColor(dx, dy)
+              print dx, dy, multiplier
+              '''if self.paintSmooth:
+                multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy))) / (radius*radius)
+              else:
+                # not sure if this is correct
+                multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy)))'''
+              
+              '''r = currentValue.getX() * (1-multiplier*self.paintColor.getX()) + diffValue.getX() * multiplier*self.paintColor.getX()
+              g = currentValue.getY() * (1-multiplier*self.paintColor.getY()) + diffValue.getY() * multiplier*self.paintColor.getY()
+              b = currentValue.getZ() * (1-multiplier*self.paintColor.getZ()) + diffValue.getZ() * multiplier*self.paintColor.getZ()
+              a = currentValue.getW() * (1-multiplier*self.paintColor.getW()) + diffValue.getW() * multiplier*self.paintColor.getW()'''
+              r = currentValue.getX() - multiplier * diffValue.getX()
+              g = currentValue.getY() - multiplier * diffValue.getY()
+              b = currentValue.getZ() - multiplier * diffValue.getZ()
+              a = currentValue.getW() - multiplier * diffValue.getW()
+              if self.editImage.hasAlpha():
+                self.editImage.setXelA(px,py,VBase4D(r,g,b,a))
+              else:
+                self.editImage.setXel(px,py,VBase3D(r,g,b))
+              
+              #self.editImage.setXelA(x,y,value)
             
           if self.paintEffect == TEXTUREPAINTER_BRUSH_FLATTEN:
             dividor = 0
@@ -578,21 +630,23 @@ class TexturePainter(DirectObject):
             for dx in xrange(-radius, radius+1):
               for dy in xrange(-radius, radius+1):
                 if inImage(x+dx,y+dy):
-                  if self.paintSmooth:
+                  multiplier = getBrushColor(dx, dy)
+                  '''if self.paintSmooth:
                     multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy))) / (radius*radius)
                   else:
-                    multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy)))
+                    multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy)))'''
                   dividor += multiplier
                   average += self.editImage.getXelA(x+dx,y+dy) * multiplier
             average /= dividor
             for dx in xrange(-radius, radius+1):
               for dy in xrange(-radius, radius+1):
                 if inImage(x+dx,y+dy):
-                  if self.paintSmooth:
+                  multiplier = getBrushColor(dx, dy)
+                  '''if self.paintSmooth:
                     multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy))) / (radius*radius)
                   else:
                     # not sure if this is correct
-                    multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy)))
+                    multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy)))'''
                   currentValue = self.editImage.getXelA(x+dx,y+dy)
                   r = currentValue.getX() * (1-multiplier*self.paintColor.getX()) + average.getX() * multiplier*self.paintColor.getX()
                   g = currentValue.getY() * (1-multiplier*self.paintColor.getY()) + average.getY() * multiplier*self.paintColor.getY()
@@ -611,11 +665,12 @@ class TexturePainter(DirectObject):
                              random.random()*self.paintColor.getY()-self.paintColor.getY()/2.,
                              random.random()*self.paintColor.getZ()-self.paintColor.getZ()/2.,
                              random.random()*self.paintColor.getW()-self.paintColor.getW()/2.)
-                  if self.paintSmooth:
+                  multiplier = getBrushColor(dx, dy)
+                  '''if self.paintSmooth:
                     multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy))) / (radius*radius)
                   else:
                     # not sure if this is correct
-                    multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy)))
+                    multiplier = ((radius-math.fabs(dx))*(radius-math.fabs(dy)))'''
                   currentValue = self.editImage.getXelA(x+dx,y+dy)
                   self.editImage.setXelA(x+dx,y+dy,currentValue+r*multiplier)
       
