@@ -1,0 +1,28 @@
+0.1 todo:
+- core:
+  - adding collision solids to egg's
+  - shader node, which allows adding of custom shaders
+  - change objects to use TreeNode getParentFilepath to find relative path's
+    - also use setFilepath/getFilepath
+  - change objects to use TreeNode getParentNodepath to get a nodepath to attach
+    childnodes to
+- dgui:
+  - new file load/save dialogue
+  - a directentry that can have a longer content then the length (and be modifyable)
+- wxgui:
+  - getting it working again
+- documentation:
+  - user manual
+
+v0.1 done:
+- core:
+  - reParenting
+  - fix saving of subnodes
+- dgui:
+  - Making the DGUI interface correctly showing the possible childrens of the selected node
+- documentation:
+  - example
+
+v0.2 plans:
+- curves:
+  - http://www.garagegames.com/community/blog/view/15583/2#comments

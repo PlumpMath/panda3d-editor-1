@@ -1,0 +1,161 @@
+<CoordinateSystem> { Z-Up }
+
+<Instance> jumpgate.egg {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      0 0 4 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    jumpgate.egg
+  }
+}
+<Instance> jumpgate.egg {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      6 0 4 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    jumpgate.egg
+  }
+}
+<Instance> jumpgate.egg {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      12 0 4 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    jumpgate.egg
+  }
+}
+<Instance> jumpgate.egg {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      -6 0 4 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    jumpgate.egg
+  }
+}
+<Instance> jumpgate.egg {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      -12 0 4 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    jumpgate.egg
+  }
+}
+<Instance> BaseWrapper {
+  <Transform> {
+    <Matrix4> {
+      -0.707107 0.707107 2.51164e-07 0
+      -0.332875 -0.332874 -0.882264 0
+      -0.623855 -0.623855 0.470756 0
+      14 11 16 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    SpotLightNodeWrapper
+  }
+  <Comment> parameters {
+    "{'fov': (135.0, 30.0), 'color': (1.0, 1.0, 1.0, 1.0), 'priority': 0, 'specularColor': (1.0, 1.0, 1.0, 1.0), 'near': 1.0, 'attenuation': (1.0, 0.0, 0.0), 'far': 100000.0, 'exponent': 20.0}"
+  }
+}
+<Instance> BaseWrapper {
+  <Transform> {
+    <Matrix4> {
+      0.602068 0.789308 -0.12045 0
+      -0.702306 0.451746 -0.550175 0
+      -0.379844 0.415835 0.826317 0
+      14 -11 16 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    SpotLightNodeWrapper
+  }
+  <Comment> parameters {
+    "{'fov': (135.0, 30.0), 'color': (1.0, 1.0, 1.0, 1.0), 'priority': 0, 'specularColor': (1.0, 1.0, 1.0, 1.0), 'near': 1.0, 'attenuation': (1.0, 0.0, 0.0), 'far': 100000.0, 'exponent': 20.0}"
+  }
+}
+<Instance> BaseWrapper {
+  <Transform> {
+    <Matrix4> {
+      -0.701438 -0.70593 -0.0982308 0
+      0.523909 -0.417244 -0.742581 0
+      0.483224 -0.572338 0.662513 0
+      -12.0834 10.8125 16 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    SpotLightNodeWrapper
+  }
+  <Comment> parameters {
+    "{'fov': (135.0, 30.0), 'color': (1.0, 1.0, 1.0, 1.0), 'priority': 0, 'specularColor': (1.0, 1.0, 1.0, 1.0), 'near': 1.0, 'attenuation': (1.0, 0.0, 0.0), 'far': 100000.0, 'exponent': 20.0}"
+  }
+}
+<Instance> BaseWrapper {
+  <Transform> {
+    <Matrix4> {
+      0.629209 -0.77085 0.0994287 0
+      0.594751 0.395167 -0.700082 0
+      0.500367 0.499633 0.707107 0
+      -14.5 -11 16 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    SpotLightNodeWrapper
+  }
+  <Comment> parameters {
+    "{'fov': (135.0, 30.0), 'color': (1.0, 1.0, 1.0, 1.0), 'priority': 0, 'specularColor': (1.0, 1.0, 1.0, 1.0), 'near': 1.0, 'attenuation': (1.0, 0.0, 0.0), 'far': 100000.0, 'exponent': 20.0}"
+  }
+}

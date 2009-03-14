@@ -1,0 +1,42 @@
+<CoordinateSystem> { Z-Up }
+
+<Group> AnimatedTexture {
+  <Tag> modelWrapperTypeTag {
+    AnimatedTextureWrapper
+  }
+  <Comment> parameters {
+    "{'texture sort': 0, 'image base': 'water-render/%04i.png', 'playrate': 30.0, 'priority': 1, 'active': True, 'mode type': 'MNormal', 'image start': 1, 'image end': 100, 'min filter': 'FTLinear', 'v wrap mode': 'WMMirror', 'u wrap mode': 'WMMirror', 'mag filter': 'FTLinear'}"
+  }
+  <Instance> terrain2.png {
+    <Transform> {
+      <Matrix4> {
+        1 0 0 0
+        0 1 0 0
+        0 0 2 0
+        -57.7 -43.2 0 1
+      }
+    }
+    <Tag> modelWrapperTypeTag {
+      GeoMipTerrainNodeWrapper
+    }
+    <Comment> parameters {
+      "{'terrainFar': 25, 'update rate': 1.0, 'blocksize': 16, 'terrainNear': 10, 'minlevel': 0, 'textureOffEnabled': False, 'bruteforce': 1, 'heightfield': 'terrain2.png'}"
+    }
+  }
+}
+<Instance> PointLight {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      0 0 20 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    PointLightNodeWrapper
+  }
+  <Comment> parameters {
+    "{'color': (1.0, 1.0, 1.0, 1.0), 'priority': 0, 'specularColor': (1.0, 1.0, 1.0, 1.0), 'textureOffEnabled': False, 'attenuation': (1.0, 0.0, 0.0)}"
+  }
+}

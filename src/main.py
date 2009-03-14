@@ -17,9 +17,11 @@ if __name__ == "__main__":
   # must be as small as possible
   from core.pMain import EditorClass
   editor = EditorClass(parent=None, gui=USE_GUI)
-  editor.loadEggModelsFile("examples/mytestscene.egs")
+  #editor.loadEggModelsFile("examples/mytestscene.egs")
   #editor.loadEggModelsFile("examples/newscene.egs")
   #editor.loadEggModelsFile("examples/newscene2.egs")
+  #editor.loadEggModelsFile("examples/a.egs")
+  editor.loadEggModelsFile("examples/empty-scene.egs")
   
   editor.toggle(True)
   

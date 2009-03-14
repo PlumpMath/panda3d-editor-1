@@ -1,0 +1,202 @@
+<CoordinateSystem> { Z-Up }
+
+<Group> AnimatedTexture {
+  <Tag> modelWrapperTypeTag {
+    AnimatedTextureWrapper
+  }
+  <Comment> parameters {
+    "{'texture sort': 0, 'image base': 'road.png', 'playrate': 30.0, 'priority': 1, 'active': True, 'mode type': 'MCombine', 'image start': 0, 'image end': 10, 'min filter': 'FTLinear', 'v wrap mode': 'WMRepeat', 'u wrap mode': 'WMRepeat', 'mag filter': 'FTLinear'}"
+  }
+  <Instance> BaseWrapper {
+    <Transform> {
+      <Matrix4> {
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1
+      }
+    }
+    <Tag> modelWrapperTypeTag {
+      CurveSurfaceNodeWrapper
+    }
+    <Comment> parameters {
+      "{'profile': (0.0, 0.0, 0.0, 0.0, 0.10000000000000001, 0.20000000000000001, 0.29999999999999999, 0.40000000000000002, -500.0), 'vTexScale': 1.0, 'uTexScale': 50.0, 'curve detail': 53, 'surface detail': 200, 'width': 25.0, 'textureOffEnabled': False, 'profile detail': 20}"
+    }
+    <Instance> BaseWrapper {
+      <Transform> {
+        <Matrix4> {
+          1 0 0 0
+          0 1 0 0
+          0 0 1 0
+          -47.5308 0 -1.03693 1
+        }
+      }
+      <Tag> modelWrapperTypeTag {
+        CurveNodePointWrapper
+      }
+      <Comment> parameters {
+        "{'textureOffEnabled': False}"
+      }
+    }
+    <Instance> BaseWrapper {
+      <Transform> {
+        <Matrix4> {
+          1 0 0 0
+          0 0.892917 -0.450221 0
+          0 0.450221 0.892917 0
+          -12.3763 -33.61 5 1
+        }
+      }
+      <Tag> modelWrapperTypeTag {
+        CurveNodePointWrapper
+      }
+      <Comment> parameters {
+        "{'textureOffEnabled': False}"
+      }
+    }
+    <Instance> BaseWrapper {
+      <Transform> {
+        <Matrix4> {
+          0.831879 0.554957 5.21541e-08 0
+          -0.500809 0.750711 0.430839 0
+          0.239097 -0.358406 0.902429 0
+          35 19.5312 10 1
+        }
+      }
+      <Tag> modelWrapperTypeTag {
+        CurveNodePointWrapper
+      }
+      <Comment> parameters {
+        "{'textureOffEnabled': False}"
+      }
+    }
+    <Instance> BaseWrapper {
+      <Transform> {
+        <Matrix4> {
+          0.803952 -0.594695 0 0
+          0.542214 0.733005 0.41074 0
+          -0.244265 -0.330215 0.911752 0
+          103.66 20 0 1
+        }
+      }
+      <Tag> modelWrapperTypeTag {
+        CurveNodePointWrapper
+      }
+      <Comment> parameters {
+        "{'textureOffEnabled': False}"
+      }
+    }
+    <Instance> BaseWrapper {
+      <Transform> {
+        <Matrix4> {
+          0.971531 -4.96957e-08 0.236914 0
+          -0.0508175 0.976724 0.208392 0
+          -0.231399 -0.214498 0.948918 0
+          133.098 -36.823 28.5335 1
+        }
+      }
+      <Tag> modelWrapperTypeTag {
+        CurveNodePointWrapper
+      }
+      <Comment> parameters {
+        "{'textureOffEnabled': False}"
+      }
+    }
+    <Instance> BaseWrapper {
+      <Transform> {
+        <Matrix4> {
+          -0.463464 -0.886116 -5.21541e-08 0
+          0.865974 -0.452929 0.212 0
+          -0.187856 0.0982543 0.97727 0
+          125.254 -99.2449 24.6336 1
+        }
+      }
+      <Tag> modelWrapperTypeTag {
+        CurveNodePointWrapper
+      }
+      <Comment> parameters {
+        "{'textureOffEnabled': False}"
+      }
+    }
+    <Instance> BaseWrapper {
+      <Transform> {
+        <Matrix4> {
+          -0.749813 -0.66165 8.19564e-08 0
+          0.638399 -0.723463 0.262769 0
+          -0.173861 0.197027 0.964859 0
+          91.5518 -135.798 12.0833 1
+        }
+      }
+      <Tag> modelWrapperTypeTag {
+        CurveNodePointWrapper
+      }
+      <Comment> parameters {
+        "{'textureOffEnabled': False}"
+      }
+    }
+    <Instance> BaseWrapper {
+      <Transform> {
+        <Matrix4> {
+          -0.974405 -0.224798 0 0
+          0.224798 -0.974405 0 0
+          0 0 1 0
+          12.627 -136.654 10 1
+        }
+      }
+      <Tag> modelWrapperTypeTag {
+        CurveNodePointWrapper
+      }
+      <Comment> parameters {
+        "{'textureOffEnabled': False}"
+      }
+    }
+    <Instance> BaseWrapper {
+      <Transform> {
+        <Matrix4> {
+          -0.932778 -0.225763 -0.280992 0
+          0.163389 -0.959692 0.22868 0
+          -0.321293 0.167396 0.932067 0
+          -47.2509 -84.9785 0 1
+        }
+      }
+      <Tag> modelWrapperTypeTag {
+        CurveNodePointWrapper
+      }
+      <Comment> parameters {
+        "{'textureOffEnabled': False}"
+      }
+    }
+    <Instance> BaseWrapper {
+      <Transform> {
+        <Matrix4> {
+          -0.998241 -0.0204975 -0.0556342 0
+          0.0420481 -0.906291 -0.420557 0
+          -0.0418004 -0.422157 0.905559 0
+          -61.4894 -62.2507 9.4401 1
+        }
+      }
+      <Tag> modelWrapperTypeTag {
+        CurveNodePointWrapper
+      }
+      <Comment> parameters {
+        "{'textureOffEnabled': False}"
+      }
+    }
+    <Instance> BaseWrapper {
+      <Transform> {
+        <Matrix4> {
+          -0.493566 -0.201047 0.846152 0
+          0.246733 -0.96531 -0.0854381 0
+          0.833976 0.166604 0.526049 0
+          -106.567 -92.8156 -2.07957 1
+        }
+      }
+      <Tag> modelWrapperTypeTag {
+        CurveNodePointWrapper
+      }
+      <Comment> parameters {
+        "{'textureOffEnabled': False}"
+      }
+    }
+  }
+}

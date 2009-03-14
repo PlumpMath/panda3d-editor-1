@@ -1,0 +1,585 @@
+<CoordinateSystem> { Z-Up }
+
+<Instance> farn_1.egg-22 {
+  <Transform> {
+    <Matrix4> {
+      9.97776 0 0 0
+      0 9.97776 0 0
+      0 0 9.97776 0
+      -34.3 -9.15 15.3 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/3d-plant/fern_3ds/farn_1.egg"
+  }
+}
+<Instance> plants1.egg-21-33 {
+  <Transform> {
+    <Matrix4> {
+      0.129763 0.0905799 0 0
+      -0.0905799 0.129763 0 0
+      0 0 0.15825 0
+      -18.3817 27.7679 14.0743 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/bvw-f2004--plant1/plants1.egg"
+  }
+}
+<Instance> pflanze.egg-37 {
+  <Transform> {
+    <Matrix4> {
+      0.645271 -0.452873 0 0
+      0.452873 0.645271 0 0
+      0 0 0.788333 0
+      -42.5937 11.1979 13.5313 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/pflanze-v1/pflanze.egg"
+  }
+}
+<Instance> plants3.egg-38 {
+  <Transform> {
+    <Matrix4> {
+      0.130272 0.0268002 0 0
+      -0.0268002 0.130272 0 0
+      0 0 0.133 0
+      -17.1875 -17.5643 12.3697 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/bvw-f2004--plant3/plants3.egg"
+  }
+}
+<Instance> palm-v1.egg-42 {
+  <Transform> {
+    <Matrix4> {
+      2.81045 -6.58106 -0.364597 0
+      6.5896 2.81409 0 0
+      0.143191 -0.335302 7.15605 0
+      -0.0104882 -16.1721 11.9772 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/3d-plant/palm/palm-v1.egg"
+  }
+}
+<Instance> palm-v1.egg-42-43 {
+  <Transform> {
+    <Matrix4> {
+      6.00171 1.65503 -0.283162 0
+      -1.65674 6.00792 0 0
+      0.272974 0.0752749 6.22572 0
+      -20.3017 -0.671712 12.5013 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/3d-plant/palm/palm-v1.egg"
+  }
+}
+<Instance> palm-v1.egg-42-43-45 {
+  <Transform> {
+    <Matrix4> {
+      -5.74447 0.439495 4.64189e-08 0
+      -0.439174 -5.74029 -0.219906 0
+      -0.0167754 -0.219265 5.75706 0
+      -41.3981 -37.1934 14.2487 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/3d-plant/palm/palm-v1.egg"
+  }
+}
+<Instance> palm-v1.egg-42-43-45-46 {
+  <Transform> {
+    <Matrix4> {
+      4.55537 3.52714 -1.2553e-07 0
+      -3.51627 4.54132 -0.452023 0
+      -0.276737 0.35741 5.7435 0
+      -22.3682 -38.8369 11.0898 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/3d-plant/palm/palm-v1.egg"
+  }
+}
+<Instance> shrubbery.egg-20-31-32 {
+  <Transform> {
+    <Matrix4> {
+      0.152666 0 0 0
+      0 0.152666 0 0
+      0 0 0.152666 0
+      -26.8328 7.86895 15.8438 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/alice-nature--shrubbery/shrubbery.egg"
+  }
+}
+<Instance> shrubbery.egg-20 {
+  <Transform> {
+    <Matrix4> {
+      0.0989718 0.0598608 1.32728e-09 0
+      -0.0598287 0.0989188 0.0037845 0
+      0.00195858 -0.00323825 0.115604 0
+      1.21137 -8.80671 12.1915 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/alice-nature--shrubbery/shrubbery.egg"
+  }
+}
+<Instance> shrubbery.egg-20-31 {
+  <Transform> {
+    <Matrix4> {
+      0.0742651 -0.0390728 0 0
+      0.0390728 0.0742651 0 0
+      0 0 0.0839165 0
+      8.93074 17.097 12.4135 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/alice-nature--shrubbery/shrubbery.egg"
+  }
+}
+<Instance> plants1.egg-21 {
+  <Transform> {
+    <Matrix4> {
+      0.10801 -0.115658 0 0
+      0.115658 0.10801 0 0
+      0 0 0.15825 0
+      -8.38724 13.5435 11.4857 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/bvw-f2004--plant1/plants1.egg"
+  }
+}
+<Instance> shrubbery.egg-20-33 {
+  <Transform> {
+    <Matrix4> {
+      0.0989718 0.0598608 0 0
+      -0.0598608 0.0989718 0 0
+      0 0 0.115666 0
+      -8.31704 -28.5737 12.1686 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/alice-nature--shrubbery/shrubbery.egg"
+  }
+}
+<Instance> palm-v1.egg-42-43-34 {
+  <Transform> {
+    <Matrix4> {
+      -0.577041 -6.20539 5.12162e-09 0
+      6.16473 -0.57326 0.712255 0
+      -0.709195 0.0659483 6.19133 0
+      -60.6322 -4.11633 10.8783 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/3d-plant/palm/palm-v1.egg"
+  }
+}
+<Instance> farn_1.egg-22-36 {
+  <Transform> {
+    <Matrix4> {
+      9.46559 -6.35962 0 0
+      6.35962 9.46559 0 0
+      0 0 11.4036 0
+      -44.692 -31.2844 15.2178 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/3d-plant/fern_3ds/farn_1.egg"
+  }
+}
+<Instance> palm-v1.egg-42-43-37 {
+  <Transform> {
+    <Matrix4> {
+      4.47413 -2.4709 -0.240791 0
+      2.4657 4.48053 -0.162285 0
+      0.289219 0.0258686 5.10851 0
+      -45.0389 -8.52253 13.6809 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/3d-plant/palm/palm-v1.egg"
+  }
+}
+<Instance> "/home/_PROGRAMMING/_PROJECTS/eggEditor-cvs/panda3d-editor/examples/particlesystems/fireish.ptf" {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      0 0 12.0157 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    ParticleSystemWrapper
+  }
+  <Comment> parameters {
+    "{'transparency': 'MDual'}"
+  }
+  <File> ExtRef {
+    "particlesystems/fireish.ptf"
+  }
+  <Instance> "/home/_PROGRAMMING/_PROJECTS/eggEditor-cvs/panda3d-editor/examples/particlesystems/smoke.ptf" {
+    <Transform> {
+      <Matrix4> {
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 1.9375 1
+      }
+    }
+    <Tag> modelWrapperTypeTag {
+      ParticleSystemWrapper
+    }
+    <Comment> parameters {
+      "{'transparency': 'MDual'}"
+    }
+    <File> ExtRef {
+      "particlesystems/smoke.ptf"
+    }
+  }
+}
+<Instance> palm-v1.egg-42-43-44 {
+  <Transform> {
+    <Matrix4> {
+      7.39309 3.61251 0 0
+      -3.61036 7.38868 -0.28418 0
+      -0.124762 0.255329 8.22358 0
+      -37.5271 18.3316 14.3144 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/3d-plant/palm/palm-v1.egg"
+  }
+}
+<Instance> palm-v1.egg-42-43-44 {
+  <Transform> {
+    <Matrix4> {
+      6.52238 3.18705 0 0
+      -3.18702 6.52231 0.0343145 0
+      0.0150649 -0.0308307 7.25931 0
+      -14.8861 29.3954 13.6894 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/3d-plant/palm/palm-v1.egg"
+  }
+}
+<Instance> palm-v1.egg-42-43-44 {
+  <Transform> {
+    <Matrix4> {
+      7.39309 3.61251 1.24873e-08 0
+      -3.61036 7.38868 -0.28418 0
+      -0.124762 0.255329 8.22358 0
+      -4.5231 8.18734 13.1329 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/3d-plant/palm/palm-v1.egg"
+  }
+}
+<Instance> palm-v1.egg-42-43 {
+  <Transform> {
+    <Matrix4> {
+      6.00171 1.65503 -0.283162 0
+      -1.65674 6.00792 0 0
+      0.272973 0.0752749 6.22572 0
+      -66.7925 -13.4919 11.6756 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/3d-plant/palm/palm-v1.egg"
+  }
+}
+<Instance> palm-v1.egg-42-43-45-46 {
+  <Transform> {
+    <Matrix4> {
+      4.56361 3.5036 -0.300591 0
+      -3.48927 4.57286 0.32556 0
+      0.43657 -0.0758322 5.74419 0
+      -8.78638 -37.263 10.4933 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{}"
+  }
+  <File> ExtRef {
+    "models/3d-plant/palm/palm-v1.egg"
+  }
+}
+<Instance> ShaderWrapper {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      0 0 0 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    ShaderWrapper
+  }
+  <Comment> parameters {
+    "{'tex3 min filter': 'FTLinear', 'detailmap3': 'stone.png', 'detailmap2': 'dirt.png', 'mixmap': 'terrain-mix.png', 'tex1scale': 25.0, 'tex2 min filter': 'FTLinear', 'tex3scale': 100.0, 'tex2scale': 25.0, 'tex2 mag filter': 'FTLinear', 'tex3 mag filter': 'FTLinear', 'tex1 mag filter': 'FTLinear', 'detailmap4': '', 'tex4 min filter': 'FTLinear', 'tex1 min filter': 'FTLinear', 'tex4scale': 1.0, 'detailmap1': 'grass.png', 'tex4 mag filter': 'FTLinear'}"
+  }
+  <Instance> terrain.png {
+    <Transform> {
+      <Matrix4> {
+        5 0 0 0
+        0 5 0 0
+        0 0 5 0
+        -500 -500 -50 1
+      }
+    }
+    <Tag> modelWrapperTypeTag {
+      GeoMipTerrainNodeWrapper
+    }
+    <Comment> parameters {
+      "{'blocksize': 16L, 'minlevel': 0L, 'bruteforce': 0, 'factor': 100.0}"
+    }
+    <File> ExtRef {
+      terrain2-mix.png
+    }
+  }
+}
+<Instance> plane.egg {
+  <Transform> {
+    <Matrix4> {
+      1000 -0.000174846 -1.91069e-11 0
+      0 4.37114e-08 -1 0
+      8.74228e-05 500 2.18557e-05 0
+      64.2 4.88 11.8 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{'color': (0.60000002384185791, 0.60000002384185791, 1.0, 0.5), 'transparency': 'MAlpha'}"
+  }
+  <File> ExtRef {
+    "models/plane.egg"
+  }
+}
+<Instance> plane.egg {
+  <Transform> {
+    <Matrix4> {
+      1000 0 1.14641e-11 0
+      0 4.37114e-08 -1 0
+      0 500 2.18557e-05 0
+      64.1875 0 11.6497 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{'color': (0.60000002384185791, 0.60000002384185791, 1.0, 0.20000000298023224), 'transparency': 'MAlpha'}"
+  }
+  <File> ExtRef {
+    "models/plane.egg"
+  }
+}
+<Instance> plane.egg {
+  <Transform> {
+    <Matrix4> {
+      1000 0 4.20351e-11 0
+      0 4.37114e-08 -1 0
+      0 500 2.18557e-05 0
+      64.1875 -1.49404e-08 11.3079 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    NodePathWrapper
+  }
+  <Comment> parameters {
+    "{'color': (0.60000002384185791, 0.60000002384185791, 1.0, 0.10000000149011612), 'transparency': 'MAlpha'}"
+  }
+  <File> ExtRef {
+    "models/plane.egg"
+  }
+}
+<Instance> ShaderWrapper {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      0 0 0 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    ShaderWrapper
+  }
+  <Comment> parameters {
+    "{'tex3 min filter': 'FTNearest', 'detailmap3': 'stone.png', 'detailmap2': 'dirt.png', 'mixmap': 'sky-mix.png', 'tex1scale': 10.0, 'tex2 min filter': 'FTNearest', 'tex3scale': 1.0, 'tex2scale': 1.0, 'tex2 mag filter': 'FTNearest', 'tex3 mag filter': 'FTNearest', 'tex1 mag filter': 'FTNearest', 'detailmap4': '', 'tex4 min filter': 'FTNearest', 'tex1 min filter': 'FTNearest', 'tex4scale': 1.0, 'detailmap1': 'sky.jpg', 'tex4 mag filter': 'FTNearest'}"
+  }
+  <Instance> smiley.egg.pz {
+    <Transform> {
+      <Matrix4> {
+        -750 0 0 0
+        0 -750 0 0
+        0 0 -750 0
+        0 0 0 1
+      }
+    }
+    <Tag> modelWrapperTypeTag {
+      NodePathWrapper
+    }
+    <Comment> parameters {
+      "{}"
+    }
+    <File> ExtRef {
+      "models/smiley.egg.pz"
+    }
+  }
+}
+<Instance> ParticleSystem {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      -235.223 -81.4694 69.751 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    ParticleSystemWrapper
+  }
+  <Comment> parameters {
+    "{'transparency': 'MDual'}"
+  }
+  <File> ExtRef {
+    "particlesystems/waterfall.ptf"
+  }
+}
