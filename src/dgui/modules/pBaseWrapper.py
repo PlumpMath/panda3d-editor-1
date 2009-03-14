@@ -418,7 +418,7 @@ class BaseWrapper(DirectObject):
             pass 
           elif paramType.__name__ == "Enum":
             pass # doesnt need conversion
-          elif paramType.__name__ == "Filename":
+          elif paramType.__name__ == "Filename" or paramType.__name__ == "P3Filename":
             # this may or may not be called on change
             # check the actual implementation of the interface
             # (on callback change this function is not used)

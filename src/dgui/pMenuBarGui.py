@@ -135,7 +135,7 @@ class MenuBarGui(DirectObject):
   
   def duplicateModelWrapper(self):
     originalModel = modelController.getSelectedObject()
-    objectInstance = originalModel.makeInstance(originalModel)
+    objectInstance = originalModel.duplicate(originalModel)
     if objectInstance is not None:
       objectInstance.setEditmodeEnabled()
     #objectInstance.loadFromData( originalModel.getSaveData('.') )
@@ -232,5 +232,7 @@ class MenuBarGui(DirectObject):
         incButton_scale = (0, 0, 0),
         decButton_scale = (0, 0, 0),
         )
+    
+    #buttonsWindow.flattenLight()
     
     return buttonsWindow
