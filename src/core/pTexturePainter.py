@@ -417,15 +417,12 @@ class TexturePainter(DirectObject):
     
     taskMgr.add(self.__paintTask, 'paintTask')
     
-    modelModificator.toggleEditmode(False)
+    #modelModificator.toggleEditmode(False)
     
     self.isPainting = False
   
   def __stopEditor(self):
     print "I: TexturePainter.__stopEditor"
-    # stop edit
-    messenger.send(EVENT_TEXTUREPAINTER_STOPEDIT)
-    
     for startEvent in TEXTUREPAINTER_START_PAINT_EVENTS:
       self.ignore(startEvent)
     for stopEvent in TEXTUREPAINTER_STOP_PAINT_EVENTS:
@@ -434,17 +431,25 @@ class TexturePainter(DirectObject):
     taskMgr.remove('paintTask')
     # stop edit end
     
+    # must be reset before we loose the properties
+    if self.editModel and self.editTexture and self.editImage:
+      try:
+        # hide the model from cam 2
+        self.editModel.hide(BitMask32.bit(1))
+        self.editModel = None
+      except:
+        print "E: TexturePainter.__stopEditor: the model has already been deleted"
+    
+    # stop edit
+    messenger.send(EVENT_TEXTUREPAINTER_STOPEDIT)
+    
     self.editImage = None
     self.editTexture = None
     self.painter = None
     self.brush = None
     
-    modelModificator.toggleEditmode(True)
+    #modelModificator.toggleEditmode(True)
     
-    if self.editModel and self.editTexture and self.editImage:
-      # hide the model from cam 2
-      self.editModel.hide(BitMask32.bit(1))
-      self.editModel = None
   
   def __updateModel(self):
     if self.editModel:

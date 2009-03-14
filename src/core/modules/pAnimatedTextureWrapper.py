@@ -309,7 +309,7 @@ class AnimatedTextureWrapper(TreeNode):
   def loadFromData(self, eggGroup, filepath):
     TreeNode.loadFromData(self, eggGroup, filepath)
   
-  def makeInstance(self, original):
-    objectInstance = super(AnimatedTextureWrapper, self).makeInstance(original)
+  def duplicate(self, original):
+    objectInstance = super(AnimatedTextureWrapper, self).duplicate(original)
     return objectInstance
-  makeInstance = classmethod(makeInstance)
+  duplicate = classmethod(duplicate)

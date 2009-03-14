@@ -192,6 +192,9 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
         changed = self.terrain.update()
         if changed:
           self.updateHighlightModel()
+        
+        # some bugfix try, 
+        #self.terrain.getRoot().setScale(self.terrain.getRoot().getScale())
     else:
       # code to figure out what's slowing down the application
       pixelPos = self.getPixelPosScaled(focusPoint)
@@ -278,9 +281,9 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
     
     self.updateHighlightModel()
   
-  def makeInstance(self, original):
-    objectInstance = super(GeoMipTerrainNodeWrapper, self).makeInstance(original)
+  def duplicate(self, original):
+    objectInstance = super(GeoMipTerrainNodeWrapper, self).duplicate(original)
     #objectInstance.setTerrain(original.geoMipTerrainHeightfield.heightfield)
     return objectInstance
-  makeInstance = classmethod(makeInstance)
+  duplicate = classmethod(duplicate)
 

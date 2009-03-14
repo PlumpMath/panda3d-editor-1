@@ -191,8 +191,14 @@ class ObjectEggTexture(ObjectEggBase):
       print "W: ObjectEggTexture.stopEdit: editmode not enabled"
   
   def revert(self):
-    TextureManager.release(self.editTextureFilename)
-    self.setTexture(self.editTextureFilename)
+    #TextureManager.release(self.editTextureFilename)
+    self.stopEdit()
+    #self.setTexture(self.editTextureFilename)
+    #loader.unloadTexture(self.eggTexture.getFilename())
+    #Texture.reload(self.eggTexture.getFilename())
+    TexturePool.releaseTexture(self.editTexture)
+    self.editTexture.reload()
+    self.startEdit()
   
   def save(self):
     self.saveAs(self.editTextureFilename)

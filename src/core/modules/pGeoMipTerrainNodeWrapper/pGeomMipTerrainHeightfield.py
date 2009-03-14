@@ -194,6 +194,14 @@ class GeoMipTerrainHeightfield(TreeNode):
         
         # get the paint texture
         self.paintImage = self.geoMipTerrain.terrain.heightfield()
+        if not(
+            (self.paintImage.getXSize() != 0) and
+            (self.paintImage.getYSize() != 0) and
+            (4 >= self.paintImage.getNumChannels() > 0) ): # this only get's evaluated if the first 2 works, otherwise this may raise
+          print "W: GeoMipTerrainHeightfield.startEdit: cannot edit undefined image", self.paintImage
+          self.paintImage = None
+          return
+        
         self.paintTexture = Texture()
         self.paintTexture.load(self.paintImage)
         
@@ -254,31 +262,30 @@ class GeoMipTerrainHeightfield(TreeNode):
     if TreeNode.isEditmodeStarted(self):
       taskMgr.remove('geoMipUpdateTask')
       
-      # enable the 3d window object selection
-      messenger.send(EVENT_SCENEPICKER_MODELSELECTION_ENABLE)
-      
       # stop the shader and regenerate the terrain
       if self.renderMode == 0:
         pass
       elif self.renderMode == 1:
         pass
       
-      # stop painting
-      texturePainter.stopEditor()
-      texturePainter.disableEditor()
+      if self.paintImage: # if the editing mode failed to start, this is undefined
+        # restore the real terrain
+        self.geoMipTerrainCopy.removeNode()
+        # stop painting
+        texturePainter.stopEditor()
+        texturePainter.disableEditor()
       
       # restore bruteforce state
-      #self.geoMipTerrain.terrain.colorMap().copyFrom(editedImage)
       self.geoMipTerrain.terrain.setBruteforce(self.bruteforceState)
       self.geoMipTerrain.terrain.getRoot().clearShader()
-      #self.geoMipTerrain.terrain.update()
-      # restore the real terrain
-      self.geoMipTerrainCopy.removeNode()
       # must use generate, update is not recognizing the chagnes
       self.geoMipTerrain.terrain.generate()
       self.geoMipTerrain.terrain.getRoot().show()
       
       TreeNode.stopEdit(self)
+      
+      # enable the 3d window object selection
+      messenger.send(EVENT_SCENEPICKER_MODELSELECTION_ENABLE)
   
   def revert(self):
     self.stopEdit()
@@ -288,12 +295,18 @@ class GeoMipTerrainHeightfield(TreeNode):
   
   def save(self):
     # saving the texture
-    print "I: GeoMipTerrainHeightfield.save: saving as:", self.heightfield
-    self.geoMipTerrain.terrain.heightfield().write(Filename(self.heightfield))
+    fullHeightfieldPath = posixpath.join(posixpath.dirname(self.getParentFilepath()), self.heightfield)
+    #posixpath.join(posixpath.dirname(self.getParentFilepath()), self.geoMipTerrainHeightfield.heightfield)
+    #fullpath = self.heightfield
+    self.saveAs(fullHeightfieldPath)
   
   def saveAs(self, filename):
     print "I: GeoMipTerrainHeightfield.save: saving as:", self.heightfield
     self.geoMipTerrain.terrain.heightfield().write(Filename(filename))
+  
+  def getSaveData(self, relativeTo):
+    # dont save this node
+    return None
   
   def getRenderMode(self):
     return self.renderMode

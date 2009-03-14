@@ -96,6 +96,9 @@ EDITABLE_OBJECT_TAG = 'editorObject'
 MODEL_MODIFICATOR_TAG = 'modelController'
 # to suppress the model from showing up in the scenegraphBrowser
 ENABLE_SCENEGRAPHBROWSER_MODEL_TAG = 'editorEnabledObject'
+# size of the background buffer which the color is rendered into
+TEXTUREPAINTER_BACKGROUND_BUFFER_RENDERSIZE = [1024, 1024]
+
 
 HIGHLIGHT_COLOR = [1,0,0]
 

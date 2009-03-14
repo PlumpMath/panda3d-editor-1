@@ -324,7 +324,7 @@ class ShaderWrapper(BaseWrapper):
     self.setEditmodeDisabled()
     BaseWrapper.destroy(self)
   
-  def makeInstance(self, originalInstance):
+  def duplicate(self, originalInstance):
     ''' create a copy of this instance
     '''
     newInstance = self(originalInstance.getParent(), originalInstance.getName()+"-copy")
@@ -332,7 +332,7 @@ class ShaderWrapper(BaseWrapper):
     newInstance.setParameters(originalInstance.getParameters())
     newInstance.setUpdateShader()
     return newInstance
-  makeInstance = classmethod(makeInstance)
+  duplicate = classmethod(duplicate)
   
   def setTex1(self, texPath):
     if texPath:

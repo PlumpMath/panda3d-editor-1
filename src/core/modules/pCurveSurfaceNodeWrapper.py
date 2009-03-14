@@ -435,7 +435,7 @@ class CurveSurfaceNodeWrapper(CurveNodeWrapper):
       #eggGroup.recomputeTangentBinormal('default')
       #eggGroup.recomputeTangentBinormalAuto()
       
-      data.writeEgg('test.egg')
+      data.writeEgg(Filename('test.egg'))
       
       # To load the egg file and render it immediately, use this:
       self.mdl = NodePath(loadEggData(data))

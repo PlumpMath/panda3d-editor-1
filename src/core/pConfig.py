@@ -19,6 +19,7 @@ class Config:
     loadPrcFileData("editor-startup", "win-size 1024 768")
     loadPrcFileData("editor-startup", "show-frame-rate-meter #t")
     loadPrcFileData("editor-startup", "want-pstats 1")
+    loadPrcFileData("editor-startup", "sync-video #f")
 #    loadPrcFileData("editor-startup", "want-tk #t")
 #    loadPrcFileData("editor-startup", "direct-gui-edit #t")
 #    loadPrcFileData("editor-startup", "want-directtools #t")

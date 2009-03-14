@@ -73,6 +73,10 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
       self.clearFilepath()
     #Sets particles to birth relative to the teapot, but to render at toplevel
     self.particleSystem.start(self.getNodepath())
+    
+    # a bugfix, somewhere must be some color assigned to most nodes, i dont know why
+    # this looks very bad on particle systems
+    self.getNodepath().setColorOff(0)
   
   def destroy( self ):
     # destroy this object
@@ -88,9 +92,9 @@ class ParticleSystemWrapper(VirtualNodeWrapper):
     self.setParticleConfig(extRefFilename)
     VirtualNodeWrapper.loadFromData(self, eggGroup, filepath)
   
-  def makeInstance(self, original):
-    objectInstance = super(ParticleSystemWrapper, self).makeInstance(original)
+  def duplicate(self, original):
+    objectInstance = super(ParticleSystemWrapper, self).duplicate(original)
     objectInstance.setParticleConfig(original.particleFilename)
     return objectInstance
-  makeInstance = classmethod(makeInstance)
+  duplicate = classmethod(duplicate)
   

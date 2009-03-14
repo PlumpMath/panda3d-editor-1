@@ -66,8 +66,8 @@ class CodeNodeWrapper(VirtualNodeWrapper):
     self.setScript(extRefFilename)
     VirtualNodeWrapper.loadFromData(self, eggGroup, filepath)
   
-  def makeInstance(self, original):
-    objectInstance = super(CodeNodeWrapper, self).makeInstance(original)
+  def duplicate(self, original):
+    objectInstance = super(CodeNodeWrapper, self).duplicate(original)
     objectInstance.setScript(original.scriptFilepath)
     return objectInstance
-  makeInstance = classmethod(makeInstance)
+  duplicate = classmethod(duplicate)

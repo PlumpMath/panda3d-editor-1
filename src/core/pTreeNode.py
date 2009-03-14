@@ -177,14 +177,15 @@ class TreeNode(object):
     '''
   
   def destroy(self):
-    print "I: TreeNode.destroy: recursively"
     # this should maybe run
     def recurse(parent):
       for child in parent.getChildren()[:]: # accessing it directly causes it to miss childrens
+        print "I: TreeNode.destroy: recurse", child
         recurse(child)
         child.destroy()
     recurse(self)
     
+    print "I: TreeNode.destroy:", self
     self.stopEdit()
     self.setEditmodeDisabled()
     TreeNode.detachNode(self)
@@ -560,7 +561,10 @@ class TreeNode(object):
     return instance
   
   def loadFromData(self, eggGroup, filepath):
-    ''' apply the data that was previously saved using getSaveData '''
+    ''' apply's the data that was previously saved using getSaveData
+    if you have saved any data in another way, apply it to the node in here
+    (for example using BaseWrapper.getExternalReference)
+    '''
     data = dict()
     for child in eggGroup.getChildren():
       if type(child) == EggComment:
@@ -570,14 +574,14 @@ class TreeNode(object):
     self.setParameters(data)
   
   
-  def makeInstance(self, originalInstance):
+  def duplicate(self, originalInstance):
     ''' create a copy of this instance
     '''
     newInstance = self(originalInstance.getParent(), originalInstance.getName()+"-copy")
     newInstance.getNodepath().setMat(originalInstance.getNodepath().getMat())
     newInstance.setParameters(originalInstance.getParameters())
     return newInstance
-  makeInstance = classmethod(makeInstance)
+  duplicate = classmethod(duplicate)
 
 
 

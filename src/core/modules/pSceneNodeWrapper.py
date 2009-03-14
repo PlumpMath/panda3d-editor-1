@@ -246,9 +246,9 @@ class SceneNodeWrapper(VirtualNodeWrapper):
     self.setScene(extRefFilename)
     VirtualNodeWrapper.loadFromData(self, eggGroup, filepath)
   
-  def makeInstance(self, original):
+  def duplicate(self, original):
     ''' make a instance of this node somewhere else '''
-    objectInstance = super(SceneNodeWrapper, self).makeInstance(original)
+    objectInstance = super(SceneNodeWrapper, self).duplicate(original)
     objectInstance.setScene(original.relativePath)
     return objectInstance
-  makeInstance = classmethod(makeInstance)
+  duplicate = classmethod(duplicate)

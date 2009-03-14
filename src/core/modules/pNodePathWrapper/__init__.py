@@ -237,8 +237,8 @@ class NodePathWrapper(BaseWrapper):
     self.setModelFilepath(extRefFilename)
     BaseWrapper.loadFromData(self, eggGroup, filepath)
   
-  def makeInstance(self, original):
-    objectInstance = super(NodePathWrapper, self).makeInstance(original)
+  def duplicate(self, original):
+    objectInstance = super(NodePathWrapper, self).duplicate(original)
     objectInstance.setModelFilepath(original.modelFilepath)
     return objectInstance
-  makeInstance = classmethod(makeInstance)
+  duplicate = classmethod(duplicate)

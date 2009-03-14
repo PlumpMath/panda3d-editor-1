@@ -23,6 +23,7 @@ class SoundNodeWrapper(VirtualNodeWrapper):
   
   def __init__(self, parent, name):
     VirtualNodeWrapper.__init__(self, parent, name, SOUNDNODE_WRAPPER_DUMMYOBJECT)
+    #self.reparentTo(parent)
     
     self.soundEffect = None
     self.soundFilepath = None
@@ -135,7 +136,7 @@ class SoundNodeWrapper(VirtualNodeWrapper):
       print "W: NodePathWrapper.setModel: model could not be loaded, loading dummy"
       self.soundEffect = soundManager.get3dManager().loadSfx(SOUND_NOT_FOUND_SOUND)
     # make the model visible
-    soundManager.get3dManager().attachSoundToObject( self.soundEffect, self )
+    soundManager.get3dManager().attachSoundToObject( self.soundEffect, self.getNodepath() )
     
     self.soundEffect.setLoop(True)
     self.soundEffect.play()
@@ -150,11 +151,11 @@ class SoundNodeWrapper(VirtualNodeWrapper):
     VirtualNodeWrapper.destroy(self)
   
   def getSaveData(self, relativeTo):
-    objectInstance = BaseWrapper.getSaveData(self, relativeTo)
+    objectInstance = VirtualNodeWrapper.getSaveData(self, relativeTo)
     self.setExternalReference(self.soundFilepath, relativeTo, objectInstance)
     return objectInstance
   
   def loadFromData(self, eggGroup, filepath):
     extRefFilename = self.getExternalReference(eggGroup, filepath)
     self.setSound(extRefFilename)
-    BaseWrapper.loadFromData(self, eggGroup, filepath)
+    VirtualNodeWrapper.loadFromData(self, eggGroup, filepath)

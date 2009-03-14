@@ -12,28 +12,27 @@ class CurveNodeWrapper(VirtualNodeWrapper):
   def __init__(self, parent, name='Curve', curveNodeModel='data/models/misc/sphere.egg'):
     #curveNodeModel = 
     VirtualNodeWrapper.__init__(self, parent, name, curveNodeModel)
-    #self.nurbsCurveNodes = list()
-    self.nurbsCurveEvaluator = NurbsCurveEvaluator()
-    self.nurbsCurveDetail = 4
-    #self.setNodepath(NodePath('curveNodeWrapper'))
-    #self.getNodepath().reparentTo(self.getParentNodepath())
     self.lineRenderNp = self.getNodepath().attachNewNode('lineRender')
+    
     self.possibleChildren = ['CurveNodePointWrapper']
     
+    self.nurbsCurveEvaluator = NurbsCurveEvaluator()
+    
     self.mutableParameters['add node'] = [ Trigger,
-        self.getAddNode,
-        self.setAddNode,
+        None,
+        self.addNode,
         None,
         None,
         False
       ]
     self.mutableParameters['remove node'] = [ Trigger,
-        self.getRemoveNode,
-        self.setRemoveNode,
+        None,
+        self.removeNode,
         None,
         None,
         False
       ]
+    self.nurbsCurveDetail = 4
     self.mutableParameters['curve detail'] = [ int,
         self.getCurveDetail,
         self.setCurveDetail,
@@ -47,10 +46,7 @@ class CurveNodeWrapper(VirtualNodeWrapper):
     self.lineRenderNp.removeNode()
     VirtualNodeWrapper.destroy(self)
   
-  def getAddNode(self):
-    pass
-  def setAddNode(self):
-    print "  - creating"
+  def addNode(self):
     # find where to position this node
     if len(self.getChildren()) > 0:
       # place relative to last added node
@@ -66,20 +62,17 @@ class CurveNodeWrapper(VirtualNodeWrapper):
     # enable editmode
     if self.isEditmodeEnabled():
       curveNode.setEditmodeEnabled()
-    self.update()
+    
+    self.setCurveDetail(self.nurbsCurveDetail+1)
   
-  def getRemoveNode(self):
-    pass
-  def setRemoveNode(self):
+  def removeNode(self):
     # we need to destroy some of the child nodes
-    print "  - destroying"
     nurbsCurveNodes = self.getChildren()
     if len(nurbsCurveNodes) > 0:
     #for i in xrange(currentNumNodes-newNumNodes):
       curveNode = self.getChildren()[-1]
-      print "    -", curveNode
       curveNode.destroy()
-      self.update()
+      self.setCurveDetail(self.nurbsCurveDetail-1)
     else:
       print "I: CurveNodeWrapper.setRemoveNode: cannot remove with no childrens"
   

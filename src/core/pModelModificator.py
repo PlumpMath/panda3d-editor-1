@@ -45,16 +45,16 @@ class ModelModificator(DirectObject):
       self.enableEditmode()
     else:
       self.disableEditmode()
-    self.editmodeEnabled = state
   
   def enableEditmode(self):
+    ''' shows the editing arrows and makes them pickable '''
     if not self.editmodeEnabled:
       self.modelModeNode = NodePath('temp')
       
       # load axisCube, if that fails generate it and quit
       self.objectAxisCube = loader.loadModel(MODELCONTROLLER_AXISCUBE_MODEL)
       if not self.objectAxisCube:
-        print "E: axiscube.bam does not exist, createAxisCube should have done that actually..."
+        print "E: ModelModificator: axiscube.bam does not exist, createAxisCube should have done that actually..."
         sys.exit()
       self.objectAxisCube.setLightOff()
       # axiscube can be hidden otherwise
@@ -80,8 +80,13 @@ class ModelModificator(DirectObject):
           modificator.setDepthWrite(False)
       
       self.__relativeModificationTo = render
+      
+      self.editmodeEnabled = True
+    else:
+      print "W: ModelModificator.disableEditmode: editmode is already enabled"
   
   def disableEditmode(self, deselect = True):
+    ''' hides the editing arrows and disables picking '''
     if self.editmodeEnabled:
       
       self.ignoreAll()
@@ -92,28 +97,42 @@ class ModelModificator(DirectObject):
       
       self.objectAxisCube.removeNode()
       self.objectAxisCube.detachNode()
+      
+      self.editmodeEnabled = False
+    else:
+      print "W: ModelModificator.disableEditmode: editmode is already disabled"
   
   def selectNode(self, wrapper):
     ''' a different model has been selected '''
-    # select the model and set to first modification type
-    self.changeMode(wrapper, MODEL_MODIFICATION_MODES[1])
+    if self.editmodeEnabled:
+      # select the model and set to first modification type
+      self.changeMode(wrapper, MODEL_MODIFICATION_MODES[1])
+    else:
+      print "W: ModelModificator.selectNode: editmode is disabled"
   
   def changeMode(self, wrapper=None, newMode=None):
     ''' change the mode of the modificator '''
-    hasNodePath = BaseWrapper in wrapper.__class__.__mro__
-    self.__unsetMode()
-    if hasNodePath:
-      if newMode is None:
-        # select next modification tool
-        modeIndex = MODEL_MODIFICATION_MODES.index(self.__modelModificationMode)
-        newMode = MODEL_MODIFICATION_MODES[(modeIndex+1) % len(MODEL_MODIFICATION_MODES)]
+    if self.editmodeEnabled:
+      # detach the modificator from previous node
+      self.__unsetMode()
       
-      assert(newMode in MODEL_MODIFICATION_MODES)
-      
-      self.__modelModificationMode = newMode
-      self.__setMode()
+      # limit which nodes show the modificator
+      hasNodePath = BaseWrapper in wrapper.__class__.__mro__
+      if hasNodePath:
+        if newMode is None:
+          # select next modification tool
+          modeIndex = MODEL_MODIFICATION_MODES.index(self.__modelModificationMode)
+          newMode = MODEL_MODIFICATION_MODES[(modeIndex+1) % len(MODEL_MODIFICATION_MODES)]
+        
+        assert(newMode in MODEL_MODIFICATION_MODES)
+        
+        self.__modelModificationMode = newMode
+        self.__setMode()
+    else:
+      print "W: ModelModificator.changeMode: editmode is disabled"
   
   def __unsetMode(self):
+    print "I: ModelModificator.__unsetMode: testing"
     if self.modelModeNode is not None:
       self.modelModeNode.hide()
       self.modelModeNode.detachNode()
@@ -122,6 +141,7 @@ class ModelModificator(DirectObject):
       self.__relativeModificationTo = None
   
   def __setMode(self):
+    print "I: ModelModificator.__setMode: testing"
     if modelController.getSelectedObject():
       if self.__modelModificationMode == MODEL_MODIFICATION_MODE_TRANSLATE_LOCAL:
         self.modelModeNode = self.modelModeNodes[0]
