@@ -269,6 +269,7 @@ class EditorClass(DirectObject): #, FSM):
     self.destroyScene()
     self.treeParent = SceneNodeWrapper.onCreateInstance(None, '')
     self.treeParent.saveAs(filepath)
+    self.treeParent.setScene(filepath)
     if self.editModeEnabled:
       self.treeParent.setEditmodeEnabled()
     messenger.send(EVENT_SCENEGRAPH_CHANGE_ROOT, [self.treeParent])
