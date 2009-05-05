@@ -214,6 +214,8 @@ class SceneNodeWrapper(VirtualNodeWrapper):
         else:
           print "I: SceneNodeWrapper.saveAs.saveRecursiveChildrens: got NodeData"
     
+    # use the new filepath as relative path
+    #self.setScene(filepath)
     # create a eggData to save the data
     eggData = EggData()
     eggData.setCoordinateSystem(1)

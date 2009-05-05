@@ -13,7 +13,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/3d-plant/fern_3ds/farn_1.egg"
@@ -32,7 +32,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/bvw-f2004--plant1/plants1.egg"
@@ -51,7 +51,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/pflanze-v1/pflanze.egg"
@@ -70,7 +70,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/bvw-f2004--plant3/plants3.egg"
@@ -89,7 +89,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/3d-plant/palm/palm-v1.egg"
@@ -108,7 +108,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/3d-plant/palm/palm-v1.egg"
@@ -127,7 +127,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/3d-plant/palm/palm-v1.egg"
@@ -146,7 +146,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/3d-plant/palm/palm-v1.egg"
@@ -165,7 +165,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/alice-nature--shrubbery/shrubbery.egg"
@@ -184,7 +184,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/alice-nature--shrubbery/shrubbery.egg"
@@ -203,7 +203,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/alice-nature--shrubbery/shrubbery.egg"
@@ -222,7 +222,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/bvw-f2004--plant1/plants1.egg"
@@ -241,7 +241,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/alice-nature--shrubbery/shrubbery.egg"
@@ -260,7 +260,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/3d-plant/palm/palm-v1.egg"
@@ -279,7 +279,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/3d-plant/fern_3ds/farn_1.egg"
@@ -298,7 +298,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/3d-plant/palm/palm-v1.egg"
@@ -317,7 +317,7 @@
     ParticleSystemWrapper
   }
   <Comment> parameters {
-    "{'transparency': 'MDual'}"
+    "{'color': (1.0, 1.0, 1.0, 1.0), 'textureOffEnabled': False, 'transparency': 'MDual'}"
   }
   <File> ExtRef {
     "particlesystems/fireish.ptf"
@@ -335,7 +335,7 @@
       ParticleSystemWrapper
     }
     <Comment> parameters {
-      "{'transparency': 'MDual'}"
+      "{'color': (1.0, 1.0, 1.0, 1.0), 'textureOffEnabled': False, 'transparency': 'MDual'}"
     }
     <File> ExtRef {
       "particlesystems/smoke.ptf"
@@ -355,7 +355,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/3d-plant/palm/palm-v1.egg"
@@ -374,7 +374,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/3d-plant/palm/palm-v1.egg"
@@ -393,7 +393,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/3d-plant/palm/palm-v1.egg"
@@ -412,7 +412,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/3d-plant/palm/palm-v1.egg"
@@ -431,7 +431,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/3d-plant/palm/palm-v1.egg"
@@ -450,7 +450,7 @@
     ShaderWrapper
   }
   <Comment> parameters {
-    "{'tex3 min filter': 'FTLinear', 'detailmap3': 'stone.png', 'detailmap2': 'dirt.png', 'mixmap': 'terrain-mix.png', 'tex1scale': 25.0, 'tex2 min filter': 'FTLinear', 'tex3scale': 100.0, 'tex2scale': 25.0, 'tex2 mag filter': 'FTLinear', 'tex3 mag filter': 'FTLinear', 'tex1 mag filter': 'FTLinear', 'detailmap4': '', 'tex4 min filter': 'FTLinear', 'tex1 min filter': 'FTLinear', 'tex4scale': 1.0, 'detailmap1': 'grass.png', 'tex4 mag filter': 'FTLinear'}"
+    "{'mixmap': 'terrain-mix.png', 'tex1scale': 25.0, 'tex3scale': 100.0, 'tex2 mag filter': 'FTLinear', 'tex3 mag filter': 'FTLinear', 'detailmap4': '', 'detailmap3': 'stone.png', 'detailmap2': 'dirt.png', 'detailmap1': 'grass.png', 'tex1 mag filter': 'FTLinear', 'tex4 min filter': 'FTLinear', 'tex4 mag filter': 'FTLinear', 'tex3 min filter': 'FTLinear', 'tex2 min filter': 'FTLinear', 'tex2scale': 25.0, 'tex1 min filter': 'FTLinear', 'tex4scale': 1.0, 'textureOffEnabled': False}"
   }
   <Instance> terrain.png {
     <Transform> {
@@ -465,10 +465,7 @@
       GeoMipTerrainNodeWrapper
     }
     <Comment> parameters {
-      "{'blocksize': 16L, 'minlevel': 0L, 'bruteforce': 0, 'factor': 100.0}"
-    }
-    <File> ExtRef {
-      terrain2-mix.png
+      "{'terrainFar': 25, 'update rate': 10, 'blocksize': 16, 'terrainNear': 10, 'minlevel': 0, 'textureOffEnabled': False, 'bruteforce': 0, 'heightfield': 'terrain.png'}"
     }
   }
 }
@@ -485,7 +482,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{'color': (0.60000002384185791, 0.60000002384185791, 1.0, 0.5), 'transparency': 'MAlpha'}"
+    "{'color': (0.60000002384185791, 0.60000002384185791, 1.0, 0.5), 'textureOffEnabled': False, 'transparency': 'MAlpha'}"
   }
   <File> ExtRef {
     "models/plane.egg"
@@ -504,7 +501,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{'color': (0.60000002384185791, 0.60000002384185791, 1.0, 0.20000000298023224), 'transparency': 'MAlpha'}"
+    "{'color': (0.60000002384185791, 0.60000002384185791, 1.0, 0.20000000298023224), 'textureOffEnabled': False, 'transparency': 'MAlpha'}"
   }
   <File> ExtRef {
     "models/plane.egg"
@@ -523,7 +520,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{'color': (0.60000002384185791, 0.60000002384185791, 1.0, 0.10000000149011612), 'transparency': 'MAlpha'}"
+    "{'color': (0.60000002384185791, 0.60000002384185791, 1.0, 0.10000000149011612), 'textureOffEnabled': False, 'transparency': 'MAlpha'}"
   }
   <File> ExtRef {
     "models/plane.egg"
@@ -542,7 +539,7 @@
     ShaderWrapper
   }
   <Comment> parameters {
-    "{'tex3 min filter': 'FTNearest', 'detailmap3': 'stone.png', 'detailmap2': 'dirt.png', 'mixmap': 'sky-mix.png', 'tex1scale': 10.0, 'tex2 min filter': 'FTNearest', 'tex3scale': 1.0, 'tex2scale': 1.0, 'tex2 mag filter': 'FTNearest', 'tex3 mag filter': 'FTNearest', 'tex1 mag filter': 'FTNearest', 'detailmap4': '', 'tex4 min filter': 'FTNearest', 'tex1 min filter': 'FTNearest', 'tex4scale': 1.0, 'detailmap1': 'sky.jpg', 'tex4 mag filter': 'FTNearest'}"
+    "{'mixmap': 'sky-mix.png', 'tex1scale': 10.0, 'tex3scale': 1.0, 'tex2 mag filter': 'FTNearest', 'tex3 mag filter': 'FTNearest', 'detailmap4': '', 'detailmap3': 'stone.png', 'detailmap2': 'dirt.png', 'detailmap1': 'sky.jpg', 'tex1 mag filter': 'FTNearest', 'tex4 min filter': 'FTNearest', 'tex4 mag filter': 'FTNearest', 'tex3 min filter': 'FTNearest', 'tex2 min filter': 'FTNearest', 'tex2scale': 1.0, 'tex1 min filter': 'FTNearest', 'tex4scale': 1.0, 'textureOffEnabled': False}"
   }
   <Instance> smiley.egg.pz {
     <Transform> {
@@ -557,7 +554,7 @@
       NodePathWrapper
     }
     <Comment> parameters {
-      "{}"
+      "{'textureOffEnabled': False}"
     }
     <File> ExtRef {
       "models/smiley.egg.pz"
@@ -577,7 +574,7 @@
     ParticleSystemWrapper
   }
   <Comment> parameters {
-    "{'transparency': 'MDual'}"
+    "{'color': (1.0, 1.0, 1.0, 1.0), 'textureOffEnabled': False, 'transparency': 'MDual'}"
   }
   <File> ExtRef {
     "particlesystems/waterfall.ptf"

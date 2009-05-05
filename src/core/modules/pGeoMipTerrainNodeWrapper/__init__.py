@@ -25,6 +25,7 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
     else:
       name = 'GeoMipTerrain'
     objectInstance = super(GeoMipTerrainNodeWrapper, self).onCreateInstance(parent, name)
+    print "I: GeoMipTerrainNodeWrapper.onCreateInstance:", parent, filepath
     objectInstance.setHeightfield(filepath)
     return objectInstance
   onCreateInstance = classmethod(onCreateInstance)
@@ -238,6 +239,8 @@ class GeoMipTerrainNodeWrapper(BaseWrapper, DirectObject):
   
   def setHeightfield(self, filepath):
     ''' define a new heightmap '''
+    
+    print "I: GeoMipTerrainNodeWrapper.setHeightfield:", filepath
     
     if filepath:
       # it's a absolute filepath, convert it to a relative

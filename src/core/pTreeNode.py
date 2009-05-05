@@ -180,12 +180,12 @@ class TreeNode(object):
     # this should maybe run
     def recurse(parent):
       for child in parent.getChildren()[:]: # accessing it directly causes it to miss childrens
-        print "I: TreeNode.destroy: recurse", child
+        #print "I: TreeNode.destroy: recurse", child
         recurse(child)
         child.destroy()
     recurse(self)
     
-    print "I: TreeNode.destroy:", self
+    #print "I: TreeNode.destroy:", self
     self.stopEdit()
     self.setEditmodeDisabled()
     TreeNode.detachNode(self)

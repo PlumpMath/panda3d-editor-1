@@ -115,6 +115,7 @@ class EditorApp(AppShell):
     #base.accept(EDITOR_TOGGLE_ON_EVENT, )
   
   def appInit(self):
+    print "I: EditorApp.appInit"
     """Overridden from WxAppShell.py."""
     # Create a new event loop (to overide default wxEventLoop)
     self.evtLoop = wx.EventLoop()
@@ -187,12 +188,13 @@ class EditorApp(AppShell):
   
   def initialize(self):
     """Initializes the viewports and editor."""
+    print "I: EditorApp.initialize"
     self.Update()
     ViewportManager.updateAll()
     self.wxStep()
     ViewportManager.initializeAll()
     self.reloadViewportMenus()
-    self.editorInstance.toggle("WorldEditMode")
+    #self.editorInstance.toggle("WorldEditMode")
     # Position the camera
     if base.trackball != None:
       base.trackball.node().setPos(0, 30, 0)
@@ -239,10 +241,10 @@ class EditorApp(AppShell):
     self.editorInstance.destroyAllModels()
   
   def onOpen(self, evt = None):
-    filter = "Panda3D Egg Format (*.egg)|*.[eE][gG][gG];*.egg"
-    filter += "|Panda3D Compressed Egg Format (*.egg.pz)|*.[eE][gG][gG].[pP][zZ];*.egg.pz"
-    filter += "|Panda3D Binary Format (*.bam)|*.[bB][aA][mM];*.bam"
-    filter += "|Panda3D Compressed Binary Format (*.bam)|*.[bB][aA][mM].[pP][zZ];*.bam.pz"
+    filter = "Panda3D Egg Scene Format (*.egs)|*.[eE][gG][sS];*.egs"
+    #filter += "|Panda3D Compressed Egg Format (*.egg.pz)|*.[eE][gG][gG].[pP][zZ];*.egg.pz"
+    #filter += "|Panda3D Binary Format (*.bam)|*.[bB][aA][mM];*.bam"
+    #filter += "|Panda3D Compressed Binary Format (*.bam)|*.[bB][aA][mM].[pP][zZ];*.bam.pz"
     ''' # disabled by hypnos, making the loading work
     filter += "|MultiGen (*.flt)|*.[fF][lL][tT]"
     filter += "|Lightwave (*.lwo)|*.[lL][wW][oO]"

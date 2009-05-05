@@ -177,7 +177,7 @@ class EditorClass(DirectObject): #, FSM):
     self.treeParent.saveAs(filepath)'''
   
   def loadEggModelsFile(self, filepath):
-    
+    print "I: EditorClass.loadEggModelsFile:", filepath
     filebase, filetype = os.path.splitext(filepath)
     if filetype == '.egg':
       print "I: EditorClass.loadEggModelsFile: NodePath"
@@ -269,6 +269,7 @@ class EditorClass(DirectObject): #, FSM):
     self.destroyScene()
     self.treeParent = SceneNodeWrapper.onCreateInstance(None, '')
     self.treeParent.saveAs(filepath)
+    # this must be set, because the parent path has changed
     self.treeParent.setScene(filepath)
     if self.editModeEnabled:
       self.treeParent.setEditmodeEnabled()
