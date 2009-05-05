@@ -176,7 +176,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.object = None
     self.selection = None
     self.SetSizer(self.sizer)
-    self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.viewForNodePath)
+    self.accept(EVENT_MODELCONTROLLER_SELECTED_OBJECT_CHANGE, self.viewForNodePath)
     self.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, self.viewForSelection)
     self.previewCheck.Bind(wx.EVT_CHECKBOX, self.onChangePreview)
     self.button.Bind(wx.EVT_BUTTON, self.onAddNewTextureStage)

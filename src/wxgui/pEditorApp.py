@@ -99,7 +99,7 @@ class EditorApp(AppShell):
     # Setup some events
     base.accept("c", self.onCenterTrackball)
     
-    base.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.onModelSelect)
+    base.accept(EVENT_MODELCONTROLLER_SELECTED_OBJECT_CHANGE, self.onModelSelect)
     # If a model-translate-rotate-scale tool is selected the automatic mouse
     # movement has to be disable to prevent camera & object movement.
     # Hmm doesnt really work as well... (camera is still moved)

@@ -7,6 +7,11 @@ with permission to use it in the editor
 from pandac.PandaModules import PNMImage, GeoMipTerrain, NodePath, Texture, TextureStage, TexturePool
 from pShader import ShaderWriter
 
+# Okay, there's an issue here. The code needs a GSG instance to determine if shaders are supported.
+# But, currently the terrain might already get created before theres any GSG. So, currently we're
+# assuming that shasders are supported.
+# We'll need to find a solution for this.
+
 class VTextureMapMode:
   Multiply = 0
   Add = 1
@@ -120,7 +125,7 @@ class ShaderNode:
     if self.LightMap == "": self.LightMap = None
     
     # Does it have a detail map?
-    if len(self.AlphaMaps) > 0 and base.win.getGsg().getSupportsBasicShaders():
+    if len(self.AlphaMaps) > 0:
       self._textureDetailed()
     elif self.TextureMap != None:
       self.Root.setTexture(self.TextureMap, 1)

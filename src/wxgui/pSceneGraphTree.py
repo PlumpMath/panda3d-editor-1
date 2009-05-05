@@ -33,7 +33,7 @@ class SceneGraphTree(wx.TreeCtrl, DirectObject):
     self.reload()
     
     self.accept(EVENT_SCENEGRAPH_REFRESH, self.reload)
-    self.accept(EVENT_MODELCONTROLLER_SELECT_MODEL_CHANGE, self.selectNodePath)
+    self.accept(EVENT_MODELCONTROLLER_SELECTED_OBJECT_CHANGE, self.selectNodePath)
   
   def onSelChange(self, item):
     """This event gets invoked when the selection gets changed on the tree view."""
