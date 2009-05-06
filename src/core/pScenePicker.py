@@ -90,6 +90,7 @@ class ScenePicker(DirectObject):
   def onWindowFocusChange(self):
     """Used if the focused window has changed."""
     if len(WindowManager.windows) == 1: return
+    if not self.editmodeEnabled: return
     if WindowManager.activeWindow == None:
       self.mouseRayCameraNodePath.detachNode()
       self.editorPickerNodePath.detachNode()

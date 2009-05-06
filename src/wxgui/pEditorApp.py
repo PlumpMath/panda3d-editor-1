@@ -103,8 +103,8 @@ class EditorApp(AppShell):
     # If a model-translate-rotate-scale tool is selected the automatic mouse
     # movement has to be disable to prevent camera & object movement.
     # Hmm doesnt really work as well... (camera is still moved)
-    base.accept(EVENT_MODELCONTROLLER_EDITTOOL_SELECTED, base.disableMouse)
-    base.accept(EVENT_MODELCONTROLLER_EDITTOOL_DESELECTED, base.enableMouse)
+    base.accept(EVENT_MODELCONTROLLER_EDITTOOL_SELECTED, lambda x=None:base.disableMouse())
+    base.accept(EVENT_MODELCONTROLLER_EDITTOOL_DESELECTED, lambda x=None:base.enableMouse())
     base.accept(EVENT_MODELCONTROLLER_FULL_REFRESH, self.__setattr__, ["modified", True])
     # The object has been modified in the scene, this event happens every frame
     #base.accept(EVENT_MODELCONTROLLER_FAST_REFRESH, )
@@ -205,6 +205,9 @@ class EditorApp(AppShell):
     self.sceneGraphTree.reload()
     if not isinstance(self.view, Viewport):
       self.view.center()
+    
+    # Initialize some stuff
+    self.editorInstance.toggleEditmode(True)
   
   def reloadViewportMenus(self):
     """Reloads the viewport menus."""
@@ -381,6 +384,7 @@ class EditorApp(AppShell):
     ViewportManager.updateAll()
     self.wxStep()
     ViewportManager.initializeAll()
+    messenger.send("window-event")
   
   def onToggleGrid(self, evt = None):
     """Toggles the grid on/off."""

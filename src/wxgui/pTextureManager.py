@@ -8,7 +8,7 @@ import wx
 # Local imports
 from core.pConfigDefs import *
 from core.pModelController import modelController
-from core.pTexturePainter import texturePainter
+from core.pTexturePainter import *
 from core.pWindow import WindowManager
 
 THUMBNAIL_SIZE =  64
@@ -204,7 +204,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.previewPlane.setLightOff(1000)
     self.previewCamera.node().setScene(self.previewPlane)
     self.previewBuffer.addRenderTexture(self.previewTexture, GraphicsOutput.RTMCopyRam)
-    self.previewCamera.node().setActive(texturePainter.enabled)
+    self.previewCamera.node().setActive(texturePainter.texturePainterStatus == TEXTURE_PAINTER_STATUS_ENABLED)
     self.Layout()
   
   def __destroyPreview(self):
@@ -256,7 +256,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
   
   def reset(self):
     """Clears the TextureManager by deleting all layers."""
-    if texturePainter.enabled:
+    if texturePainter.texturePainterStatus == TEXTURE_PAINTER_STATUS_ENABLED:
       self.disablePaint()
     self.selection = None
     for l in self.layers:
@@ -269,6 +269,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     self.check.Disable()
   
   def __addLayer(self, stage = None, tex = None):
+    if tex == None: return None
     layer = TextureLayer(self.panel, stage, tex)
     layer.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
     self.psizer.Add(layer, 0, wx.EXPAND, 0)
@@ -311,9 +312,9 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
     if self.object == None or self.selection == None: # Huh? Something must be wrong.
       self.paint.Disable()
       return
-    if self.paint.Value and not texturePainter.enabled:
+    if self.paint.Value and not texturePainter.texturePainterStatus == TEXTURE_PAINTER_STATUS_ENABLED:
       self.enablePaint()
-    elif texturePainter.enabled and not self.paint.Value:
+    elif texturePainter.texturePainterStatus == TEXTURE_PAINTER_STATUS_ENABLED and not self.paint.Value:
       self.disablePaint()
   
   def enablePaint(self):
@@ -358,7 +359,7 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
       self.selection = None
     self.selection = layer
     # If we have a painter, update it for the new selection.
-    if texturePainter.enabled or self.paint.Value:
+    if texturePainter.texturePainterStatus == TEXTURE_PAINTER_STATUS_ENABLED or self.paint.Value:
       if layer == None:
         self.disablePaint()
       else:
@@ -377,11 +378,14 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
       self.check.Value = layer.stage.getSavedResult()
       layer.select()
   
-  def viewForNodePath(self, nodePath):
+  def viewForNodePath(self, obj):
     """Updates the control based on the specified NodePath."""
     self.reset()
+    if obj == None:
+      self.object = None
+      return
+    nodePath = obj.getNodepath()
     self.object = nodePath
-    if nodePath == None: return
     self.button.Enable()
     stages = nodePath.findAllTextureStages()
     if not hasattr(Texture, "__iter__"):
