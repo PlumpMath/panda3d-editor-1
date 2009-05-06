@@ -242,6 +242,10 @@ class AnimatedTextureWrapper(TreeNode):
     if self.active:
       # load the textures
       self.textures = list()
+      sizex = -1
+      sizey = -1
+      ctype = None
+      format = None
       for i in xrange(self.imageStartNumber,self.imageEndNumber):
         try:
           if '%' in self.imageBasename:
@@ -249,6 +253,15 @@ class AnimatedTextureWrapper(TreeNode):
           else:
             tex = loader.loadTexture(self.imageBasename)
           self.textures.append(tex)
+          # Make sure they are all the same size and format
+          assert sizex == -1 or tex.getXSize() == sizex
+          assert sizey == -1 or tex.getYSize() == sizey
+          assert ctype == None or tex.getComponentType() == ctype
+          assert format == None or tex.getFormat() == format
+          sizex = tex.getXSize()
+          sizey = tex.getYSize()
+          ctype = tex.getComponentType()
+          format = tex.getFormat()
           tex.setWrapU(self.textureWrapU)
           tex.setWrapV(self.textureWrapV)
           tex.setMinfilter(self.textureMinFilter)
@@ -291,8 +304,13 @@ class AnimatedTextureWrapper(TreeNode):
     # apply the texture
     try:
       texture = self.textures[i]
-      self.getNodepath().setTexture(self.textureStage, texture, self.texturePriority)
+      if not self.getNodepath().hasTexture(self.textureStage):
+        tex = Texture()
+        tex.setup2dTexture(texture.getXSize(), texture.getYSize(), texture.getComponentType(), texture.getFormat())
+        self.getNodepath().setTexture(self.textureStage, tex, self.texturePriority)
+      self.getNodepath().getTexture(self.textureStage).setRamImage(texture.getRamImage())
     except:
+      raise
       print "W: AnimatedTextureWrapper.updateTask: error with texture", i
     # do the task again
     return task.cont
