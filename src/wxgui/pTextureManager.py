@@ -246,7 +246,9 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
       if not hasattr(Texture, "__iter__"):
         stages = [stages.getTextureStage(i) for i in range(stages.getNumTextureStages())]
       for stage in stages:
-        self.previewPlane.setTexture(stage, self.object.findTexture(stage))
+        tex = self.object.findTexture(stage)
+        if tex != None:
+          self.previewPlane.setTexture(stage, tex)
     wasActive = self.previewCamera.node().isActive()
     self.previewCamera.node().setActive(True)
     base.graphicsEngine.renderFrame()
@@ -319,7 +321,6 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
   
   def enablePaint(self):
     self.paint.Value = True
-    modelController.disableEditmode(deselect = False)
     texturePainter.startEditor(self.object, self.selection.tex)
     #texturePainter.selectPaintModel()
     texturePainter.startEdit()
@@ -333,7 +334,6 @@ class TextureManager(wx.ScrolledWindow, DirectObject):
       self.previewCamera.node().setActive(False)
     self.paint.Value = False
     texturePainter.disableEditor()
-    modelController.enableEditmode()
     taskMgr.remove("_TextureManager__updatePreview")
   
   def onChangeMode(self, evt):
