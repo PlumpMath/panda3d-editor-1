@@ -75,6 +75,16 @@ class MenuBarGui(DirectObject):
       nodeButtonDefinitions.append( ['surfaceCurve', self.createModelWrapper, ['CurveSurfaceNodeWrapper']] )
     if 'AnimatedTextureWrapper' in possibleChildren:
       nodeButtonDefinitions.append( ['animated texture', self.createModelWrapper, ['AnimatedTextureWrapper']] )
+    
+    if 'ObjectEggGroup' in possibleChildren:
+      nodeButtonDefinitions.append( ['Egg Group', self.createEggWrapper, ['ObjectEggGroup']] )
+    if 'ObjectEggGroup' in possibleChildren:
+      nodeButtonDefinitions.append( ['Egg Polygon', self.createEggWrapper, ['ObjectEggPolygon']] )
+    if 'ObjectEggGroup' in possibleChildren:
+      nodeButtonDefinitions.append( ['Egg Texture', self.createEggWrapper, ['ObjectEggTexture']] )
+    if 'ObjectEggGroup' in possibleChildren:
+      nodeButtonDefinitions.append( ['Egg VertexPool', self.createEggWrapper, ['ObjectEggVertexPool']] )
+    
     self.nodeButtons = self.createInterface(nodeButtonDefinitions, 'nodes', align=ALIGN_RIGHT|ALIGN_TOP, pos=Vec3(-.85,0,0))
     
     lightButtonDefinitions = list()
@@ -198,6 +208,17 @@ class MenuBarGui(DirectObject):
       objectInstance.setEditmodeEnabled()
     messenger.send(EVENT_SCENEGRAPH_REFRESH)
     modelController.selectObject(objectInstance)
+  
+  def createEggWrapper(self, type):
+    # create the actual wrapper of the object
+    module = __import__("core.modules.pNodePathWrapper.p%s" % type, globals(), locals(), [type], -1)
+    modelParent = modelController.getSelectedObject()
+    objectInstance = getattr(module, type).onCreateInstance(modelParent)
+    if objectInstance is not None:
+      objectInstance.setEditmodeEnabled()
+    messenger.send(EVENT_SCENEGRAPH_REFRESH)
+    modelController.selectObject(objectInstance)
+  
   
   def createInterface( self, buttonDefinitions, title, align, pos ):
     buttons = list()

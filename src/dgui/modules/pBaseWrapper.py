@@ -15,7 +15,7 @@ from dgui.pScenegraphBrowser import *
 from core.pModelIdManager import modelIdManager
 from core.pConfigDefs import *
 from core.modules.pBaseWrapper import TransparencyEnum, AntialiasEnum
-from core.modules.pNodePathWrapper.pEggGroup import EggGroup_CollideFlags_Bitmask, \
+from core.modules.pNodePathWrapper.pObjectEggGroup import EggGroup_CollideFlags_Bitmask, \
 EggGroup_CollisionSolidType_Enum, EggGroup_DCSType_Enum, \
 EggGroup_BillboardType_Enum
 
@@ -415,7 +415,7 @@ class BaseWrapper(DirectObject):
             # it's using a callback function, inbetween call and callback
             # this interface could be destroyed, so it's setting the
             # values directly onto the object
-            pass 
+            pass
           elif paramType.__name__ == "Enum":
             pass # doesnt need conversion
           elif paramType.__name__ == "Filename" or paramType.__name__ == "P3Filename":
@@ -476,7 +476,8 @@ class BaseWrapper(DirectObject):
                 paramEntry["indicatorValue"] = currentValue
                 paramEntry.setIndicatorValue()
               elif paramType.__name__ == "TreeNode":
-                paramEntry.enterText(str(currentValue))
+                shortName = ' '.join(str(currentValue).split()[1:])
+                paramEntry.enterText(shortName)
               elif paramType.__name__ == "Enum":
                 entryValue = paramEntry.get()
                 if entryValue != currentValue:

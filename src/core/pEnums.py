@@ -219,3 +219,25 @@ EggTexture_CombineMode_Enum = Enum(
   CMDot3Rgba = EggTexture.CMDot3Rgba,
 )
 
+EggTexture_CombineSource_Enum = Enum(
+  CSUndefined = EggTexture.CSUnspecified,
+  CSTexture = EggTexture.CSTexture,
+  CSConstant = EggTexture.CSConstant,
+  CSPrimaryColor = EggTexture.CSPrimaryColor,
+  CSPrevious = EggTexture.CSPrevious,
+  CSConstantColorScale = EggTexture.CSConstantColorScale,
+  CSLastSavedResult = EggTexture.CSLastSavedResult,
+)
+
+EggTexture_CombineOperand_Enum = Enum(
+  COUndefined        = EggTexture.COUnspecified,
+  COSrcColor         = EggTexture.COSrcColor,
+  COOneMinusSrcColor = EggTexture.COOneMinusSrcColor,
+  COSrcAlpha         = EggTexture.COSrcAlpha,
+  COOneMinusSrcAlpha = EggTexture.COOneMinusSrcAlpha,
+)
+
+EggTexture_CombineChannel_Enum = Enum(
+  CCRgb = EggTexture.CCRgb,
+  CCAlpha = EggTexture.CCAlpha,
+)

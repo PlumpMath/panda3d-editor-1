@@ -10,7 +10,7 @@ from core.pConfigDefs import *
 #from core.pTreeNode import *
 from core.modules.pBaseWrapper import *
 from core.pTexturePainter import texturePainter, PNMBrush_BrushEffect_Enum
-from core.modules.pNodePathWrapper.pEggTexture import Texture_Mag_FilterType_Enum, Texture_Min_FilterType_Enum
+from core.modules.pNodePathWrapper.pObjectEggTexture import Texture_Mag_FilterType_Enum, Texture_Min_FilterType_Enum
 
 from terrainShader import ShaderNode
 

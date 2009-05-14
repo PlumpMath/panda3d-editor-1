@@ -6,17 +6,25 @@ from pandac.PandaModules import *
 
 from core.modules.pBaseWrapper import *
 from core.pConfigDefs import *
-from core.modules.pNodePathWrapper.pEggData import *
-from core.modules.pNodePathWrapper.pEggGroup import *
-from core.modules.pNodePathWrapper.pEggTexture import *
-from core.modules.pNodePathWrapper.pEggVertexPool import *
-from core.modules.pNodePathWrapper.pEggPolygon import *
+from core.modules.pNodePathWrapper.pObjectEggData import *
+from core.modules.pNodePathWrapper.pObjectEggGroup import *
+from core.modules.pNodePathWrapper.pObjectEggTexture import *
+from core.modules.pNodePathWrapper.pObjectEggVertexPool import *
+from core.modules.pNodePathWrapper.pObjectEggPolygon import *
+from core.modules.pNodePathWrapper.pObjectEggPolygonGroup import *
 
 DEBUG = False
 
 def getEggDataEditable(parent, objectNode, modelFilepath):
   ''' Egg Data parser
   '''
+  
+  # the textures read from the polygons
+  polygonTextures = dict()
+  polygonTextures['all'] = list()
+  # the textures found in the egg
+  textures = dict()
+  
   def recurse(parent, objectNode, eggParentData):
     ret = None
     if type(eggParentData) == EggData:
@@ -30,10 +38,17 @@ def getEggDataEditable(parent, objectNode, modelFilepath):
         recurse(subParent, objectNode, eggChildData)
       ret = subParent
     elif type(eggParentData) == EggPolygon:
-      #ObjectEggPolygon(parent, objectNode, eggParentData)
-      pass
+      # store what texture is assigned to the polygon
+      texList = eggParentData.getTextures()
+      for tex in texList:
+        if not tex in polygonTextures:
+          polygonTextures[tex] = list()
+        polygonTextures[tex].append(eggParentData)
+      polygonTextures['all'].append(eggParentData)
     elif type(eggParentData) == EggTexture:
       ret = ObjectEggTexture(parent, objectNode, eggParentData)
+      # store the textures we have
+      textures[eggParentData] = ret
     elif type(eggParentData) == EggVertexPool:
       ret = ObjectEggVertexPool(parent, objectNode, eggParentData)
     elif type(eggParentData) == EggComment:
@@ -48,7 +63,29 @@ def getEggDataEditable(parent, objectNode, modelFilepath):
   
   eggData = EggData()
   eggData.read(Filename(modelFilepath))
-  return recurse(parent, objectNode, eggData)
+  newParent = recurse(parent, objectNode, eggData)
+  
+  print "--- model ---"
+  print polygonTextures
+  print textures
+  print "--- done ---"
+  i = 0
+  for eggTex, texPolygons in polygonTextures.items():
+    i += 1
+    if eggTex in textures:
+      # now we should create a polygon group, that is added to the objectEgg
+      # so newly created textures may assign themself to this polygonGroup
+      polyGroup = ObjectEggPolygonGroup(newParent, "polygonGroup-%i" % i)
+      polyGroup.setPolygons(texPolygons)
+      textures[eggTex].polygonGroup = polyGroup
+    if eggTex == 'all':
+      polyGroup = ObjectEggPolygonGroup(newParent, "polygonGroup-all")
+      polyGroup.setPolygons(texPolygons)
+      # define default polygon group
+      parent.defaultPolygonGroup = polyGroup
+    
+  
+  return newParent
 
 class NodePathWrapper(BaseWrapper):
   className = 'Model'

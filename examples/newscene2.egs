@@ -45,7 +45,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{'color': (1.0, 1.0, 1.0, 1.0), 'shaderOff': 1, 'textureOffEnabled': True, 'colorOff': 1, 'lightOff': 1}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/plants/shrubbery.egg"
@@ -64,7 +64,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{'color': (1.0, 1.0, 1.0, 1.0), 'shaderOff': 1, 'textureOffEnabled': True, 'textureOffPriority': 0, 'colorOff': 1, 'lightOff': 1}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/plants/palm-v1.egg"
@@ -102,7 +102,7 @@
     NodePathWrapper
   }
   <Comment> parameters {
-    "{'shaderOff': 1, 'textureOffEnabled': True, 'lightOff': 1}"
+    "{'textureOffEnabled': False}"
   }
   <File> ExtRef {
     "models/plants/palm-v1.egg"
@@ -548,7 +548,7 @@
       1 0 0 0
       0 1 0 0
       0 0 1 0
-      0 0 37.5488 1
+      -9.7307 0 50 1
     }
   }
   <Tag> modelWrapperTypeTag {
@@ -756,5 +756,21 @@
         "{'textureOffEnabled': False}"
       }
     }
+  }
+}
+<Instance> BaseWrapper {
+  <Transform> {
+    <Matrix4> {
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      -27.1484 0 59.5052 1
+    }
+  }
+  <Tag> modelWrapperTypeTag {
+    AmbientLightNodeWrapper
+  }
+  <Comment> parameters {
+    "{'color': (0.5, 0.5, 0.5, 0.5), 'priority': 0, 'textureOffEnabled': False}"
   }
 }
